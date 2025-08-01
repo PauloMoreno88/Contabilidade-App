@@ -181,7 +181,7 @@ export default function ExactraWebsite() {
                         title="Localização da empresa"
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3675.3034780046787!2d-43.182119489840446!3d-22.902174679171736!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x997f5ea098bd19%3A0xdfe48b54e7700035!2sR.%20da%20Alf%C3%A2ndega%2C%2080%20-%20Centro%2C%20Rio%20de%20Janeiro%20-%20RJ%2C%2020070-004!5e0!3m2!1spt-BR!2sbr!4v1754055984476!5m2!1spt-BR!2sbr"
                         width="100%"
-                        height="400px"
+                        className="w-full min-h-[300px] sm:min-h-[400px]"
                         style={{ border: 0 }}
                         allowFullScreen
                         loading="lazy"
