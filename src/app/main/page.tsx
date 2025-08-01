@@ -43,7 +43,9 @@ export default function ExactraWebsite() {
                 </div>
                 <nav className="space-x-6 flex flex-col gap-2 items-center sm:flex sm:flex-row sm:justify-center sm:gap-5">
                     <a href="#servicos" className="hover:text-[#C82333] mt-3 mr-0 sm:mt-0">Serviços</a>
-                    <a href="#contato" className="hover:text-[#C82333]">Contato</a>
+                    <a href="#orcamento" className="hover:text-[#C82333] mt-3 mr-0 sm:mt-0">Orçamento</a>
+                    <a href="#localizacao" className="hover:text-[#C82333] mt-3 mr-0 sm:mt-0">Localização</a>
+                    <a href="#contato" className="hover:text-[#C82333] mt-3 mr-0 sm:mt-0">Contato</a>
                 </nav>
             </motion.header>
 
@@ -163,6 +165,28 @@ export default function ExactraWebsite() {
                         </motion.button>
                     </form>
 
+                </div>
+            </motion.section>
+            <motion.section
+                id="localizacao"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="py-20 px-6 text-center bg-[#0F253A]"
+            >
+                <div className="max-w-xl mx-auto text-center">
+                    <h2 className="text-3xl font-semibold mb-6">Onde estamos</h2>
+                    <iframe
+                        title="Localização da empresa"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3675.3034780046787!2d-43.182119489840446!3d-22.902174679171736!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x997f5ea098bd19%3A0xdfe48b54e7700035!2sR.%20da%20Alf%C3%A2ndega%2C%2080%20-%20Centro%2C%20Rio%20de%20Janeiro%20-%20RJ%2C%2020070-004!5e0!3m2!1spt-BR!2sbr!4v1754055984476!5m2!1spt-BR!2sbr"
+                        width="100%"
+                        height="400px"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                    />
                 </div>
             </motion.section>
             <motion.section
