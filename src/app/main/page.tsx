@@ -1,13 +1,14 @@
 'use client';
 
-import { Mail, Phone, Briefcase, ShieldCheck } from "lucide-react";
+import { Mail, Phone, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 export default function ExactraWebsite() {
-    const numero = "5521964513731";
+    const numero = "5521992635721";
     const mensagem = "Olá, gostaria de um orçamento.";
-    const email = "paulo.moreno8804@gmail.com"
+    const email = "contato@exactracontabilidade.com.br"
     const linkWhatsapp = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,9 +38,8 @@ export default function ExactraWebsite() {
             >
                 <div className="text-3xl font-bold text-white flex items-center gap-2">
                     <span className="text-[#C82333] text-4xl">
-                        <ShieldCheck size="50" />
+                        <Image src={'/trace.svg'} alt='logo' width={80} height={80} />
                     </span>
-                    EXACTRA
                 </div>
                 <nav className="space-x-6 flex flex-col gap-2 items-center sm:flex sm:flex-row sm:justify-center sm:gap-5">
                     <a href="#servicos" className="hover:text-[#C82333] mt-3 mr-0 sm:mt-0">Serviços</a>
@@ -53,7 +53,8 @@ export default function ExactraWebsite() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="text-center py-24 px-4 flex flex-col items-center bg-[#0F253A] gap-5"
             >
-                <ShieldCheck size="120" color="#C82333" />
+                <Image src={'/trace.svg'} alt='logo' width={200} height={200} />
+
                 <h1 className="text-4xl md:text-6xl font-bold">Contabilidade com Precisão e Agilidade</h1>
                 <p className="text-lg text-gray-300 max-w-2xl mx-auto">
                     Soluções contábeis modernas e personalizadas para pequenas e médias empresas.

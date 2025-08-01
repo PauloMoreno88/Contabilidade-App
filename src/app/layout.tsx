@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Exactra - Contabilidade",
   description: "Exactra - Contabilidade com Precisão e Agilidade",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/trace.svg",
   }
 };
 
