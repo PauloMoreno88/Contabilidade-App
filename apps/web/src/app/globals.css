@@ -1,51 +1,82 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Exactra tokens (variant D of the prototype). */
+@theme {
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #eff2f5;
+  --color-surface-3: #e4e9ed;
+  --color-line: #dce3e9;
+  --color-ink: #10202b;
+  --color-muted: #3e4f61;
+  --color-faint: #56697c;
+  --color-brand: #c82333;
+  --color-brand-dark: #a61b29;
+  --color-wa: #25d366;
+  --color-wa-dark: #1fb356;
+  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-geist-mono), "Courier New", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  scroll-behavior: smooth;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
   overflow-x: hidden;
+}
+
+section[id] {
+  scroll-margin-top: 76px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[1080px] px-4 sm:px-6;
+  }
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg px-[22px] py-[13px] text-[0.95rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35;
+  }
+  .btn-primary {
+    @apply bg-brand text-white hover:bg-brand-dark;
+  }
+  .btn-ghost {
+    @apply border border-line bg-transparent text-ink hover:border-muted;
+  }
+  .btn-wa {
+    @apply bg-wa text-[#06130c] hover:bg-wa-dark;
+  }
+  .field-input {
+    @apply w-full rounded-lg border border-line bg-bg px-3 py-[11px] text-[0.95rem] text-ink focus:border-brand focus:outline-2 focus:outline-offset-1 focus:outline-brand;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 ::-webkit-scrollbar {
   width: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0A1B2A; /* Fundo do track */
+  background: var(--color-surface-2);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #C82333; /* Cor do scroll */
+  background: var(--color-brand);
   border-radius: 10px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #A61B29; /* Cor ao passar o mouse */
-}
-
-/* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #C82333 #0A1B2A;
+  scrollbar-color: var(--color-brand) var(--color-surface-2);
 }
