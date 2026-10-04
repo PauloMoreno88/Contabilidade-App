@@ -4,6 +4,7 @@
   "packageManager": "pnpm@12.9.1",
   "engines": { "node": ">=20" },
   "scripts": {
+    "dev": "pnpm --parallel --filter web --filter api run \"/^(dev|start:dev)$/\"",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm -r build",
