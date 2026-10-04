@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ShieldCheck } from "lucide-react";
+import { Info, ShieldCheck } from "lucide-react";
 import {
   allowedPeriods,
   createCheckoutSchema,
@@ -32,6 +32,7 @@ export function CheckoutForm() {
   const params = useSearchParams();
   const initialPlan = params.get("plan");
   const leadId = params.get("lead") ?? undefined;
+  const canceled = params.get("cancelado") === "1";
 
   const [plan, setPlan] = useState<PlanId>(isPlan(initialPlan) ? initialPlan : "profissional");
   const [method, setMethod] = useState<PaymentMethod>("CARD");
@@ -91,6 +92,15 @@ export function CheckoutForm() {
     <form onSubmit={submit} onInput={() => setErrors({})} noValidate className="grid gap-10 lg:grid-cols-[1fr_340px] lg:items-start">
       <div>
         <h1 className="mb-8 text-[clamp(1.6rem,3vw,2.15rem)] font-semibold tracking-tight">{copy.title}</h1>
+        {canceled && (
+          <div role="status" className="mb-8 flex gap-3 rounded-[14px] border border-line bg-surface-2 p-4">
+            <Info size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" />
+            <div>
+              <p className="font-medium">{copy.canceled.title}</p>
+              <p className="mt-1 text-[0.88rem] text-muted">{copy.canceled.text}</p>
+            </div>
+          </div>
+        )}
 
         <ChoiceGroup
           name="plan"

@@ -24,7 +24,7 @@ export function LoginForm() {
     setBusy(false);
     if (error) return setError(copy.login.invalid);
     setError(undefined);
-    if (data?.twoFactorRedirect) setStep("totp");
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) setStep("totp");
     else router.replace("/admin");
   }
 

@@ -15,7 +15,8 @@ type Field = keyof typeof copy.errors;
 type Props = {
   answers: SimulatorAnswers;
   result: SimulatorResult;
-  onUnlocked: (leadId: string) => void;
+  /** Receives the lead id and the result recomputed by the API (source of truth). */
+  onUnlocked: (leadId: string, result: SimulatorResult) => void;
 };
 
 /** Light gate: shows a preview, unlocks the detailed values after name + WhatsApp + consent. */
@@ -50,8 +51,8 @@ export function LeadGate({ answers, result, onUnlocked }: Props) {
     setErrors({});
     setSending(true);
     try {
-      const { id } = await api.createLead(parsed.data);
-      onUnlocked(id);
+      const res = await api.createLead(parsed.data);
+      onUnlocked(res.id, res.result);
     } catch {
       setErrors({ request: copy.errors.request });
       setSending(false);

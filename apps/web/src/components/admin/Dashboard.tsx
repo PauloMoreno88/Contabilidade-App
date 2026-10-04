@@ -8,6 +8,7 @@ import {
   PAYMENT_METHODS,
   PLAN_IDS,
   PLANS,
+  type AdminContractsQuery,
   type AdminMetrics,
   type ContractStatus,
   type PaymentMethod,
@@ -16,8 +17,8 @@ import {
 import { adminCopy, statusLabels } from "@/config/admin";
 import { methodLabels } from "@/config/checkout";
 import { api } from "@/lib/api";
-import type { ContractFilters } from "@/lib/api/admin-types";
 import { formatBRL, formatDate } from "@/lib/format";
+import { Pager } from "./Pager";
 import { StatusBadge } from "./StatusBadge";
 import { useLoad } from "./useLoad";
 
@@ -83,19 +84,27 @@ function Breakdown({ title, rows }: { title: string; rows: [string, number][] })
 
 function ContractsTable() {
   const c = copy.contracts;
-  const [filters, setFilters] = useState<ContractFilters>({});
+  const [filters, setFilters] = useState<AdminContractsQuery>({ page: 1 });
   const [exporting, setExporting] = useState(false);
+  const [exportFailed, setExportFailed] = useState(false);
+  // ponytail: one request per keystroke (stale responses are dropped); debounce if the API feels it.
   const rows = useLoad(() => api.adminContracts(filters), [JSON.stringify(filters)]);
-  const set = <K extends keyof ContractFilters>(k: K, v: string) => setFilters((f) => ({ ...f, [k]: v || undefined }));
+  // Any filter change goes back to page 1.
+  const set = <K extends keyof AdminContractsQuery>(k: K, v: string) => setFilters((f) => ({ ...f, [k]: v || undefined, page: 1 }));
 
   async function exportCsv() {
     setExporting(true);
-    const blob = await api.adminContractsCsv(filters);
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = c.csvName;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    setExportFailed(false);
+    try {
+      const blob = await api.adminContractsCsv({ ...filters, page: undefined });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = c.csvName;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      setExportFailed(true);
+    }
     setExporting(false);
   }
 
@@ -131,10 +140,11 @@ function ContractsTable() {
         </select>
       </div>
 
+      {exportFailed && <p role="alert" className="mb-3 text-[0.86rem] text-brand">{c.exportError}</p>}
       {rows.error && <p className="text-brand">{copy.loadError}</p>}
       {!rows.data && !rows.error && <p className="text-muted">{copy.loading}</p>}
-      {rows.data?.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{c.empty}</p>}
-      {!!rows.data?.length && (
+      {rows.data?.items.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{c.empty}</p>}
+      {!!rows.data?.items.length && (
         <div className="overflow-x-auto rounded-[14px] border border-line bg-surface">
           <table className="w-full min-w-[720px] text-left text-[0.88rem]">
             <thead className="border-b border-line text-[0.78rem] text-faint">
@@ -143,7 +153,7 @@ function ContractsTable() {
               </tr>
             </thead>
             <tbody>
-              {rows.data.map((r) => (
+              {rows.data.items.map((r) => (
                 <tr key={r.id} className="border-b border-line last:border-0 hover:bg-bg">
                   <td className="px-4 py-3">
                     <Link href={`/admin/contrato?id=${r.id}`} className="font-medium hover:text-brand">{r.customerName}</Link>
@@ -160,6 +170,7 @@ function ContractsTable() {
           </table>
         </div>
       )}
+      {rows.data && <Pager {...rows.data} onPage={(page) => setFilters((f) => ({ ...f, page }))} />}
     </section>
   );
 }

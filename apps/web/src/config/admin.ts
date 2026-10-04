@@ -1,5 +1,4 @@
-import type { ContractStatus } from "@exactra/shared";
-import type { AdminPayment } from "@/lib/api/admin-types";
+import type { ContractStatus, PaymentStatus } from "@exactra/shared";
 
 export const statusLabels: Record<ContractStatus, string> = {
   PENDING_PAYMENT: "Aguardando pagamento",
@@ -9,11 +8,10 @@ export const statusLabels: Record<ContractStatus, string> = {
   EXPIRED: "Vencido",
 };
 
-export const paymentStatusLabels: Record<AdminPayment["status"], string> = {
+export const paymentStatusLabels: Record<PaymentStatus, string> = {
   PAID: "Pago",
   PENDING: "Pendente",
   FAILED: "Falhou",
-  REFUNDED: "Estornado",
 };
 
 export const adminCopy = {
@@ -25,6 +23,12 @@ export const adminCopy = {
   signOut: "Sair",
   loading: "Carregando...",
   loadError: "Não foi possível carregar os dados. Recarregue a página.",
+  pager: {
+    label: "Paginação",
+    prev: "Anterior",
+    next: "Próxima",
+    summary: (from: number, to: number, total: number) => `${from}–${to} de ${total}`,
+  },
   login: {
     title: "Entrar no painel",
     email: "E-mail",
@@ -83,6 +87,7 @@ export const adminCopy = {
     exportCsv: "Exportar CSV",
     csvName: "contratos-exactra.csv",
     empty: "Nenhum contrato encontrado com esses filtros.",
+    exportError: "Não foi possível exportar agora. Tente de novo.",
     cols: { customer: "Cliente", plan: "Plano", method: "Pagamento", status: "Status", startsAt: "Início", endsAt: "Vence em" },
   },
   detail: {
@@ -102,10 +107,13 @@ export const adminCopy = {
     endsAt: "Vence em",
     payments: "Histórico de pagamentos",
     noPayments: "Nenhum pagamento registrado.",
+    lead: "Veio do simulador",
+    leadSummary: (revenue: string, plan: string, date: string) => `Faturamento informado ${revenue}, plano sugerido ${plan}, em ${date}`,
     cols: { date: "Data", amount: "Valor", method: "Forma", status: "Status" },
   },
   leads: {
     title: "Leads do simulador",
+    search: "Buscar por nome, e-mail ou WhatsApp",
     empty: "Nenhum lead ainda. Eles aparecem aqui quando alguém libera o resultado do simulador.",
     cols: { name: "Nome", whatsapp: "WhatsApp", revenue: "Faturamento", plan: "Plano sugerido", source: "Origem", createdAt: "Data" },
     noSource: "Direto",

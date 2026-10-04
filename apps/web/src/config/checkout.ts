@@ -18,6 +18,11 @@ export const periodLabels: Record<BillingPeriod, string> = {
 
 export const checkoutCopy = {
   title: "Contratar a Exactra",
+  /** Stripe cancel_url: /checkout?cancelado=1 */
+  canceled: {
+    title: "Pagamento não concluído",
+    text: "Você saiu antes de terminar e nada foi cobrado. Escolha a forma de pagamento e tente de novo quando quiser.",
+  },
   back: "Voltar para o site",
   planTitle: "Plano",
   methodTitle: "Forma de pagamento",
