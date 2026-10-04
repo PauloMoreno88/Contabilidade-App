@@ -168,6 +168,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@exactra/emails':
+        specifier: workspace:*
+        version: link:../../packages/emails
       '@exactra/shared':
         specifier: workspace:*
         version: link:../../packages/shared

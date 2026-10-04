@@ -1,23 +1,32 @@
 # API — Exactra Contabilidade
 
-NestJS 12 (ESM) + Prisma 7 (Postgres/Neon) + Better Auth. Build com `tsdown`, que embute o `@exactra/shared` (TS cru) no `dist/`.
+NestJS 12 (ESM) + Prisma 7 (Postgres/Neon) + Better Auth. Build com `tsdown`, que embute o `@exactra/shared` (TS cru) no `dist/`. Os e-mails vêm do `@exactra/emails` (React Email), consumido **compilado** (`packages/emails/dist`).
 
 ## Rodar localmente
 
 ```
 cp apps/api/.env.example apps/api/.env   # preencha DATABASE_URL e BETTER_AUTH_SECRET
 pnpm install                             # roda `prisma generate`
+pnpm --filter "api..." build             # compila @exactra/emails e depois a API
 pnpm --filter api db:deploy              # aplica as migrations no banco do DIRECT_URL/DATABASE_URL
-pnpm --filter api build && pnpm --filter api seed   # cria o primeiro admin (ADMIN_SEED_*)
+pnpm --filter api seed                   # cria o primeiro admin (ADMIN_SEED_*)
 pnpm --filter api start:dev              # http://localhost:3001
 ```
 
 Testes não precisam de serviços externos: o e2e usa Postgres em memória (PGlite) com as migrations reais.
 
 ```
+pnpm --filter @exactra/emails build     # uma vez (o e2e importa o dist do pacote)
 pnpm --filter api test:e2e
 pnpm --filter api lint
 ```
+
+## Deploy no Render (Web Service)
+
+- **Build command:** `pnpm install --frozen-lockfile && pnpm --filter "api..." build && pnpm --filter api db:deploy`. O `...` inclui as dependências do workspace; assim o `@exactra/emails` é compilado antes da API.
+- **Start command:** `pnpm --filter api start`.
+- **Health check:** `/health`.
+- **Variáveis:** as do `.env.example`, com valores de produção.
 
 ## Rotas
 
@@ -142,11 +151,22 @@ Abra a URL e pague com o cartão **4242 4242 4242 4242**, validade futura e CVC 
 
 ## E-mails (Resend) e job diário
 
-- Ativação do contrato (via webhook): boas-vindas ao cliente + aviso interno para `ADMIN_NOTIFY_EMAIL`. Falha de e-mail só é logada, porque o pagamento já está gravado.
-- Reset de senha e código 2FA por e-mail: enviados pelo Better Auth.
-- Job diário (09h, horário de Brasília, `src/contracts/expiry.job.ts`), só para Pix/boleto: avisa 7 dias antes do vencimento (uma vez) e marca como `EXPIRED` o que já venceu. Cartão segue os webhooks do Stripe.
-- Sem `RESEND_API_KEY` os e-mails só aparecem no log (dev/testes); em produção a falta da chave gera erro.
-- Os textos de e-mail são provisórios e ficam em `src/notifications.ts`.
+Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, que devolvem `{ subject, html, text }`. O `sendEmail` (`src/email.ts`) manda `html` **e** `text` ao Resend.
+
+| E-mail | Quando | Função | Onde |
+|---|---|---|---|
+| Boas-vindas | contrato ativado pelo webhook | `renderWelcomeEmail` | `src/notifications.ts` |
+| Aviso interno de nova contratação (para `ADMIN_NOTIFY_EMAIL`) | idem; inclui origem do lead (UTM) e link `WEB_ORIGIN/admin/contrato?id=…` | `renderNewContractNotice` | `src/notifications.ts` |
+| Redefinição de senha | `POST /api/auth/request-password-reset` | `renderPasswordResetEmail` (link expira em 60 min) | `src/auth.ts` |
+| Código 2FA por e-mail | `POST /api/auth/two-factor/send-otp` | `renderTwoFactorCodeEmail` (código expira em 3 min) | `src/auth.ts` |
+| Lembrete de vencimento | job diário, 7 dias antes (Pix/boleto) | `renderExpiryReminderEmail` (renovação em `EMAIL_ASSET_BASE_URL/checkout?plan=…`) | `src/notifications.ts` |
+
+- **Falhas:** erro de e-mail na ativação só é logado, porque o pagamento já está gravado. No job, o contrato é tentado de novo no dia seguinte.
+- **Sem chave:** sem `RESEND_API_KEY`, os e-mails só aparecem no log (dev/testes). Em produção, a falta da chave gera erro.
+- **`EMAIL_ASSET_BASE_URL`:** origem do site público, usada para o logo (`{base}/email/logo.png`) e para o link de renovação. Em dev é `http://localhost:3000`; em produção, `https://www.exactracontabilidade.com.br`.
+- **Textos:** ficam em `packages/emails/src/copy.ts`.
+- **Escape:** nomes e dados do usuário são escapados pelo React. O e2e (`test/notifications.e2e-spec.ts`) confere `subject`, `html` e `text` de cada e-mail e que um nome com `<script>` sai escapado.
+- **Job diário** (09h, horário de Brasília, `src/contracts/expiry.job.ts`), só para Pix/boleto: avisa 7 dias antes do vencimento (uma vez) e marca como `EXPIRED` o que já venceu. Cartão segue os webhooks do Stripe.
 
 ## Autenticação (admin)
 
@@ -162,11 +182,12 @@ Abra a URL e pague com o cartão **4242 4242 4242 4242**, validade futura e CVC 
 - [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
 - [x] Stripe (teste): chave de teste configurada; cartão, Pix e boleto aceitos na criação de sessão (04/10).
 - [x] `stripe listen` encaminhando para `localhost:3001/webhooks/stripe`: validado em 04/10 (trigger, Pix, assinatura real com `invoice.paid`, cancelamento e reenvio duplicado).
-- [ ] Pagar uma sessão de cartão no navegador com 4242 (`pnpm --filter api stripe:flow`).
+- [x] Sessão de cartão paga no navegador com 4242 (`pnpm --filter api stripe:flow`): contrato `ACTIVE` (04/10).
 - [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
 - [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`; `WEB_ORIGIN` com os domínios do site.
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
 - [ ] DNS do subdomínio `api.` apontando para o Render.
 - [ ] Stripe: conta definitiva da Exactra com **Pix e boleto habilitados** (o checkout usa `allowed_payment_method_types`, que só filtra métodos ativos).
 - [ ] Stripe: endpoint de webhook `https://api.exactracontabilidade.com.br/webhooks/stripe` com os eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed` e `customer.subscription.deleted`; segredo em `STRIPE_WEBHOOK_SECRET`.
-- [ ] Resend: domínio verificado (DNS), `RESEND_API_KEY`, `EMAIL_FROM` (ex.: `Exactra <contato@exactracontabilidade.com.br>`) e `ADMIN_NOTIFY_EMAIL`.
+- [ ] Resend: domínio verificado (DNS) para o `EMAIL_FROM` de produção (`RESEND_API_KEY`, `EMAIL_FROM` e `ADMIN_NOTIFY_EMAIL` já estão no `.env` de dev).
+- [ ] `EMAIL_ASSET_BASE_URL=https://www.exactracontabilidade.com.br` em produção (o logo precisa estar publicado em `/email/logo.png`).
