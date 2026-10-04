@@ -4,6 +4,7 @@ import type { Request } from 'express';
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PaymentProvider, type VerifiedWebhook } from '../payments/payment-provider.js';
+import { notifyActivation } from '../notifications.js';
 import { applyPaymentEvent } from './contract-lifecycle.js';
 
 @AllowAnonymous()
@@ -23,15 +24,15 @@ export class WebhookController {
 
     // Recording the event and applying it share one transaction: a duplicate delivery skips on the
     // unique stripeEventId and changes nothing; a failure rolls back so Stripe retries.
-    const duplicate = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const { count } = await tx.webhookEvent.createMany({
         data: { stripeEventId: hook.id, type: hook.type, payload: hook.payload as Prisma.InputJsonObject },
         skipDuplicates: true,
       });
-      if (count === 0) return true;
-      if (hook.event) await applyPaymentEvent(tx, hook.event);
-      return false;
+      if (count === 0) return { duplicate: true, activated: null };
+      return { duplicate: false, activated: hook.event ? await applyPaymentEvent(tx, hook.event) : null };
     });
-    return duplicate ? { received: true, duplicate } : { received: true };
+    if (result.activated) await notifyActivation(result.activated);
+    return result.duplicate ? { received: true, duplicate: true } : { received: true };
   }
 }

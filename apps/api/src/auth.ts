@@ -3,6 +3,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, twoFactor } from 'better-auth/plugins';
 import { prisma } from './db.js';
 import { sendEmail } from './email.js';
+import { escapeHtml } from './notifications.js';
 
 const cookieDomain = process.env.AUTH_COOKIE_DOMAIN || undefined;
 
@@ -20,7 +21,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: 'Redefinição de senha — Exactra',
-        html: `<p>Olá, ${user.name}.</p><p>Para criar uma nova senha, acesse: <a href="${url}">${url}</a></p><p>Se não foi você, ignore este e-mail.</p>`,
+        html: `<p>Olá, ${escapeHtml(user.name)}.</p><p>Para criar uma nova senha, acesse: <a href="${url}">${url}</a></p><p>Se não foi você, ignore este e-mail.</p>`,
       });
     },
   },

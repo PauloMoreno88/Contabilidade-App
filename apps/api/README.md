@@ -47,6 +47,14 @@ Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só exi
 
 Testar localmente com o Stripe CLI: `stripe listen --forward-to localhost:3001/webhooks/stripe` (use o `whsec_…` impresso como `STRIPE_WEBHOOK_SECRET`).
 
+## E-mails (Resend) e job diário
+
+- Ativação do contrato (via webhook): boas-vindas ao cliente + aviso interno para `ADMIN_NOTIFY_EMAIL`. Falha de e-mail só é logada (o pagamento já está gravado).
+- Reset de senha e código 2FA por e-mail: enviados pelo Better Auth.
+- Job diário (09h, horário de Brasília, `src/contracts/expiry.job.ts`), só para Pix/boleto: avisa 7 dias antes do vencimento (uma vez) e marca como `EXPIRED` o que já venceu. Cartão segue os webhooks do Stripe.
+- Sem `RESEND_API_KEY` os e-mails só aparecem no log (dev/testes); em produção a falta da chave gera erro.
+- Textos de e-mail são provisórios e ficam em `src/notifications.ts`.
+
 ## Autenticação (admin)
 
 - E-mail + senha, sem cadastro público. O primeiro admin vem do `seed`; outros são criados por um admin (`/api/auth/admin/create-user`).
@@ -65,4 +73,5 @@ Testar localmente com o Stripe CLI: `stripe listen --forward-to localhost:3001/w
 - [ ] DNS do subdomínio `api.` apontando para o Render.
 - [ ] Stripe: conta da Exactra com **Pix e boleto habilitados** no Dashboard (o checkout usa `allowed_payment_method_types`, que só filtra métodos ativos). Chaves de teste em `STRIPE_SECRET_KEY`.
 - [ ] Stripe: endpoint de webhook `https://api.exactracontabilidade.com.br/webhooks/stripe` com os eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`; segredo em `STRIPE_WEBHOOK_SECRET`.
+- [ ] Resend: domínio verificado (DNS), `RESEND_API_KEY`, `EMAIL_FROM` (ex.: `Exactra <contato@exactracontabilidade.com.br>`) e `ADMIN_NOTIFY_EMAIL`.
 - [ ] Front: implementar as páginas `/checkout/retorno` e `/checkout/cancelado` (consultam `GET /contracts/:id/status`).
