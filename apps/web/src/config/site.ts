@@ -170,8 +170,8 @@ export const footer = {
   locationTitle: "Localização",
   copyright: `© ${new Date().getFullYear()} Exactra Contabilidade`,
   links: [
-    { href: "/privacidade", label: "Política de privacidade" }, // PLACEHOLDER: page pending
-    { href: "/termos", label: "Termos de uso" }, // PLACEHOLDER: page pending
+    { href: "/privacidade", label: "Política de privacidade" },
+    { href: "/termos", label: "Termos de uso" },
   ],
   whatsappLabel: "Falar no WhatsApp",
 };

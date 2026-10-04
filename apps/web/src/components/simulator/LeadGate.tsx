@@ -86,7 +86,7 @@ export function LeadGate({ answers, result, onUnlocked }: Props) {
           <input type="checkbox" name="consent" className="mt-1 size-4 shrink-0 accent-brand" aria-invalid={!!errors.consent} />
           <span>
             {copy.consent}{" "}
-            <Link href={copy.consentLink.href} className="underline hover:text-ink">{copy.consentLink.label}</Link>.
+            <Link href={copy.consentLink.href} target="_blank" className="underline hover:text-ink">{copy.consentLink.label}</Link>.
           </span>
         </label>
         {errors.consent && <p className="mb-2 text-[0.8rem] text-brand">{errors.consent}</p>}

@@ -150,7 +150,10 @@ export function CheckoutForm() {
           <label className="mt-2 flex items-start gap-2.5 text-[0.84rem] text-muted">
             <input type="checkbox" name="consent" className="mt-1 size-4 shrink-0 accent-brand" aria-invalid={!!errors.consent} />
             <span>
-              {copy.consent} <Link href={copy.consentLink.href} className="underline hover:text-ink">{copy.consentLink.label}</Link>.
+              {copy.consentStart}{" "}
+              <Link href={copy.termsLink.href} target="_blank" className="underline hover:text-ink">{copy.termsLink.label}</Link>{" "}
+              {copy.consent}{" "}
+              <Link href={copy.consentLink.href} target="_blank" className="underline hover:text-ink">{copy.consentLink.label}</Link>.
             </span>
           </label>
           {errors.consent && <p className="mt-1 text-[0.8rem] text-brand">{errors.consent}</p>}
