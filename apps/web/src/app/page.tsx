@@ -8,6 +8,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Onboarding } from "@/components/landing/Onboarding";
 import { Plans } from "@/components/landing/Plans";
 import { Services } from "@/components/landing/Services";
+import { Simulator } from "@/components/simulator/Simulator";
 import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { Why } from "@/components/landing/Why";
 
@@ -18,6 +19,7 @@ export default function Home() {
       <main>
         <Hero />
         <Benefits />
+        <Simulator />
         <Services />
         <HowItWorks />
         <Plans />
