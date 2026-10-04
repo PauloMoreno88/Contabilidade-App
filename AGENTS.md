@@ -1,7 +1,7 @@
 # AGENTS.md — Exactra Contabilidade
 
 Leia este arquivo inteiro antes de mexer no repositório. Ele é a fonte única de contexto para qualquer agente.
-Decisões detalhadas e cronograma: `docs/plano.md`. Contexto de negócio: `docs/prompt.md` (ou `prompt.md` na raiz, se a Fase 0 ainda não rodou).
+Decisões detalhadas e cronograma: `docs/plano.md`. Contexto de negócio: `docs/prompt.md`.
 
 ## 1. O que é o projeto
 
@@ -13,9 +13,11 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
-- **Fase 0 (monorepo) ainda não executada** até que este bloco diga o contrário. Hoje o repositório é um app Next.js 15 único na raiz (`src/app`), com `output: 'export'` e publicado no Render.
-- Protótipos HTML aprovados para estudo estão em `prototype/` (variantes A–D). A **variante D** é a base do front real. O cliente ainda **não aprovou** o design: construa em componentes pequenos e deixe textos/preços em arquivos de configuração para refatorar depois.
-- Estrutura alvo, abaixo, é o que você deve respeitar assim que a Fase 0 terminar.
+- **Fase 0 concluída em 04/10/2026**: monorepo pnpm criado. `apps/web` (Next.js, `output: 'export'`), `apps/api` (só `package.json` mínimo; o scaffold do NestJS é a primeira tarefa do agente de back) e `packages/shared` (`@exactra/shared`: enums, schemas zod, `plans.config.ts`, simulador, testes Vitest).
+- Todos os preços e regras do simulador são **PLACEHOLDER** (`packages/shared/src/plans.config.ts` e `simulator.ts`) até o contador responder (`docs/perguntas-contador.md`).
+- Protótipos HTML em `docs/prototype/` (variantes A–D). A **variante D** é a base do front real. O cliente ainda **não aprovou** o design: construa em componentes pequenos e deixe textos/preços em arquivos de configuração para refatorar depois.
+- Pendências externas do usuário (conta Stripe, DNS, contador): ver issues com label `pendencia-externa` no GitHub Project.
+- 
 
 ## 3. Estrutura alvo (monorepo pnpm)
 
@@ -67,7 +69,7 @@ Dois agentes paralelos, cada um em seu worktree e sua branch, saindo de `feat/ap
 - Commits: conventional commits em inglês (`feat:`, `fix:`, `chore:`…), como no histórico.
 - Idiomas: código, identificadores e commits em inglês; textos de interface e documentação em português (pt-BR, linguagem simples e direta, falando com empresário/profissional, não com contador).
 
-## 7. Comandos (válidos após a Fase 0)
+## 7. Comandos
 
 ```
 pnpm install
@@ -77,7 +79,7 @@ pnpm --filter shared test    # Vitest
 pnpm --filter api test:e2e
 ```
 
-Ajuste esta seção se os nomes dos scripts forem diferentes na implementação.
+`pnpm --filter api ...` só funciona depois que o scaffold do Nest existir. Ajuste esta seção se os nomes dos scripts mudarem.
 
 ## 8. Testes e ambientes
 

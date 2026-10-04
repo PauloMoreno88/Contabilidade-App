@@ -1,0 +1,6 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NestJS API (scaffold to be created by the back agent on feat/api)"
+}

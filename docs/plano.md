@@ -1,7 +1,7 @@
 # Plano de execução — Fases 3 e 4 (front real + backend)
 
 > Criado em 04/10/2026. Fonte de verdade das decisões do projeto. Quando uma decisão mudar, atualize este arquivo no mesmo commit.
-> Contexto de negócio: ver `prompt.md` (hoje na raiz; vai para `docs/` na Fase 0). Roadmap com o cliente: `roadmap-entrega.html`.
+> Contexto de negócio: ver `prompt.md` . Roadmap com o cliente: `roadmap-entrega.html`.
 
 ## 1. Objetivo
 
@@ -86,10 +86,10 @@ Job diário: marca contratos vencidos e envia aviso antes do vencimento (necess�
 Hoje é 04/10; o roadmap termina em 20/10.
 
 **Fase 0 — Fundação (Claude principal, 04–05/10)**
-- [ ] Commitar `src/app/main/page.tsx`; mover `prompt.md`, `roadmap-entrega.html`, `prototype/` para `docs/` e commitar
-- [ ] Migrar para monorepo pnpm (commit separado), Next.js em `apps/web` com `git mv`
-- [ ] `packages/shared`: schemas zod, `plans.config.ts` (PLACEHOLDER), função de cálculo (stub) e tipos das rotas
-- [ ] `apps/api` e `apps/web` com `AGENTS.md` curtos e `.env.example`
+- [x] Commitar `src/app/main/page.tsx`; mover `prompt.md`, `roadmap-entrega.html`, `prototype/` para `docs/` e commitar
+- [x] Migrar para monorepo pnpm (commit separado), Next.js em `apps/web` com `git mv`
+- [x] `packages/shared`: schemas zod, `plans.config.ts` (PLACEHOLDER), função de cálculo (stub) e tipos das rotas
+- [x] `apps/api` e `apps/web` com `AGENTS.md` curtos e `.env.example`
 - [ ] Criar worktrees e branches `feat/web` e `feat/api`
 
 **Agente de front — `feat/web` (06–14/10)**
