@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS } from "./enums";
 import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
 
-const utmSchema = z
+export const utmSchema = z
   .object({
     source: z.string(),
     medium: z.string(),
@@ -23,6 +23,10 @@ export const createLeadSchema = z.object({
   consent: z.literal(true),
 });
 export type CreateLeadInput = z.infer<typeof createLeadSchema>;
+
+/** Response of POST /leads. The API recomputes `result` with the current rules. */
+export const createLeadResponseSchema = z.object({ id: z.string(), result: simulatorResultSchema });
+export type CreateLeadResponse = z.infer<typeof createLeadResponseSchema>;
 
 /** POST /checkout/sessions */
 export const createCheckoutSchema = z.object({
