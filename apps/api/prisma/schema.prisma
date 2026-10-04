@@ -151,7 +151,7 @@ model Customer {
   email            String
   phone            String
   document         String
-  stripeCustomerId String?    @unique
+  stripeCustomerId String?
   consentAt        DateTime
   leadId           String?
   lead             Lead?      @relation(fields: [leadId], references: [id])
@@ -159,6 +159,7 @@ model Customer {
   contracts        Contract[]
 
   @@index([email])
+  @@index([stripeCustomerId])
 }
 
 model Contract {

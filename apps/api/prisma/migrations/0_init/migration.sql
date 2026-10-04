@@ -196,10 +196,10 @@ CREATE INDEX "twoFactor_userId_idx" ON "twoFactor"("userId");
 CREATE INDEX "Lead_createdAt_idx" ON "Lead"("createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_stripeCustomerId_key" ON "Customer"("stripeCustomerId");
+CREATE INDEX "Customer_email_idx" ON "Customer"("email");
 
 -- CreateIndex
-CREATE INDEX "Customer_email_idx" ON "Customer"("email");
+CREATE INDEX "Customer_stripeCustomerId_idx" ON "Customer"("stripeCustomerId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Contract_statusToken_key" ON "Contract"("statusToken");

@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 process.env.BETTER_AUTH_SECRET ??= 'test-secret-test-secret-test-secret-123';
 process.env.BETTER_AUTH_URL ??= 'http://localhost:3001';
 process.env.WEB_ORIGIN ??= 'http://localhost:3000';
+process.env.STRIPE_SECRET_KEY ??= 'sk_test_dummy';
+process.env.STRIPE_WEBHOOK_SECRET ??= 'whsec_test_secret';
 
 // Swap Neon for an in-memory Postgres (PGlite) with the real migrations applied.
 vi.mock('../src/db.js', async () => {
