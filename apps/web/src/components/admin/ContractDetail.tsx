@@ -7,7 +7,7 @@ import { PLANS } from "@exactra/shared";
 import { adminCopy, paymentStatusLabels } from "@/config/admin";
 import { methodLabels, periodLabels } from "@/config/checkout";
 import { api } from "@/lib/api";
-import { formatBRLExact, formatDate } from "@/lib/format";
+import { formatBRL, formatBRLExact, formatDate } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { useLoad } from "./useLoad";
 
@@ -28,16 +28,28 @@ export function ContractDetail() {
       {c && (
         <>
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <h1 className="text-[1.5rem] font-semibold">{c.customerName}</h1>
+            <h1 className="text-[1.5rem] font-semibold">{c.customer.name}</h1>
             <StatusBadge status={c.status} />
           </div>
           <div className="mb-8 grid gap-4 md:grid-cols-2">
             <Panel
               title={copy.customer}
               rows={[
-                [copy.email, <a key="e" href={`mailto:${c.email}`} className="hover:text-brand">{c.email}</a>],
-                [copy.phone, c.phone],
-                [copy.document, c.document],
+                [copy.email, <a key="e" href={`mailto:${c.customer.email}`} className="hover:text-brand">{c.customer.email}</a>],
+                [copy.phone, c.customer.phone],
+                [copy.document, c.customer.document],
+                ...(c.customer.lead
+                  ? [
+                      [
+                        copy.lead,
+                        copy.leadSummary(
+                          formatBRL(c.customer.lead.answers.monthlyRevenue * 100),
+                          PLANS[c.customer.lead.result.recommendedPlan].name,
+                          formatDate(c.customer.lead.createdAt),
+                        ),
+                      ] as [string, string],
+                    ]
+                  : []),
               ]}
             />
             <Panel

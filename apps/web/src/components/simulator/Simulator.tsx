@@ -128,8 +128,9 @@ export function Simulator() {
                   <LeadGate
                     answers={result.answers}
                     result={result.result}
-                    onUnlocked={(id) => {
+                    onUnlocked={(id, serverResult) => {
                       setLeadId(id);
+                      setResult({ answers: result.answers, result: serverResult });
                       setPhase("result");
                     }}
                   />

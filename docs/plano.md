@@ -95,12 +95,13 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [ ] Criar worktrees e branches `feat/web` e `feat/api`
 
 **Agente de front — `feat/web` (06–14/10)**
-- [ ] Porte da variante D em componentes por seção; copy e preços em arquivos de configuração
-- [ ] Simulador em etapas com gate leve e captura de lead
-- [ ] Planos, checkout, páginas de sucesso e pagamento pendente (boleto/Pix)
-- [ ] Painel `/admin`: login, 2FA, reset de senha, dashboard, tabelas, detalhe, CSV
-- [ ] Responsividade e microinterações
-- [ ] Tudo contra mock do contrato até o API existir
+- [x] Porte da variante D em componentes por seção; copy e preços em arquivos de configuração
+- [x] Simulador em etapas com gate leve e captura de lead
+- [x] Planos, checkout, páginas de sucesso e pagamento pendente (boleto/Pix); retorno do cancelamento (`/checkout?cancelado=1&plan=…`)
+- [x] Painel `/admin`: login, 2FA (app, e-mail e código de recuperação), ativação do 2FA, reset de senha, dashboard, tabelas paginadas com busca, detalhe, CSV
+- [x] Responsividade e microinterações
+- [x] Tudo contra mock do contrato até o API existir; trocado pelo cliente HTTP real (mock só com `NEXT_PUBLIC_USE_MOCK=true`)
+- [x] `/privacidade` e `/termos` como rascunho (aguardam revisão jurídica e dados da empresa)
 
 **Agente de back — `feat/api` (06–14/10)**
 - [x] Nest, Prisma, Neon, Better Auth (e-mail+senha, admin, 2FA, reset) e seed do primeiro admin

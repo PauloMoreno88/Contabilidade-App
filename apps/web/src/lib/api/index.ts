@@ -1,8 +1,9 @@
+import { httpApi, type Api } from "./http";
 import { mockApi } from "./mock";
 
-/**
- * The only module the UI imports to talk to the backend.
- * When apps/api is ready, replace mockApi with an HTTP client against
- * NEXT_PUBLIC_API_URL that keeps the same method signatures.
- */
-export const api = mockApi;
+/** Set at build time. Mock only for local work without apps/api running. */
+export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+
+/** The only module the UI imports to talk to the backend. */
+export const api: Api = USE_MOCK ? mockApi : httpApi;
+export { ApiError } from "./http";

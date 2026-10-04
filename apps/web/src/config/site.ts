@@ -20,19 +20,8 @@ import {
 type Item = { title: string; text: string };
 type IconItem = Item & { icon: LucideIcon };
 
-export const contact = {
-  whatsappNumber: "5500000000000", // PLACEHOLDER
-  whatsappText: "Olá! Quero saber mais sobre a Exactra.",
-  email: "contato@exactracontabilidade.com.br", // PLACEHOLDER
-  phone: "(00) 00000-0000", // PLACEHOLDER
-  hours: "Seg a sex, 9h às 18h",
-  address: "Endereço a confirmar", // PLACEHOLDER
-  coverage: "Atendimento remoto em todo o Brasil",
-};
-
-export function whatsappLink(text: string = contact.whatsappText) {
-  return `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(text)}`;
-}
+// Contact data and the onboarding timeline are shared with the e-mails (packages/emails).
+export { contact, onboarding, whatsappLink } from "@exactra/shared";
 
 export const seo = {
   title: "Exactra Contabilidade | Contabilidade simples para quem toca o negócio",
@@ -117,27 +106,6 @@ export const plansSection = {
   prepaidNote: "Pix ou boleto: pague 3, 6 ou 12 meses adiantado com desconto.",
 };
 
-export const onboarding: { title: string; sub: string; steps: Item[]; docsTitle: string; docs: string[]; docsNote: string } = {
-  title: "Contratei. E agora?",
-  sub: "O que acontece depois que você fecha com a Exactra.",
-  steps: [
-    { title: "Contrate seu plano", text: "Escolha o plano e preencha seus dados no checkout." },
-    { title: "Receba nosso contato", text: "Nosso time te chama no WhatsApp em até 1 dia útil." },
-    { title: "Envie seus documentos", text: "Uma lista simples do que precisamos para começar." },
-    { title: "Analisamos suas informações", text: "Conferimos tudo antes de colocar sua contabilidade para rodar." },
-    { title: "Sua contabilidade começa", text: "A partir daqui, a Exactra cuida da burocracia." },
-  ],
-  docsTitle: "Documentos que normalmente pedimos",
-  docs: [
-    "Documento pessoal com foto",
-    "Comprovante de endereço",
-    "Dados da empresa (CNPJ, contrato social)",
-    "Certificado digital, se já tiver",
-    "Documentos específicos do seu serviço",
-  ],
-  docsNote: "Lista ilustrativa. Os documentos finais dependem do seu caso e são confirmados pelo time da Exactra.",
-};
-
 export const why: { title: string; items: Item[] } = {
   title: "Por que a Exactra",
   items: [
@@ -170,8 +138,8 @@ export const footer = {
   locationTitle: "Localização",
   copyright: `© ${new Date().getFullYear()} Exactra Contabilidade`,
   links: [
-    { href: "/privacidade", label: "Política de privacidade" }, // PLACEHOLDER: page pending
-    { href: "/termos", label: "Termos de uso" }, // PLACEHOLDER: page pending
+    { href: "/privacidade", label: "Política de privacidade" },
+    { href: "/termos", label: "Termos de uso" },
   ],
   whatsappLabel: "Falar no WhatsApp",
 };

@@ -15,7 +15,8 @@ type Field = keyof typeof copy.errors;
 type Props = {
   answers: SimulatorAnswers;
   result: SimulatorResult;
-  onUnlocked: (leadId: string) => void;
+  /** Receives the lead id and the result recomputed by the API (source of truth). */
+  onUnlocked: (leadId: string, result: SimulatorResult) => void;
 };
 
 /** Light gate: shows a preview, unlocks the detailed values after name + WhatsApp + consent. */
@@ -50,8 +51,8 @@ export function LeadGate({ answers, result, onUnlocked }: Props) {
     setErrors({});
     setSending(true);
     try {
-      const { id } = await api.createLead(parsed.data);
-      onUnlocked(id);
+      const res = await api.createLead(parsed.data);
+      onUnlocked(res.id, res.result);
     } catch {
       setErrors({ request: copy.errors.request });
       setSending(false);
@@ -85,7 +86,7 @@ export function LeadGate({ answers, result, onUnlocked }: Props) {
           <input type="checkbox" name="consent" className="mt-1 size-4 shrink-0 accent-brand" aria-invalid={!!errors.consent} />
           <span>
             {copy.consent}{" "}
-            <Link href={copy.consentLink.href} className="underline hover:text-ink">{copy.consentLink.label}</Link>.
+            <Link href={copy.consentLink.href} target="_blank" className="underline hover:text-ink">{copy.consentLink.label}</Link>.
           </span>
         </label>
         {errors.consent && <p className="mb-2 text-[0.8rem] text-brand">{errors.consent}</p>}

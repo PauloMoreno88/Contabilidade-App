@@ -1,65 +1,116 @@
+import { createAuthClient } from "better-auth/react";
+import { adminClient, twoFactorClient } from "better-auth/client/plugins";
+import { USE_MOCK } from "@/lib/api";
+
 /**
- * Admin auth client. Mirrors the Better Auth client API (better-auth 1.7:
- * signIn.email, twoFactor.verifyTotp/verifyBackupCode, requestPasswordReset,
- * resetPassword, getSession, signOut), so going live means replacing `authClient` with:
- *
- *   createAuthClient({
- *     baseURL: process.env.NEXT_PUBLIC_API_URL,
- *     fetchOptions: { credentials: "include" },
- *     plugins: [twoFactorClient(), adminClient()],
- *   })
- *
- * Mock credentials: admin@exactra.com.br / exactra123, 2FA code 123456.
+ * Better Auth client for the admin panel. The session cookie is set by
+ * api.* and shared with www.* (AUTH_COOKIE_DOMAIN on the API), so every
+ * call goes with credentials.
  */
+const realClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  fetchOptions: { credentials: "include" },
+  plugins: [twoFactorClient(), adminClient()],
+});
 
-type Result<T> = Promise<{ data: T | null; error: { message: string; status: number } | null }>;
-type Session = { user: { id: string; name: string; email: string; role: string } };
+export const AUTH_IS_MOCK = USE_MOCK;
 
-export const AUTH_IS_MOCK = true;
+// ---- Mock (NEXT_PUBLIC_USE_MOCK=true): admin@exactra.com.br / exactra123, 2FA code 123456 ----
+// 2FA starts off; turn it on at /admin/seguranca to exercise the second step of the login.
 
-const KEY = "mock-admin-session";
+const SESSION = "mock-admin-session";
+const TWO_FA = "mock-admin-2fa";
+const PASSWORD = "exactra123";
+const BACKUP_CODES = ["backup-0001", "backup-0002", "backup-0003", "backup-0004", "backup-0005", "backup-0006"];
 const MOCK_USER = { id: "usr_admin", name: "Admin Exactra", email: "admin@exactra.com.br", role: "admin" };
 const delay = () => new Promise((r) => setTimeout(r, 400));
-const fail = (status: number, message: string) => ({ data: null, error: { status, message } });
+const ok = <T>(data: T) => ({ data, error: null });
+const fail = (status: number, message: string) => ({ data: null, error: { status, message, statusText: message } });
+const store = {
+  get: (k: string) => sessionStorage.getItem(k) === "1",
+  set: (k: string, on: boolean) => (on ? sessionStorage.setItem(k, "1") : sessionStorage.removeItem(k)),
+};
+const user = () => ({ ...MOCK_USER, twoFactorEnabled: store.get(TWO_FA) });
 let pending2fa = false;
+let enrolling = false;
 
-export const authClient = {
+function finishSignIn(valid: boolean) {
+  if (!valid || !pending2fa) return fail(401, "INVALID_CODE");
+  pending2fa = false;
+  store.set(SESSION, true);
+  return ok({ user: user() });
+}
+
+const mockClient = {
   signIn: {
-    async email({ email, password }: { email: string; password: string }): Result<{ twoFactorRedirect?: boolean }> {
+    async email({ email, password }: { email: string; password: string }) {
       await delay();
-      if (email !== MOCK_USER.email || password !== "exactra123") return fail(401, "INVALID_EMAIL_OR_PASSWORD");
+      if (email !== MOCK_USER.email || password !== PASSWORD) return fail(401, "INVALID_EMAIL_OR_PASSWORD");
+      if (!store.get(TWO_FA)) {
+        store.set(SESSION, true);
+        return ok({ user: user() });
+      }
       pending2fa = true;
-      return { data: { twoFactorRedirect: true }, error: null };
+      return ok({ twoFactorRedirect: true, twoFactorMethods: ["totp", "otp"] });
     },
   },
   twoFactor: {
-    async verifyTotp({ code }: { code: string; trustDevice?: boolean }): Result<Session> {
+    async enable({ password }: { password: string }) {
       await delay();
-      if (!pending2fa || code !== "123456") return fail(401, "INVALID_CODE");
-      sessionStorage.setItem(KEY, "1");
-      return { data: { user: MOCK_USER }, error: null };
+      if (password !== PASSWORD) return fail(400, "INVALID_PASSWORD");
+      enrolling = true;
+      return ok({ totpURI: "otpauth://totp/Exactra:admin%40exactra.com.br?secret=JBSWY3DPEHPK3PXP&issuer=Exactra", backupCodes: BACKUP_CODES });
     },
-    async verifyBackupCode({ code }: { code: string; trustDevice?: boolean }): Result<Session> {
+    async verifyTotp({ code }: { code: string; trustDevice?: boolean }) {
       await delay();
-      if (!pending2fa || code !== "backup-0001") return fail(401, "INVALID_BACKUP_CODE");
-      sessionStorage.setItem(KEY, "1");
-      return { data: { user: MOCK_USER }, error: null };
+      if (enrolling && store.get(SESSION)) {
+        if (code !== "123456") return fail(401, "INVALID_CODE");
+        enrolling = false;
+        store.set(TWO_FA, true);
+        return ok({ user: user() });
+      }
+      return finishSignIn(code === "123456");
+    },
+    async sendOtp() {
+      await delay();
+      return ok({ status: true });
+    },
+    async verifyOtp({ code }: { code: string; trustDevice?: boolean }) {
+      await delay();
+      return finishSignIn(code === "123456");
+    },
+    async verifyBackupCode({ code }: { code: string; trustDevice?: boolean }) {
+      await delay();
+      return finishSignIn(BACKUP_CODES.includes(code));
+    },
+    async generateBackupCodes({ password }: { password: string }) {
+      await delay();
+      return password === PASSWORD ? ok({ status: true, backupCodes: BACKUP_CODES.map((c) => c.replace("backup", "novo")) }) : fail(400, "INVALID_PASSWORD");
+    },
+    async disable({ password }: { password: string }) {
+      await delay();
+      if (password !== PASSWORD) return fail(400, "INVALID_PASSWORD");
+      store.set(TWO_FA, false);
+      return ok({ status: true });
     },
   },
-  async requestPasswordReset(input: { email: string; redirectTo: string }): Result<{ status: boolean }> {
+  async requestPasswordReset(input: { email: string; redirectTo: string }) {
     void input;
     await delay();
-    return { data: { status: true }, error: null };
+    return ok({ status: true });
   },
-  async resetPassword({ token }: { newPassword: string; token: string }): Result<{ status: boolean }> {
+  async resetPassword({ token }: { newPassword: string; token: string }) {
     await delay();
-    return token ? { data: { status: true }, error: null } : fail(400, "INVALID_TOKEN");
+    return token ? ok({ status: true }) : fail(400, "INVALID_TOKEN");
   },
-  async getSession(): Result<Session> {
-    return sessionStorage.getItem(KEY) ? { data: { user: MOCK_USER }, error: null } : { data: null, error: null };
+  async getSession() {
+    return ok(store.get(SESSION) ? { user: user() } : null);
   },
-  async signOut(): Result<{ success: boolean }> {
-    sessionStorage.removeItem(KEY);
-    return { data: { success: true }, error: null };
+  async signOut() {
+    store.set(SESSION, false);
+    return ok({ success: true });
   },
 };
+
+// ponytail: the mock covers only the methods the panel calls; cast keeps one client type for the UI.
+export const authClient = USE_MOCK ? (mockClient as unknown as typeof realClient) : realClient;
