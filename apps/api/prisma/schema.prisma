@@ -1,0 +1,209 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Better Auth (user, session, account, verification, twoFactor) ----------
+
+model User {
+  id               String      @id
+  name             String
+  email            String      @unique
+  emailVerified    Boolean     @default(false)
+  image            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @default(now()) @updatedAt
+  role             String?
+  banned           Boolean?    @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  twoFactorEnabled Boolean?    @default(false)
+  sessions         Session[]
+  accounts         Account[]
+  twofactors       TwoFactor[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([secret])
+  @@index([userId])
+  @@map("twoFactor")
+}
+
+// ---------- Domain ----------
+
+enum PlanId {
+  essencial
+  profissional
+  empresarial
+}
+
+enum BillingPeriod {
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+  ANNUAL
+}
+
+enum PaymentMethod {
+  CARD
+  PIX
+  BOLETO
+}
+
+enum ContractStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  name         String
+  whatsapp     String
+  email        String?
+  answers      Json
+  result       Json
+  rulesVersion String
+  utm          Json?
+  consentAt    DateTime
+  createdAt    DateTime   @default(now())
+  customers    Customer[]
+
+  @@index([createdAt])
+}
+
+model Customer {
+  id               String     @id @default(cuid())
+  name             String
+  email            String
+  phone            String
+  document         String
+  stripeCustomerId String?
+  consentAt        DateTime
+  leadId           String?
+  lead             Lead?      @relation(fields: [leadId], references: [id])
+  createdAt        DateTime   @default(now())
+  contracts        Contract[]
+
+  @@index([email])
+  @@index([stripeCustomerId])
+}
+
+model Contract {
+  id                   String         @id @default(cuid())
+  customerId           String
+  customer             Customer       @relation(fields: [customerId], references: [id])
+  plan                 PlanId
+  period               BillingPeriod
+  method               PaymentMethod
+  amountCents          Int
+  status               ContractStatus @default(PENDING_PAYMENT)
+  statusToken          String         @unique
+  startsAt             DateTime?
+  endsAt               DateTime?
+  stripeSessionId      String?        @unique
+  stripeSubscriptionId String?        @unique
+  expiryNoticeSentAt   DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  payments             Payment[]
+
+  @@index([status])
+  @@index([endsAt])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  contractId            String
+  contract              Contract      @relation(fields: [contractId], references: [id])
+  amountCents           Int
+  status                PaymentStatus
+  method                PaymentMethod
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?       @unique
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+
+  @@index([contractId])
+}
+
+model WebhookEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  type          String
+  payload       Json
+  processedAt   DateTime @default(now())
+}
