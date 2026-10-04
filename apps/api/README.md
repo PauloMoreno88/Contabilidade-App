@@ -58,7 +58,8 @@ Testar localmente com o Stripe CLI: `stripe listen --forward-to localhost:3001/w
 
 ## O que falta configurar (externo)
 
-- [ ] Projeto no Neon: `DATABASE_URL` (dev e produção) e rodar `db:deploy`.
+- [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
+- [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
 - [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`.
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
 - [ ] DNS do subdomínio `api.` apontando para o Render.
