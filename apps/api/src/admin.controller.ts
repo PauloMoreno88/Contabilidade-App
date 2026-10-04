@@ -1,12 +1,15 @@
 import { Controller, Get, Header, NotFoundException, Param, Query } from '@nestjs/common';
 import { Roles } from '@thallesp/nestjs-better-auth';
-import { z } from 'zod';
+import type { z } from 'zod';
 import {
-  BILLING_PERIODS,
-  CONTRACT_STATUSES,
-  PAYMENT_METHODS,
-  PLAN_IDS,
+  adminContractDetailSchema,
+  adminContractsQuerySchema,
+  adminLeadsPageSchema,
+  adminLeadsQuerySchema,
+  type AdminContractDetail,
   type AdminContractRow,
+  type AdminContractsPage,
+  type AdminLeadsPage,
   type AdminMetrics,
 } from '@exactra/shared';
 import { prisma } from './db.js';
@@ -15,21 +18,12 @@ import { ZodPipe } from './zod.pipe.js';
 
 const DAY = 86400_000;
 
-const pageSchema = {
-  q: z.string().trim().max(100).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
-};
-const contractsQuerySchema = z.object({
-  ...pageSchema,
-  status: z.enum(CONTRACT_STATUSES).optional(),
-  plan: z.enum(PLAN_IDS).optional(),
-  method: z.enum(PAYMENT_METHODS).optional(),
-  period: z.enum(BILLING_PERIODS).optional(),
-});
-type ContractsQuery = z.infer<typeof contractsQuerySchema>;
-const leadsQuerySchema = z.object(pageSchema);
-type LeadsQuery = z.infer<typeof leadsQuerySchema>;
+// Parsed (output) types: the shared Admin*Query types are the input side (what the front sends).
+type ContractsQuery = z.output<typeof adminContractsQuerySchema>;
+type LeadsQuery = z.output<typeof adminLeadsQuerySchema>;
+
+/** Prisma rows → JSON (Dates become ISO strings), then the shared schema strips internal fields. */
+const toJson = <S extends z.ZodTypeAny>(schema: S, value: unknown): z.output<S> => schema.parse(JSON.parse(JSON.stringify(value)));
 
 function contractsWhere(f: ContractsQuery): Prisma.ContractWhereInput {
   const digits = f.q?.replace(/\D/g, '');
@@ -103,7 +97,7 @@ export class AdminController {
   }
 
   @Get('contracts')
-  async contracts(@Query(new ZodPipe(contractsQuerySchema)) f: ContractsQuery) {
+  async contracts(@Query(new ZodPipe(adminContractsQuerySchema)) f: ContractsQuery): Promise<AdminContractsPage> {
     const where = contractsWhere(f);
     const [items, total] = await Promise.all([
       prisma.contract.findMany({
@@ -121,7 +115,7 @@ export class AdminController {
   @Get('contracts.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="contratos.csv"')
-  async contractsCsv(@Query(new ZodPipe(contractsQuerySchema)) f: ContractsQuery) {
+  async contractsCsv(@Query(new ZodPipe(adminContractsQuerySchema)) f: ContractsQuery) {
     const rows = await prisma.contract.findMany({
       where: contractsWhere(f),
       include: { customer: true },
@@ -150,17 +144,17 @@ export class AdminController {
   }
 
   @Get('contracts/:id')
-  async contract(@Param('id') id: string) {
+  async contract(@Param('id') id: string): Promise<AdminContractDetail> {
     const c = await prisma.contract.findUnique({
       where: { id },
       include: { customer: { include: { lead: true } }, payments: { orderBy: { createdAt: 'desc' } } },
     });
     if (!c) throw new NotFoundException();
-    return c;
+    return toJson(adminContractDetailSchema, c);
   }
 
   @Get('leads')
-  async leads(@Query(new ZodPipe(leadsQuerySchema)) f: LeadsQuery) {
+  async leads(@Query(new ZodPipe(adminLeadsQuerySchema)) f: LeadsQuery): Promise<AdminLeadsPage> {
     const where: Prisma.LeadWhereInput = f.q
       ? {
           OR: [
@@ -174,6 +168,6 @@ export class AdminController {
       prisma.lead.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (f.page - 1) * f.pageSize, take: f.pageSize }),
       prisma.lead.count({ where }),
     ]);
-    return { items, total, page: f.page, pageSize: f.pageSize };
+    return toJson(adminLeadsPageSchema, { items, total, page: f.page, pageSize: f.pageSize });
   }
 }

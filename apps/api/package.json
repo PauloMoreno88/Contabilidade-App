@@ -9,6 +9,7 @@
     "start": "node --env-file-if-exists=.env dist/main.mjs",
     "start:dev": "tsdown --watch --on-success \"node --env-file-if-exists=.env dist/main.mjs\"",
     "seed": "node --env-file-if-exists=.env dist/seed.mjs",
+    "stripe:flow": "node scripts/checkout-flow.mjs",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "lint": "tsc --noEmit && oxlint --type-aware src/ test/",

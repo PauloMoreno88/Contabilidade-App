@@ -21,10 +21,9 @@ import {
   type CreateCheckoutInput,
 } from '@exactra/shared';
 import { prisma } from '../db.js';
+import { webOrigin } from '../web-origin.js';
 import { PaymentProvider } from '../payments/payment-provider.js';
 import { ZodPipe } from '../zod.pipe.js';
-
-const webOrigin = () => (process.env.WEB_ORIGIN ?? 'http://localhost:3000').split(',')[0];
 
 @AllowAnonymous()
 @Controller()
@@ -73,8 +72,8 @@ export class CheckoutController {
         method: contract.method,
         amountCents: contract.amountCents,
         customer: { name: customer.name, email: customer.email },
-        successUrl: `${webOrigin()}/checkout/retorno?${query}`,
-        cancelUrl: `${webOrigin()}/checkout/cancelado?${query}`,
+        successUrl: `${webOrigin()}/checkout/status?${query}`,
+        cancelUrl: `${webOrigin()}/checkout?cancelado=1&plan=${contract.plan}`,
       });
       await prisma.contract.update({ where: { id: contract.id }, data: { stripeSessionId: session.sessionId } });
       return { contractId: contract.id, checkoutUrl: session.url, statusToken: contract.statusToken };

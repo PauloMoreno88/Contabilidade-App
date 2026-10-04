@@ -17,7 +17,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - Todos os preços e regras do simulador são **PLACEHOLDER** (`packages/shared/src/plans.config.ts` e `simulator.ts`) até o contador responder (`docs/perguntas-contador.md`).
 - Protótipos HTML em `docs/prototype/` (variantes A–D). A **variante D** é a base do front real. O cliente ainda **não aprovou** o design: construa em componentes pequenos e deixe textos/preços em arquivos de configuração para refatorar depois.
 - Pendências externas do usuário (conta Stripe, DNS, contador): ver issues com label `pendencia-externa` no GitHub Project.
-- **API (feat/api) em 04/10/2026**: issues #12–#17 implementadas em `apps/api` (auth admin, leads, checkout Stripe, webhooks, e-mails, job de vencimento, endpoints admin + CSV). Neon de dev migrado e admin criado. Pendências externas e contrato das rotas: `apps/api/README.md`.
+- **API (feat/api) em 04/10/2026**: issues #12–#17 implementadas em `apps/api`: auth admin (Better Auth), `POST /leads`, checkout Stripe (cartão = assinatura; Pix/boleto = pagamento único), webhooks idempotentes, e-mails Resend, job diário de vencimento e `/admin/*` + CSV. CORS explícito via `WEB_ORIGIN` (`src/setup-app.ts`). Retorno do Stripe: `/checkout/status?contract&token` e `/checkout?cancelado=1&plan=`. Query e respostas do admin usam os schemas de `@exactra/shared` (`admin.ts`). Neon de dev migrado e admin criado. Criação de sessão validada no Stripe de teste (cartão, Pix e boleto). Rotas, teste manual com o Stripe e pendências: `apps/api/README.md`.
 
 ## 3. Estrutura alvo (monorepo pnpm)
 

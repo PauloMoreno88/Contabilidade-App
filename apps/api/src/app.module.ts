@@ -12,8 +12,8 @@ import { PaymentProvider } from './payments/payment-provider.js';
 import { StripeProvider } from './payments/stripe.provider.js';
 
 @Module({
-  // rawBody keeps req.rawBody for Stripe signature verification.
-  imports: [AuthModule.forRoot({ auth, bodyParser: { rawBody: true } }), ScheduleModule.forRoot()],
+  // rawBody keeps req.rawBody for Stripe signature verification. CORS is set in setup-app.ts.
+  imports: [AuthModule.forRoot({ auth, bodyParser: { rawBody: true }, disableTrustedOriginsCors: true }), ScheduleModule.forRoot()],
   controllers: [AppController, AdminController, LeadsController, CheckoutController, WebhookController],
   providers: [{ provide: PaymentProvider, useClass: StripeProvider }, ExpiryJob],
 })
