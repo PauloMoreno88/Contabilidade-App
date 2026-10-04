@@ -27,7 +27,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   profissional: {
     id: "profissional",
     name: "Profissional",
-    tagline: "Mais escolhido",
+    tagline: "Para quem já está rodando",
     monthlyPriceCents: 39900,
     highlighted: true,
     features: ["Tudo do Essencial", "Pró-labore e folha básica", "Planejamento tributário"],
