@@ -1,5 +1,4 @@
-import type { ContractStatus } from "@exactra/shared";
-import type { AdminPayment } from "@/lib/api/admin-types";
+import type { ContractStatus, PaymentStatus } from "@exactra/shared";
 
 export const statusLabels: Record<ContractStatus, string> = {
   PENDING_PAYMENT: "Aguardando pagamento",
@@ -9,11 +8,10 @@ export const statusLabels: Record<ContractStatus, string> = {
   EXPIRED: "Vencido",
 };
 
-export const paymentStatusLabels: Record<AdminPayment["status"], string> = {
+export const paymentStatusLabels: Record<PaymentStatus, string> = {
   PAID: "Pago",
   PENDING: "Pendente",
   FAILED: "Falhou",
-  REFUNDED: "Estornado",
 };
 
 export const adminCopy = {
@@ -21,10 +19,21 @@ export const adminCopy = {
   nav: [
     { href: "/admin", label: "Contratos" },
     { href: "/admin/leads", label: "Leads" },
+    { href: "/admin/seguranca", label: "Segurança" },
   ],
+  twoFactorBanner: {
+    text: "Sua conta ainda não tem verificação em duas etapas.",
+    cta: "Ativar agora",
+  },
   signOut: "Sair",
   loading: "Carregando...",
   loadError: "Não foi possível carregar os dados. Recarregue a página.",
+  pager: {
+    label: "Paginação",
+    prev: "Anterior",
+    next: "Próxima",
+    summary: (from: number, to: number, total: number) => `${from}–${to} de ${total}`,
+  },
   login: {
     title: "Entrar no painel",
     email: "E-mail",
@@ -32,7 +41,7 @@ export const adminCopy = {
     submit: "Entrar",
     forgot: "Esqueci minha senha",
     invalid: "E-mail ou senha incorretos.",
-    mockHint: "Ambiente de teste: admin@exactra.com.br / exactra123, código 123456.",
+    mockHint: "Ambiente de teste: admin@exactra.com.br / exactra123. Código do app ou do e-mail: 123456.",
   },
   twoFactor: {
     title: "Verificação em duas etapas",
@@ -40,6 +49,11 @@ export const adminCopy = {
     code: "Código",
     backupText: "Use um dos códigos de recuperação que você salvou ao ativar a verificação.",
     backupCode: "Código de recuperação",
+    otpText: (email: string) => `Enviamos um código de 6 dígitos para ${email || "o seu e-mail"}. Ele vale por poucos minutos.`,
+    otpCode: "Código do e-mail",
+    otpSendError: "Não foi possível enviar o código agora. Tente de novo.",
+    resendOtp: "Reenviar código",
+    useOtp: "Receber código por e-mail",
     useBackup: "Usar código de recuperação",
     useTotp: "Usar app autenticador",
     trustDevice: "Confiar neste dispositivo por 30 dias",
@@ -65,6 +79,34 @@ export const adminCopy = {
     done: "Senha alterada. Entre com a nova senha.",
     goLogin: "Ir para o login",
   },
+  security: {
+    title: "Verificação em duas etapas",
+    intro: "Além da senha, o login pede um código do seu celular. Assim, ninguém entra no painel só com a sua senha.",
+    password: "Sua senha",
+    wrongPassword: "Senha incorreta.",
+    enabled: "Ativada nesta conta.",
+    disabled: "Desativada nesta conta.",
+    start: "Ativar verificação",
+    scanTitle: "1. Escaneie o QR code",
+    scanText: "Abra um app autenticador (Google Authenticator, Microsoft Authenticator ou similar) e escaneie o código.",
+    manualLabel: "Sem câmera? Digite esta chave no app:",
+    backupTitle: "2. Guarde os códigos de recuperação",
+    backupText: "Cada código entra uma única vez, se você perder o celular. Guarde num lugar seguro, fora deste computador.",
+    copyCodes: "Copiar códigos",
+    copied: "Copiados",
+    verifyTitle: "3. Confirme com o código do app",
+    code: "Código de 6 dígitos",
+    confirm: "Confirmar e ativar",
+    invalidCode: "Código inválido. Confira o horário do celular e tente de novo.",
+    done: "Pronto. A partir do próximo login, o painel vai pedir o código do app.",
+    regenerateTitle: "Novos códigos de recuperação",
+    regenerateText: "Gera uma nova lista e invalida os códigos antigos.",
+    regenerate: "Gerar novos códigos",
+    disableTitle: "Desativar a verificação",
+    disableText: "Não recomendado: o login volta a pedir só a senha.",
+    disable: "Desativar",
+    cancel: "Cancelar",
+  },
   metrics: {
     activeCustomers: "Clientes ativos",
     newThisMonth: "Novos nos últimos 30 dias",
@@ -83,6 +125,7 @@ export const adminCopy = {
     exportCsv: "Exportar CSV",
     csvName: "contratos-exactra.csv",
     empty: "Nenhum contrato encontrado com esses filtros.",
+    exportError: "Não foi possível exportar agora. Tente de novo.",
     cols: { customer: "Cliente", plan: "Plano", method: "Pagamento", status: "Status", startsAt: "Início", endsAt: "Vence em" },
   },
   detail: {
@@ -102,10 +145,13 @@ export const adminCopy = {
     endsAt: "Vence em",
     payments: "Histórico de pagamentos",
     noPayments: "Nenhum pagamento registrado.",
+    lead: "Veio do simulador",
+    leadSummary: (revenue: string, plan: string, date: string) => `Faturamento informado ${revenue}, plano sugerido ${plan}, em ${date}`,
     cols: { date: "Data", amount: "Valor", method: "Forma", status: "Status" },
   },
   leads: {
     title: "Leads do simulador",
+    search: "Buscar por nome, e-mail ou WhatsApp",
     empty: "Nenhum lead ainda. Eles aparecem aqui quando alguém libera o resultado do simulador.",
     cols: { name: "Nome", whatsapp: "WhatsApp", revenue: "Faturamento", plan: "Plano sugerido", source: "Origem", createdAt: "Data" },
     noSource: "Direto",

@@ -18,6 +18,11 @@ export const periodLabels: Record<BillingPeriod, string> = {
 
 export const checkoutCopy = {
   title: "Contratar a Exactra",
+  /** Stripe cancel_url: /checkout?cancelado=1 */
+  canceled: {
+    title: "Pagamento não concluído",
+    text: "Você saiu antes de terminar e nada foi cobrado. Escolha a forma de pagamento e tente de novo quando quiser.",
+  },
   back: "Voltar para o site",
   planTitle: "Plano",
   methodTitle: "Forma de pagamento",
@@ -30,7 +35,9 @@ export const checkoutCopy = {
     phone: { label: "WhatsApp", placeholder: "(00) 00000-0000" },
     document: { label: "CPF ou CNPJ", placeholder: "Somente números" },
   },
-  consent: "Concordo com os termos de uso e autorizo a Exactra a tratar meus dados para prestar o serviço, conforme a",
+  consentStart: "Concordo com os",
+  termsLink: { href: "/termos", label: "termos de uso" },
+  consent: "e autorizo a Exactra a tratar meus dados para prestar o serviço, conforme a",
   consentLink: { href: "/privacidade", label: "política de privacidade" },
   summaryTitle: "Resumo",
   totalNow: "Total agora",
