@@ -72,7 +72,7 @@ export function LeadGate({ answers, result, onUnlocked }: Props) {
         </div>
       </dl>
 
-      <form onSubmit={submit} noValidate className="rounded-[14px] border border-line bg-surface p-5">
+      <form onSubmit={submit} onInput={() => setErrors({})} noValidate className="rounded-[14px] border border-line bg-surface p-5">
         <p className="mb-4 flex items-center gap-2 text-[0.92rem]">
           <Lock size={16} className="shrink-0 text-brand" aria-hidden="true" />
           {copy.lockedText}
