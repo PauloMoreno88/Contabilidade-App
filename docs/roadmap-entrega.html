@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap de entrega — Exactra Contabilidade</title>
+<link rel="icon" href="public/trace.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#071420;
+    --surface:#0A1B2A;
+    --surface-2:#0F253A;
+    --surface-3:#112C45;
+    --border:#1F3B57;
+    --text:#EAF1F8;
+    --text-muted:#7E96AC;
+    --text-faint:#4F6A82;
+    --red:#C82333;
+    --red-dark:#A61B29;
+    --amber:#ffb703;
+    --green:#25D366;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Geist', Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .mono{
+    font-family:'Geist Mono', 'Courier New', monospace;
+    font-feature-settings:"tnum";
+    font-variant-numeric:tabular-nums;
+  }
+
+  a{color:inherit;}
+
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+  }
+
+  /* ---------- header ---------- */
+
+  header.doc-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:36px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand img{height:28px;width:auto;display:block;}
+  .brand-name{font-weight:600;font-size:1rem;letter-spacing:0.01em;color:var(--text);}
+
+  .stamp{
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:8px 12px;
+    text-align:right;
+    background:var(--surface);
+  }
+  .stamp .label{font-size:0.68rem;color:var(--text-faint);}
+  .stamp .value{font-size:0.82rem;color:var(--text);margin-top:2px;}
+  .stamp .value.mono{color:var(--red);font-weight:600;}
+
+  h1{
+    font-size:2rem;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0 0 10px;
+    color:var(--text);
+  }
+  .lede{
+    font-size:1.02rem;
+    color:var(--text-muted);
+    max-width:640px;
+    margin:0;
+  }
+
+  /* ---------- ledger ruler ---------- */
+
+  .ledger{
+    margin-bottom:28px;
+  }
+  .ledger-title{
+    font-size:0.78rem;
+    color:var(--text-faint);
+    margin-bottom:10px;
+  }
+  .ledger-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    margin:0 -24px;
+    padding:0 24px;
+  }
+  .ledger-track{
+    position:relative;
+    min-width:680px;
+  }
+  .ruler{
+    display:grid;
+    grid-template-columns:repeat(20, 1fr);
+    gap:2px;
+  }
+  .ruler .day{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:4px 2px;
+    text-align:center;
+    font-size:0.62rem;
+    color:var(--text-faint);
+  }
+  .ruler .day.today{
+    border-color:var(--red);
+    color:var(--red);
+    background:rgba(200,35,51,0.12);
+  }
+  .ruler .day .n{display:block;font-weight:600;font-size:0.72rem;}
+
+  .today-flag{
+    position:absolute;
+    top:-20px;
+    left:0;
+    width:5%;
+    text-align:center;
+    font-size:0.62rem;
+    color:var(--red);
+    font-weight:600;
+    transition:left 0.2s ease;
+  }
+
+  .phase-bars{
+    display:grid;
+    grid-template-columns:repeat(20, 1fr);
+    gap:2px;
+    margin-top:6px;
+  }
+  .phase-bars .bar{
+    height:22px;
+    border-radius:3px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.64rem;
+    font-weight:600;
+    color:var(--text);
+    border:1px solid var(--border);
+    transform-origin:left center;
+    animation:growBar 0.6s ease-out backwards;
+  }
+  .bar.status-andamento{background:rgba(255,183,3,0.16);border-color:var(--amber);color:var(--amber);}
+  .bar.status-pendente{background:var(--surface);color:var(--text-faint);}
+  .bar.status-concluido{background:rgba(37,211,102,0.14);border-color:var(--green);color:var(--green);}
+
+  @keyframes growBar{
+    from{transform:scaleX(0);opacity:0;}
+    to{transform:scaleX(1);opacity:1;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .phase-bars .bar{animation:none;}
+  }
+
+  /* ---------- legend / hint / actions ---------- */
+
+  .legend{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+    font-size:0.8rem;
+    color:var(--text-muted);
+  }
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot.pendente{background:var(--text-faint);}
+  .dot.andamento{background:var(--amber);}
+  .dot.concluido{background:var(--green);}
+
+  .hint{
+    font-size:0.82rem;
+    color:var(--text-faint);
+    margin:0 0 20px;
+    max-width:560px;
+  }
+
+  .actions{margin-bottom:44px;}
+  .btn-export{
+    background:var(--red);
+    color:#fff;
+    border:none;
+    font:inherit;
+    font-weight:600;
+    font-size:0.86rem;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .btn-export:hover{background:var(--red-dark);}
+
+  /* ---------- phase cards ---------- */
+
+  .phase{
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface);
+    padding:28px 28px 24px;
+    margin-bottom:22px;
+  }
+  .phase.current{
+    border-color:var(--red);
+    box-shadow:0 0 0 1px rgba(200,35,51,0.25) inset;
+  }
+
+  .phase-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:6px;
+  }
+  .phase-head .num{
+    font-size:0.78rem;
+    color:var(--text-faint);
+    margin-bottom:4px;
+  }
+  .phase-head h2{
+    font-size:1.3rem;
+    font-weight:600;
+    margin:0;
+    color:var(--text);
+  }
+  .phase-dates{
+    font-size:0.78rem;
+    color:var(--text-muted);
+    text-align:right;
+    white-space:nowrap;
+    padding-top:2px;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.74rem;
+    font-weight:500;
+    padding:4px 10px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    white-space:nowrap;
+    background:transparent;
+    font-family:inherit;
+    -webkit-appearance:none;
+    appearance:none;
+    cursor:pointer;
+    transition:filter 0.15s ease;
+  }
+  .badge:hover{filter:brightness(1.3);}
+  .badge.pendente{color:var(--text-muted);}
+  .badge.andamento{color:var(--amber);border-color:rgba(255,183,3,0.4);background:rgba(255,183,3,0.08);}
+  .badge.concluido{color:var(--green);border-color:rgba(37,211,102,0.4);background:rgba(37,211,102,0.08);}
+  .badge .dot{width:6px;height:6px;}
+
+  .phase-desc{
+    color:var(--text-muted);
+    font-size:0.94rem;
+    margin:10px 0 18px;
+    max-width:580px;
+  }
+
+  .tasks{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .tasks li{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    padding:10px 14px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:0.88rem;
+  }
+  .tasks li span.name{color:var(--text);}
+
+  /* ---------- callouts ---------- */
+
+  .callout{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-top:16px;
+    font-size:0.86rem;
+    color:var(--text-muted);
+  }
+  .callout.decision{border-color:rgba(255,183,3,0.45);background:rgba(255,183,3,0.06);}
+  .callout.blocker{border-color:rgba(200,35,51,0.45);background:rgba(200,35,51,0.07);}
+  .callout svg{flex-shrink:0;margin-top:2px;}
+  .callout .title{color:var(--text);font-weight:600;font-size:0.86rem;display:block;margin-bottom:3px;}
+  .callout.decision .title{color:var(--amber);}
+  .callout.blocker .title{color:var(--red);}
+
+  /* ---------- footer ---------- */
+
+  footer{
+    margin-top:48px;
+    padding-top:24px;
+    border-top:1px solid var(--border);
+    font-size:0.82rem;
+    color:var(--text-faint);
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  footer .brand-name{font-size:0.82rem;}
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width:640px){
+    .wrap{padding:32px 16px 60px;}
+    header.doc-head{flex-direction:column;}
+    .stamp{text-align:left;}
+    h1{font-size:1.55rem;}
+    .ledger-scroll{margin:0 -16px;padding:0 16px;}
+    .phase-head{flex-direction:column;}
+    .phase-dates{text-align:left;}
+    .tasks li{flex-direction:column;align-items:flex-start;gap:6px;}
+  }
+
+  :focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="brand">
+      <img src="public/trace.svg" alt="Exactra Contabilidade">
+      <span class="brand-name">Exactra Contabilidade</span>
+    </div>
+    <div class="stamp">
+      <div class="label">Atualizado em</div>
+      <div class="value mono" id="stamp-date">01/10/2026</div>
+      <div class="label" style="margin-top:6px;">Dia</div>
+      <div class="value mono" id="stamp-day">1 de 20</div>
+    </div>
+  </header>
+
+  <h1>Roadmap de entrega do novo site</h1>
+  <p class="lede">Do protótipo visual ao lançamento: 20 dias corridos, divididos em 5 fases. A marcação "hoje" na régua abaixo segue a data real; os status de cada etapa são atualizados manualmente conforme o progresso.</p>
+
+  <section class="ledger">
+    <div class="ledger-title">Linha do tempo — 01/10 a 20/10</div>
+    <div class="ledger-scroll">
+      <div class="ledger-track">
+        <span class="today-flag">hoje</span>
+        <div class="ruler">
+          <div class="day today"><span class="n">1</span>01/10</div>
+          <div class="day"><span class="n">2</span>02/10</div>
+          <div class="day"><span class="n">3</span>03/10</div>
+          <div class="day"><span class="n">4</span>04/10</div>
+          <div class="day"><span class="n">5</span>05/10</div>
+          <div class="day"><span class="n">6</span>06/10</div>
+          <div class="day"><span class="n">7</span>07/10</div>
+          <div class="day"><span class="n">8</span>08/10</div>
+          <div class="day"><span class="n">9</span>09/10</div>
+          <div class="day"><span class="n">10</span>10/10</div>
+          <div class="day"><span class="n">11</span>11/10</div>
+          <div class="day"><span class="n">12</span>12/10</div>
+          <div class="day"><span class="n">13</span>13/10</div>
+          <div class="day"><span class="n">14</span>14/10</div>
+          <div class="day"><span class="n">15</span>15/10</div>
+          <div class="day"><span class="n">16</span>16/10</div>
+          <div class="day"><span class="n">17</span>17/10</div>
+          <div class="day"><span class="n">18</span>18/10</div>
+          <div class="day"><span class="n">19</span>19/10</div>
+          <div class="day"><span class="n">20</span>20/10</div>
+        </div>
+        <div class="phase-bars">
+          <div class="bar status-andamento" data-key="p1" style="grid-column:1/3;animation-delay:0s;">Fase 1</div>
+          <div class="bar status-pendente" data-key="p2" style="grid-column:3/7;animation-delay:0.05s;">Fase 2</div>
+          <div class="bar status-pendente" data-key="p3" style="grid-column:7/14;animation-delay:0.1s;">Fase 3</div>
+          <div class="bar status-pendente" data-key="p4" style="grid-column:14/19;animation-delay:0.15s;">Fase 4</div>
+          <div class="bar status-pendente" data-key="p5" style="grid-column:19/21;animation-delay:0.2s;">Fase 5</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="legend">
+    <span><span class="dot pendente"></span>Pendente</span>
+    <span><span class="dot andamento"></span>Em andamento</span>
+    <span><span class="dot concluido"></span>Concluído</span>
+  </div>
+  <p class="hint">Clique em qualquer status (acima nas fases, ou dentro de cada tarefa) para alternar entre Pendente, Em andamento e Concluído. Quando terminar de atualizar, baixe o novo arquivo e envie para o cliente.</p>
+  <div class="actions">
+    <button id="export-btn" class="btn-export" type="button">Baixar HTML atualizado</button>
+  </div>
+
+  <!-- FASE 1 -->
+  <section class="phase current">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">FASE 1</div>
+        <h2>Descoberta &amp; identidade</h2>
+      </div>
+      <div class="phase-dates mono">01/10 – 02/10 · dias 1–2</div>
+    </div>
+    <button class="badge andamento" type="button" data-key="p1"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
+    <p class="phase-desc">Entender o que já existe antes de redesenhar — paleta, conteúdo e estrutura atuais da Exactra, e alinhamento sobre este roadmap.</p>
+    <ul class="tasks">
+      <li><span class="name">Analisar repositório e site atual</span><button class="badge concluido" type="button" data-key="p1-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Extrair paleta, tipografia e logo da marca</span><button class="badge concluido" type="button" data-key="p1-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Montar este roadmap de entrega</span><button class="badge concluido" type="button" data-key="p1-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Alinhar prioridades e aprovar roadmap com o cliente</span><button class="badge andamento" type="button" data-key="p1-t4"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+    </ul>
+  </section>
+
+  <!-- FASE 2 -->
+  <section class="phase">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">FASE 2</div>
+        <h2>Protótipo visual interativo</h2>
+      </div>
+      <div class="phase-dates mono">02/10 – 06/10 · dias 2–6</div>
+    </div>
+    <button class="badge pendente" type="button" data-key="p2"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <p class="phase-desc">Um HTML único, navegável, simulando a experiência completa — da home ao checkout — para validar a direção visual e o funil antes de qualquer linha de código de produção.</p>
+    <ul class="tasks">
+      <li><span class="name">Home: header, hero, benefícios e serviços</span><button class="badge pendente" type="button" data-key="p2-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Mini-diagnóstico interativo (simulador em etapas)</span><button class="badge pendente" type="button" data-key="p2-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Seção de planos e checkout simulado</span><button class="badge pendente" type="button" data-key="p2-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Onboarding e próximos passos (fictício)</span><button class="badge pendente" type="button" data-key="p2-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Apresentação e aprovação do cliente</span><button class="badge pendente" type="button" data-key="p2-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+    </ul>
+  </section>
+
+  <!-- FASE 3 -->
+  <section class="phase">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">FASE 3</div>
+        <h2>Front-end real</h2>
+      </div>
+      <div class="phase-dates mono">06/10 – 13/10 · dias 6–13</div>
+    </div>
+    <button class="badge pendente" type="button" data-key="p3"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <p class="phase-desc">O protótipo aprovado ganha vida no projeto de produção (Next.js / Tailwind), com o simulador funcional — ainda sem regras fiscais reais nem pagamento.</p>
+    <ul class="tasks">
+      <li><span class="name">Implementação das seções no Next.js</span><button class="badge pendente" type="button" data-key="p3-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Simulador funcional (cálculo simulado)</span><button class="badge pendente" type="button" data-key="p3-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Seção de planos no layout final</span><button class="badge pendente" type="button" data-key="p3-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Responsividade mobile / tablet / desktop</span><button class="badge pendente" type="button" data-key="p3-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Revisão de copy e microinterações</span><button class="badge pendente" type="button" data-key="p3-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+    </ul>
+  </section>
+
+  <!-- FASE 4 -->
+  <section class="phase">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">FASE 4</div>
+        <h2>Backend &amp; pagamentos</h2>
+      </div>
+      <div class="phase-dates mono">13/10 – 18/10 · dias 13–18</div>
+    </div>
+    <button class="badge pendente" type="button" data-key="p4"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <p class="phase-desc">A fase de maior risco do cronograma — depende de uma decisão de gateway e de informações que só o contador pode fornecer.</p>
+    <ul class="tasks">
+      <li><span class="name">Assinatura recorrente + webhooks de pagamento</span><button class="badge pendente" type="button" data-key="p4-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Persistência de cliente e contratação</span><button class="badge pendente" type="button" data-key="p4-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge pendente" type="button" data-key="p4-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+    </ul>
+
+    <div class="callout decision">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
+      <div>
+        <span class="title">Decisão pendente — gateway de pagamento</span>
+        Stripe ou Mercado Pago ainda não foi definido. A escolha entra nesta fase e deve considerar taxas e suporte a assinatura recorrente no Brasil.
+      </div>
+    </div>
+
+    <div class="callout blocker">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8h5M8 5.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div>
+        <span class="title">Bloqueio externo — dono: contador</span>
+        Valores dos planos e regras tributárias dependem de validação do contador. Sem essa informação, a seção de planos e o checkout real desta fase ficam travados.
+      </div>
+    </div>
+  </section>
+
+  <!-- FASE 5 -->
+  <section class="phase">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">FASE 5</div>
+        <h2>Lançamento &amp; onboarding</h2>
+      </div>
+      <div class="phase-dates mono">18/10 – 20/10 · dias 18–20</div>
+    </div>
+    <button class="badge pendente" type="button" data-key="p5"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <p class="phase-desc">Testes finais, publicação e o fluxo que recebe o cliente depois da contratação.</p>
+    <ul class="tasks">
+      <li><span class="name">Testes finais (fluxo completo, pagamentos reais)</span><button class="badge pendente" type="button" data-key="p5-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Deploy em produção</span><button class="badge pendente" type="button" data-key="p5-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Fluxo de onboarding pós-venda e documentos</span><button class="badge pendente" type="button" data-key="p5-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Handoff final para a Exactra</span><button class="badge pendente" type="button" data-key="p5-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span class="brand-name">Exactra Contabilidade</span>
+    <span>Roadmap interno de acompanhamento de projeto · próxima atualização em ~3 dias</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var STATUS = ['pendente','andamento','concluido'];
+  var LABEL = {pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído'};
+  var STORE_KEY = 'exactra-roadmap-status-v1';
+  var START = new Date(2026,9,1); // 01/10/2026
+
+  function currentStatus(badge){
+    for(var i=0;i<STATUS.length;i++){ if(badge.classList.contains(STATUS[i])) return STATUS[i]; }
+    return 'pendente';
+  }
+
+  function applyStatus(badge, status){
+    STATUS.forEach(function(s){ badge.classList.remove(s); });
+    badge.classList.add(status);
+    var dot = badge.querySelector('.dot');
+    if(dot){ STATUS.forEach(function(s){ dot.classList.remove(s); }); dot.classList.add(status); }
+    var label = badge.querySelector('.label');
+    if(label){ label.textContent = LABEL[status]; }
+    var key = badge.getAttribute('data-key');
+    if(key){
+      var bar = document.querySelector('.bar[data-key="'+key+'"]');
+      if(bar){
+        STATUS.forEach(function(s){ bar.classList.remove('status-'+s); });
+        bar.classList.add('status-'+status);
+      }
+    }
+  }
+
+  function nextStatus(current){
+    var i = STATUS.indexOf(current);
+    return STATUS[(i+1) % STATUS.length];
+  }
+
+  function saveState(){
+    try{
+      var state = {};
+      document.querySelectorAll('button.badge[data-key]').forEach(function(el){
+        state[el.getAttribute('data-key')] = currentStatus(el);
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }catch(e){}
+  }
+
+  function restoreState(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return;
+      var state = JSON.parse(raw);
+      Object.keys(state).forEach(function(key){
+        var badge = document.querySelector('button.badge[data-key="'+key+'"]');
+        if(badge){ applyStatus(badge, state[key]); }
+      });
+    }catch(e){}
+  }
+
+  function initClicks(){
+    document.querySelectorAll('button.badge[data-key]').forEach(function(badge){
+      badge.addEventListener('click', function(){
+        applyStatus(badge, nextStatus(currentStatus(badge)));
+        saveState();
+      });
+    });
+  }
+
+  function dayIndexToday(){
+    var now = new Date();
+    var diff = Math.floor((now - START) / 86400000) + 1;
+    if(diff < 1) diff = 1;
+    if(diff > 20) diff = 20;
+    return diff;
+  }
+
+  function updateLedgerToday(){
+    var idx = dayIndexToday();
+    document.querySelectorAll('.ruler .day').forEach(function(cell, i){
+      if(i + 1 === idx){ cell.classList.add('today'); }
+      else { cell.classList.remove('today'); }
+    });
+    var flag = document.querySelector('.today-flag');
+    if(flag){ flag.style.left = ((idx - 1) * 5) + '%'; }
+  }
+
+  function stampNow(){
+    var now = new Date();
+    var dd = String(now.getDate()).padStart(2,'0');
+    var mm = String(now.getMonth()+1).padStart(2,'0');
+    var yyyy = now.getFullYear();
+    var dateEl = document.getElementById('stamp-date');
+    if(dateEl){ dateEl.textContent = dd+'/'+mm+'/'+yyyy; }
+    var dayEl = document.getElementById('stamp-day');
+    if(dayEl){ dayEl.textContent = dayIndexToday()+' de 20'; }
+  }
+
+  function exportHtml(){
+    stampNow();
+    var html = '<!doctype html>\n' + document.documentElement.outerHTML;
+    var blob = new Blob([html], {type:'text/html'});
+    var url = URL.createObjectURL(blob);
+    var now = new Date();
+    var stamp = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'roadmap-entrega-'+stamp+'.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    restoreState();
+    updateLedgerToday();
+    initClicks();
+    var exportBtn = document.getElementById('export-btn');
+    if(exportBtn){ exportBtn.addEventListener('click', exportHtml); }
+  });
+})();
+</script>
+</body>
+</html>
