@@ -34,6 +34,8 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 15 | Git | Conventional commits em inglês, PRs pequenos de `feat/web` e `feat/api` para `feat/app-v2`, **nada em `master` antes da aprovação do cliente** |
 | 16 | Idiomas | Código e commits em inglês; interface e documentação em português |
 | 17 | Contador atrasado | Preços/regras como `PLACEHOLDER` num só arquivo; flag `CHECKOUT_ENABLED`; Stripe só em modo teste até validação |
+| 18 | Build da API | NestJS 12 em ESM; build com **tsdown** (embute `@exactra/shared`, que exporta TS cru). Prisma 7 com `@prisma/adapter-pg` |
+| 19 | Testes da API | e2e com **PGlite** (Postgres em memória) aplicando as migrations reais; nada depende de Neon/Stripe/Resend |
 
 ## 3. Arquitetura alvo
 
@@ -101,7 +103,7 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [ ] Tudo contra mock do contrato até o API existir
 
 **Agente de back — `feat/api` (06–14/10)**
-- [ ] Nest, Prisma, Neon, Better Auth (e-mail+senha, admin, 2FA, reset) e seed do primeiro admin
+- [x] Nest, Prisma, Neon, Better Auth (e-mail+senha, admin, 2FA, reset) e seed do primeiro admin
 - [ ] Leads
 - [ ] Stripe: cartão recorrente, Pix e boleto; webhooks idempotentes; contratos e pagamentos
 - [ ] E-mails (Resend): boas-vindas, aviso interno, reset de senha, aviso de vencimento
