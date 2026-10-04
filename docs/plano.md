@@ -108,7 +108,7 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [x] Stripe: cartão recorrente, Pix e boleto; webhooks idempotentes; contratos e pagamentos
 - [x] E-mails (Resend): boas-vindas, aviso interno, reset de senha, aviso de vencimento
 - [x] Job diário de vencimento
-- [ ] Endpoints admin e CSV
+- [x] Endpoints admin e CSV
 
 **Integração e testes (14–17/10):** trocar mock pelo API real, testar fluxo completo com Stripe em modo teste, deploy e domínio.
 

@@ -31,6 +31,16 @@ pnpm --filter api lint
 - `GET /contracts/:id/status?token=…` — público com o `statusToken`; resposta no formato `ContractStatusResponse`.
 - `POST /webhooks/stripe` — assinatura verificada (`STRIPE_WEBHOOK_SECRET`) e idempotente (`WebhookEvent.stripeEventId` único, gravado na mesma transação que altera o contrato).
 
+### Admin (sessão com papel `admin`; sem sessão = 401, outro papel = 403)
+
+- `GET /admin/metrics` — `AdminMetrics` do shared. Definições: *ativos* = clientes com contrato `ACTIVE`; *novos no mês* = contratos com início no mês corrente; *receita contratada* = soma do `amountCents` dos contratos `ACTIVE` (cartão = valor mensal, Pix/boleto = valor do período pago); *vencendo em 30 dias* = Pix/boleto `ACTIVE` com fim em até 30 dias; `byPlan`/`byMethod` contam contratos `ACTIVE`.
+- `GET /admin/contracts?q=&status=&plan=&method=&period=&page=1&pageSize=20` — `{ items: AdminContractRow[], total, page, pageSize }`. `q` busca em nome, e-mail, CPF/CNPJ e telefone.
+- `GET /admin/contracts/:id` — contrato + cliente (com lead de origem) + histórico de pagamentos.
+- `GET /admin/leads?q=&page=&pageSize=` — `{ items, total, page, pageSize }`.
+- `GET /admin/contracts.csv` — mesmos filtros da lista; CSV com BOM e `;` (abre direto no Excel pt-BR); células que começam com `= + - @` são neutralizadas.
+
+> Os formatos paginados (`{ items, total, page, pageSize }`) e os filtros ainda não estão no `@exactra/shared`. Sugestão para o front: adicionar esses schemas ao shared na integração.
+
 ## Pagamentos e ciclo do contrato
 
 Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só existe `StripeProvider`. Os eventos do Stripe viram eventos neutros e `src/contracts/contract-lifecycle.ts` aplica:
