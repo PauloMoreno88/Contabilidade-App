@@ -72,7 +72,7 @@ export const statusCopy = {
   },
   active: {
     title: "Pagamento confirmado",
-    text: "Boas-vindas à Exactra! Recebemos sua contratação e nosso time vai te chamar no WhatsApp em até 1 dia útil.",
+    text: "Boas-vindas à Exactra! Recebemos sua contratação e nosso time vai te chamar no WhatsApp para começar.", // PLACEHOLDER: no deadline until confirmed
   },
   pending: {
     BOLETO: {
