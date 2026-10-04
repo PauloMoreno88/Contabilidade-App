@@ -109,6 +109,11 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [x] E-mails (Resend): boas-vindas, aviso interno, reset de senha, aviso de vencimento
 - [x] Job diário de vencimento
 - [x] Endpoints admin e CSV
+- [x] CORS explícito (`WEB_ORIGIN`), URLs de retorno do Stripe alinhadas ao front (`/checkout/status`, `/checkout?cancelado=1&plan=`)
+- [x] Admin usando os schemas de `@exactra/shared` (query e resposta)
+- [x] Neon de dev: migrations + seed do admin; login e `POST /leads` validados de ponta a ponta
+- [x] Stripe teste: sessões de cartão/Pix/boleto criadas; webhook verificado sobre `req.rawBody`
+- [ ] Webhook pelo `stripe listen` + pagamento 4242 (roteiro em `apps/api/README.md`)
 
 **Integração e testes (14–17/10):** trocar mock pelo API real, testar fluxo completo com Stripe em modo teste, deploy e domínio.
 

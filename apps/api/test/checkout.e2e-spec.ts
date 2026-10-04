@@ -40,7 +40,7 @@ describe('checkout + Stripe webhooks (e2e)', () => {
     expect(params.success_url).toBe(
       `http://localhost:3000/checkout/status?contract=${res.body.contractId}&token=${res.body.statusToken}`,
     );
-    expect(params.cancel_url).toBe('http://localhost:3000/checkout?cancelado=1');
+    expect(params.cancel_url).toBe('http://localhost:3000/checkout?cancelado=1&plan=profissional');
 
     const c = await contract(res.body.contractId);
     expect(c.status).toBe('PENDING_PAYMENT');

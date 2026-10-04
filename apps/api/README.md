@@ -42,57 +42,35 @@ Outras origens não recebem `Access-Control-Allow-Origin`. O front deve usar `cr
 - `POST /checkout/sessions` — body `CreateCheckoutInput`. **201** `CheckoutResponse` = `{ contractId, checkoutUrl, statusToken }` → redirecione para `checkoutUrl`.
   - **400** se o período não combina com a forma de pagamento (cartão = `MONTHLY`; Pix/boleto = `QUARTERLY | SEMIANNUAL | ANNUAL`).
   - **503** se o checkout estiver indisponível (sem chave Stripe, ou chave live com `CHECKOUT_ENABLED=false`).
-  - Retorno do Stripe: sucesso **ou pendente** (boleto/Pix gerado) → `WEB_ORIGIN/checkout/status?contract=<id>&token=<statusToken>`; desistência → `WEB_ORIGIN/checkout?cancelado=1`.
+  - Retorno do Stripe: sucesso **ou pendente** (boleto/Pix gerado) → `WEB_ORIGIN/checkout/status?contract=<id>&token=<statusToken>`; desistência → `WEB_ORIGIN/checkout?cancelado=1&plan=<plano>`.
 - `GET /contracts/:id/status?token=<statusToken>` → **200** `ContractStatusResponse` = `{ contractId, status, method, plan, period }`; **404** sem token ou com token errado. Faça polling enquanto `status = PENDING_PAYMENT` (boleto leva 1–3 dias úteis).
 - `POST /webhooks/stripe` — só para o Stripe (ver "Webhook do Stripe").
 
 ### Admin
 
 Todas exigem sessão com papel `admin`: sem sessão **401**, outro papel **403**. Datas em ISO 8601 (UTC), valores em centavos.
+Query e respostas usam os schemas de `@exactra/shared` (`packages/shared/src/admin.ts`). A API valida a query com eles e passa a resposta pelo schema, o que remove campos internos como `statusToken` e ids do Stripe.
 
-| Rota | Query | Resposta 200 |
+| Rota | Query (schema) | Resposta 200 (schema) |
 |---|---|---|
-| `GET /admin/metrics` | — | `AdminMetrics` (shared) |
-| `GET /admin/contracts` | `q, status, plan, method, period, page=1, pageSize=20` (máx. 100) | `{ items: AdminContractRow[], total, page, pageSize }` |
-| `GET /admin/contracts/:id` | — | `AdminContractDetail` (abaixo); **404** se não existir |
-| `GET /admin/leads` | `q, page=1, pageSize=20` (máx. 100) | `{ items: AdminLeadRow[], total, page, pageSize }` |
-| `GET /admin/contracts.csv` | mesmos filtros de `/admin/contracts` (sem paginação) | `text/csv; charset=utf-8` com `Content-Disposition: attachment; filename="contratos.csv"` |
+| `GET /admin/metrics` | — | `adminMetricsSchema` |
+| `GET /admin/contracts` | `adminContractsQuerySchema`: `q, status, plan, method, period, page=1, pageSize=20` (máx. 100) | `adminContractsPageSchema` = `{ items: AdminContractRow[], total, page, pageSize }` |
+| `GET /admin/contracts/:id` | — | `adminContractDetailSchema` (contrato + `customer` com `lead` + `payments`); **404** se não existir |
+| `GET /admin/leads` | `adminLeadsQuerySchema`: `q, page=1, pageSize=20` (máx. 100) | `adminLeadsPageSchema` = `{ items: AdminLead[], total, page, pageSize }` |
+| `GET /admin/contracts.csv` | `adminContractsQuerySchema` (paginação ignorada) | `text/csv; charset=utf-8`, `Content-Disposition: attachment; filename="contratos.csv"` |
 
 - Filtros inválidos (ex.: `status=FOO`) → **400**.
-- `q` busca sem diferenciar maiúsculas em nome e e-mail e, se tiver dígitos, também em CPF/CNPJ e telefone. Nos leads, busca em nome, e-mail e WhatsApp.
-- Ordem: mais recentes primeiro.
+- `q` busca sem diferenciar maiúsculas em nome e e-mail e, se tiver dígitos, também em CPF/CNPJ (só dígitos) e telefone. Nos leads, busca em nome, e-mail e WhatsApp.
+- Ordem: mais recentes primeiro; os pagamentos do detalhe vêm do mais recente para o mais antigo.
 
-```ts
-// AdminMetrics (packages/shared/src/schemas.ts)
-{
-  activeCustomers: number;        // clientes com contrato ACTIVE
-  newThisMonth: number;           // contratos com início (startsAt) no mês corrente
-  contractedRevenueCents: number; // soma de amountCents dos contratos ACTIVE (cartão = mensal; Pix/boleto = período pago)
-  pendingPayment: number;         // contratos PENDING_PAYMENT
-  expiringIn30Days: number;       // Pix/boleto ACTIVE que vencem em até 30 dias
-  byPlan: Record<PlanId, number>;          // contratos ACTIVE por plano (chave ausente = 0)
-  byMethod: Record<PaymentMethod, number>; // contratos ACTIVE por forma de pagamento (chave ausente = 0)
-}
+Definições do `AdminMetrics`:
 
-// AdminContractRow (shared)
-{ id, customerName, email, phone, document /* só dígitos */, plan, period, method, status,
-  startsAt: string | null, endsAt: string | null }
-
-// AdminContractDetail = AdminContractRow + (igual a apps/web/src/lib/api/admin-types.ts, mais leadId)
-{
-  amountCents: number;
-  createdAt: string;
-  leadId: string | null;
-  payments: { id: string; amountCents: number; status: 'PENDING' | 'PAID' | 'FAILED';
-              method: PaymentMethod; paidAt: string | null; createdAt: string }[]; // mais recente primeiro
-}
-
-// AdminLeadRow (igual a apps/web/src/lib/api/admin-types.ts, mais rulesVersion)
-{ id: string; name: string; whatsapp: string; email?: string;
-  monthlyRevenue: number; // em reais, como no simulador
-  recommendedPlan: PlanId; utmSource?: string; utmCampaign?: string;
-  rulesVersion: string; createdAt: string }
-```
+- `activeCustomers`: clientes com contrato `ACTIVE`;
+- `newThisMonth`: contratos com início no mês corrente;
+- `contractedRevenueCents`: soma de `amountCents` dos contratos `ACTIVE` (cartão = valor mensal; Pix/boleto = valor do período pago);
+- `pendingPayment`: contratos `PENDING_PAYMENT`;
+- `expiringIn30Days`: Pix/boleto `ACTIVE` que vencem em até 30 dias;
+- `byPlan` / `byMethod`: contratos `ACTIVE` (chave ausente = 0).
 
 CSV:
 
@@ -100,13 +78,6 @@ CSV:
 - colunas `Cliente; E-mail; Telefone; CPF/CNPJ; Plano; Período; Pagamento; Status; Valor (R$); Início; Fim` (valor como `199,00`, datas `AAAA-MM-DD`);
 - células que começam com `= + - @` ganham `'` na frente (proteção contra injeção de fórmula);
 - para baixar: `fetch(url, { credentials: 'include' })` → `blob()`; o nome do arquivo vem em `Content-Disposition`.
-
-> Diferenças em relação ao mock do front:
-> - as listas são **paginadas** (`{ items, total, page, pageSize }`), enquanto o mock devolve array;
-> - o detalhe ganha `leadId` e os leads ganham `rulesVersion`;
-> - `REFUNDED` não existe no back.
->
-> Os tipos `AdminContractDetail` e `AdminLeadRow` existem no front e no back (`src/admin.controller.ts`). Sugestão: movê-los para o `@exactra/shared` na integração.
 
 ## Pagamentos e ciclo do contrato
 
@@ -130,13 +101,44 @@ Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só exi
 - **Validado contra o Stripe real** (04/10, modo teste):
   - `POST /checkout/sessions` criou sessões aceitas pelo Stripe para cartão, Pix e boleto (`allowed_payment_method_types` = `card` / `pix` / `boleto`, `success_url` em `/checkout/status`).
   - Os eventos reais `checkout.session.expired` dessas sessões foram reenviados ao endpoint, assinados com o `STRIPE_WEBHOOK_SECRET` do `.env`. Resultado: 200, e os contratos foram para `CANCELED`.
-- **Pendente:** o `stripe listen` da máquina do usuário estava conectado ao Stripe, mas não encaminhou nenhum evento para `localhost:3001/webhooks/stripe`. Provavelmente aponta para outra porta/caminho ou outra conta. Rode exatamente:
+## Teste manual com o Stripe (modo teste)
 
-  ```
-  stripe listen --forward-to localhost:3001/webhooks/stripe
-  ```
+Pré-requisitos: `STRIPE_SECRET_KEY` (`sk_test_…`) e `STRIPE_WEBHOOK_SECRET` no `.env`, API rodando (`pnpm --filter api start:dev`, porta 3001) e, em outro terminal:
 
-  O `whsec_…` impresso precisa ser o mesmo `STRIPE_WEBHOOK_SECRET` do `.env` (ele muda se o CLI estiver logado em outra conta). Para disparar um evento, use `stripe trigger checkout.session.completed`; o terminal do `listen` deve mostrar `<-- [200] POST http://localhost:3001/webhooks/stripe`.
+```
+stripe listen --forward-to localhost:3001/webhooks/stripe
+```
+
+O `whsec_…` impresso pelo `listen` precisa ser o `STRIPE_WEBHOOK_SECRET` do `.env`. Se usar `--events`, inclua pelo menos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed` e `customer.subscription.deleted`.
+
+**1. Webhook chegando (`stripe trigger`)**
+
+```
+stripe trigger checkout.session.completed
+```
+
+- Esperado no terminal do `listen`: `<-- [200] POST http://localhost:3001/webhooks/stripe`.
+- O evento fica gravado em `WebhookEvent`. O contrato não muda, porque a sessão do trigger não tem `metadata.contractId`.
+- Para o trigger ativar um contrato real: crie um contrato Pix (`POST /checkout/sessions` com `method: "PIX"`) e rode `stripe trigger checkout.session.completed --add checkout_session:metadata.contractId=<contractId>`. O trigger cria uma sessão já paga, então o contrato vai para `ACTIVE`.
+
+**2. Fluxo real com pagamento**
+
+```
+pnpm --filter api stripe:flow            # cartão, plano essencial
+pnpm --filter api stripe:flow PIX profissional
+```
+
+O script (`scripts/checkout-flow.mjs`) faz o seguinte:
+
+1. cria a sessão por `POST /checkout/sessions`;
+2. imprime a URL do Stripe Checkout;
+3. acompanha `GET /contracts/:id/status` até `ACTIVE`.
+
+Abra a URL e pague com o cartão **4242 4242 4242 4242**, validade futura e CVC quaisquer. Esperado: `status: PENDING_PAYMENT` → `status: ACTIVE` em poucos segundos. O pagamento aparece em `GET /admin/contracts/<id>`.
+
+**3. Idempotência**
+
+- `stripe events resend <evt_…>` (id do evento no terminal do `listen`) → 200 com `{ received: true, duplicate: true }`, sem novo pagamento.
 
 ## E-mails (Resend) e job diário
 
@@ -159,7 +161,7 @@ Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só exi
 
 - [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
 - [x] Stripe (teste): chave de teste configurada; cartão, Pix e boleto aceitos na criação de sessão (04/10).
-- [ ] Confirmar o `stripe listen` encaminhando para `localhost:3001/webhooks/stripe` (ver "Webhook do Stripe").
+- [ ] Confirmar o `stripe listen` encaminhando para `localhost:3001/webhooks/stripe` (ver "Teste manual com o Stripe").
 - [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
 - [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`; `WEB_ORIGIN` com os domínios do site.
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.

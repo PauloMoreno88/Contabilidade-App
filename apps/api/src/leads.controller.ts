@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
-import { calculateSimulation, createLeadSchema, type CreateLeadInput } from '@exactra/shared';
+import { calculateSimulation, createLeadSchema, type CreateLeadInput, type CreateLeadResponse } from '@exactra/shared';
 import { prisma } from './db.js';
 import { ZodPipe } from './zod.pipe.js';
 
@@ -9,7 +9,7 @@ export class LeadsController {
   @AllowAnonymous()
   @Post()
   @HttpCode(201)
-  async create(@Body(new ZodPipe(createLeadSchema)) input: CreateLeadInput) {
+  async create(@Body(new ZodPipe(createLeadSchema)) input: CreateLeadInput): Promise<CreateLeadResponse> {
     // Never trust the client's result: recompute it with the current rules.
     const result = calculateSimulation(input.answers);
     const lead = await prisma.lead.create({

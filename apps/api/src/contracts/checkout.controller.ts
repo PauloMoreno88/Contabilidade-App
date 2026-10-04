@@ -73,7 +73,7 @@ export class CheckoutController {
         amountCents: contract.amountCents,
         customer: { name: customer.name, email: customer.email },
         successUrl: `${webOrigin()}/checkout/status?${query}`,
-        cancelUrl: `${webOrigin()}/checkout?cancelado=1`,
+        cancelUrl: `${webOrigin()}/checkout?cancelado=1&plan=${contract.plan}`,
       });
       await prisma.contract.update({ where: { id: contract.id }, data: { stripeSessionId: session.sessionId } });
       return { contractId: contract.id, checkoutUrl: session.url, statusToken: contract.statusToken };

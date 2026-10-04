@@ -1,12 +1,19 @@
 import request from 'supertest';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { adminContractRowSchema, adminMetricsSchema } from '@exactra/shared';
+import {
+  adminContractDetailSchema,
+  adminContractsPageSchema,
+  adminLeadsPageSchema,
+  adminMetricsSchema,
+  calculateSimulation,
+} from '@exactra/shared';
 import { auth } from '../src/auth.js';
 import { prisma } from '../src/db.js';
 import { seedAdmin } from '../src/seed-admin.js';
 import { createApp } from './app.js';
 
 const DAY = 86400_000;
+const leadAnswers = { profile: 'servicos', monthlyRevenue: 12000, hasCnpj: true, employees: 'none', currentRegime: 'mei' } as const;
 const admin = { email: 'chefe@exactra.test', password: 'senha-forte-123' };
 const user = { email: 'comum@exactra.test', password: 'senha-forte-456' };
 
@@ -58,8 +65,8 @@ describe('admin endpoints (e2e)', () => {
       data: {
         name: 'Lia Lead',
         whatsapp: '11911112222',
-        answers: { monthlyRevenue: 12000 },
-        result: { recommendedPlan: 'profissional' },
+        answers: leadAnswers,
+        result: calculateSimulation(leadAnswers),
         utm: { source: 'google', campaign: 'abertura' },
         rulesVersion: 'placeholder-0',
         consentAt: new Date(),
@@ -104,7 +111,7 @@ describe('admin endpoints (e2e)', () => {
   it('GET /admin/contracts filters, searches and paginates', async () => {
     const all = await get('/admin/contracts', adminCookie).expect(200);
     expect(all.body.total).toBe(3);
-    all.body.items.forEach((r: unknown) => adminContractRowSchema.parse(r));
+    adminContractsPageSchema.parse(all.body);
 
     const pix = await get('/admin/contracts?method=PIX&status=ACTIVE', adminCookie).expect(200);
     expect(pix.body.items.map((r: { customerName: string }) => r.customerName)).toEqual(['Carla Pix']);
@@ -121,27 +128,29 @@ describe('admin endpoints (e2e)', () => {
   it('GET /admin/contracts/:id returns customer and payment history', async () => {
     const { body } = await get('/admin/contracts?q=carla', adminCookie);
     const detail = await get(`/admin/contracts/${body.items[0].id}`, adminCookie).expect(200);
-    expect(adminContractRowSchema.parse(detail.body).customerName).toBe('Carla Pix');
-    expect(detail.body).toMatchObject({ amountCents: 10000, leadId: null });
-    expect(detail.body.payments).toEqual([
+    const d = adminContractDetailSchema.parse(detail.body);
+    expect(d.customer.name).toBe('Carla Pix');
+    expect(d.customer.lead).toBeNull();
+    expect(d.amountCents).toBe(10000);
+    expect(d.payments).toEqual([
       expect.objectContaining({ amountCents: 10000, status: 'PAID', method: 'PIX', paidAt: expect.any(String) }),
     ]);
+    expect(detail.body).not.toHaveProperty('statusToken'); // internal fields are stripped
     await get('/admin/contracts/nope', adminCookie).expect(404);
   });
 
   it('GET /admin/leads lists leads', async () => {
     const { body } = await get('/admin/leads?q=lia', adminCookie).expect(200);
     expect(body.total).toBe(1);
-    expect(body.items[0]).toEqual({
-      id: expect.any(String),
+    const lead = adminLeadsPageSchema.parse(body).items[0];
+    expect(lead).toMatchObject({
       name: 'Lia Lead',
       whatsapp: '11911112222',
-      monthlyRevenue: 12000,
-      recommendedPlan: 'profissional',
-      utmSource: 'google',
-      utmCampaign: 'abertura',
+      email: null,
+      answers: { monthlyRevenue: 12000 },
+      result: { recommendedPlan: 'profissional' },
+      utm: { source: 'google', campaign: 'abertura' },
       rulesVersion: 'placeholder-0',
-      createdAt: expect.any(String),
     });
   });
 
