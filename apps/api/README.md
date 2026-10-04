@@ -23,6 +23,7 @@ pnpm --filter api lint
 
 - `GET /health` — health check (Render).
 - `/api/auth/*` — Better Auth (login, 2FA, reset de senha, plugin admin). Cadastro público desligado.
+- `POST /leads` — público. Valida com `createLeadSchema`; o resultado é **recalculado no servidor** (o enviado pelo front é ignorado). Resposta: `{ id, result }`.
 
 ## Autenticação (admin)
 

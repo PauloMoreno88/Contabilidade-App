@@ -104,7 +104,7 @@ Hoje é 04/10; o roadmap termina em 20/10.
 
 **Agente de back — `feat/api` (06–14/10)**
 - [x] Nest, Prisma, Neon, Better Auth (e-mail+senha, admin, 2FA, reset) e seed do primeiro admin
-- [ ] Leads
+- [x] Leads
 - [ ] Stripe: cartão recorrente, Pix e boleto; webhooks idempotentes; contratos e pagamentos
 - [ ] E-mails (Resend): boas-vindas, aviso interno, reset de senha, aviso de vencimento
 - [ ] Job diário de vencimento
