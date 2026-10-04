@@ -161,7 +161,8 @@ Abra a URL e pague com o cartão **4242 4242 4242 4242**, validade futura e CVC 
 
 - [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
 - [x] Stripe (teste): chave de teste configurada; cartão, Pix e boleto aceitos na criação de sessão (04/10).
-- [ ] Confirmar o `stripe listen` encaminhando para `localhost:3001/webhooks/stripe` (ver "Teste manual com o Stripe").
+- [x] `stripe listen` encaminhando para `localhost:3001/webhooks/stripe`: validado em 04/10 (trigger, Pix, assinatura real com `invoice.paid`, cancelamento e reenvio duplicado).
+- [ ] Pagar uma sessão de cartão no navegador com 4242 (`pnpm --filter api stripe:flow`).
 - [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
 - [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`; `WEB_ORIGIN` com os domínios do site.
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
