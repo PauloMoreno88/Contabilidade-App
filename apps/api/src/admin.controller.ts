@@ -8,6 +8,8 @@ import {
   PLAN_IDS,
   type AdminContractRow,
   type AdminMetrics,
+  type PaymentMethod,
+  type PlanId,
 } from '@exactra/shared';
 import { prisma } from './db.js';
 import type { Prisma } from './generated/prisma/client.js';
@@ -49,6 +51,28 @@ function contractsWhere(f: ContractsQuery): Prisma.ContractWhereInput {
       : undefined,
   };
 }
+
+/** GET /admin/contracts/:id — matches AdminContractDetail in apps/web/src/lib/api/admin-types.ts (+ leadId). */
+export type AdminContractDetail = AdminContractRow & {
+  amountCents: number;
+  createdAt: string;
+  leadId: string | null;
+  payments: { id: string; amountCents: number; status: 'PENDING' | 'PAID' | 'FAILED'; method: PaymentMethod; paidAt: string | null; createdAt: string }[];
+};
+
+/** Row of GET /admin/leads — matches AdminLeadRow in apps/web/src/lib/api/admin-types.ts (+ rulesVersion). */
+export type AdminLeadRow = {
+  id: string;
+  name: string;
+  whatsapp: string;
+  email?: string;
+  monthlyRevenue: number;
+  recommendedPlan: PlanId;
+  utmSource?: string;
+  utmCampaign?: string;
+  rulesVersion: string;
+  createdAt: string;
+};
 
 type ContractWithCustomer = Prisma.ContractGetPayload<{ include: { customer: true } }>;
 const toRow = (c: ContractWithCustomer): AdminContractRow => ({
@@ -150,13 +174,26 @@ export class AdminController {
   }
 
   @Get('contracts/:id')
-  async contract(@Param('id') id: string) {
+  async contract(@Param('id') id: string): Promise<AdminContractDetail> {
     const c = await prisma.contract.findUnique({
       where: { id },
-      include: { customer: { include: { lead: true } }, payments: { orderBy: { createdAt: 'desc' } } },
+      include: { customer: true, payments: { orderBy: { createdAt: 'desc' } } },
     });
     if (!c) throw new NotFoundException();
-    return c;
+    return {
+      ...toRow(c),
+      amountCents: c.amountCents,
+      createdAt: c.createdAt.toISOString(),
+      leadId: c.customer.leadId,
+      payments: c.payments.map((p) => ({
+        id: p.id,
+        amountCents: p.amountCents,
+        status: p.status,
+        method: p.method,
+        paidAt: p.paidAt?.toISOString() ?? null,
+        createdAt: p.createdAt.toISOString(),
+      })),
+    };
   }
 
   @Get('leads')
@@ -170,10 +207,27 @@ export class AdminController {
           ],
         }
       : {};
-    const [items, total] = await Promise.all([
+    const [leads, total] = await Promise.all([
       prisma.lead.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (f.page - 1) * f.pageSize, take: f.pageSize }),
       prisma.lead.count({ where }),
     ]);
+    const items = leads.map((l): AdminLeadRow => {
+      const answers = l.answers as { monthlyRevenue?: number };
+      const result = l.result as { recommendedPlan?: AdminLeadRow['recommendedPlan'] };
+      const utm = (l.utm ?? {}) as { source?: string; campaign?: string };
+      return {
+        id: l.id,
+        name: l.name,
+        whatsapp: l.whatsapp,
+        email: l.email ?? undefined,
+        monthlyRevenue: answers.monthlyRevenue ?? 0,
+        recommendedPlan: result.recommendedPlan ?? 'essencial',
+        utmSource: utm.source,
+        utmCampaign: utm.campaign,
+        rulesVersion: l.rulesVersion,
+        createdAt: l.createdAt.toISOString(),
+      };
+    });
     return { items, total, page: f.page, pageSize: f.pageSize };
   }
 }

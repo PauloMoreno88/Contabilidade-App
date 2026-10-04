@@ -37,7 +37,10 @@ describe('checkout + Stripe webhooks (e2e)', () => {
     expect(params.mode).toBe('subscription');
     expect(params.allowed_payment_method_types).toEqual(['card']);
     expect(params.line_items[0].price_data.unit_amount).toBe(totalPriceCents('profissional', 'MONTHLY'));
-    expect(params.success_url).toContain(`token=${res.body.statusToken}`);
+    expect(params.success_url).toBe(
+      `http://localhost:3000/checkout/status?contract=${res.body.contractId}&token=${res.body.statusToken}`,
+    );
+    expect(params.cancel_url).toBe('http://localhost:3000/checkout?cancelado=1');
 
     const c = await contract(res.body.contractId);
     expect(c.status).toBe('PENDING_PAYMENT');
@@ -56,6 +59,17 @@ describe('checkout + Stripe webhooks (e2e)', () => {
     await http().get(`/contracts/${contractId}/status?token=wrong`).expect(404);
     const ok = await http().get(`/contracts/${contractId}/status?token=${statusToken}`).expect(200);
     expect(ok.body).toEqual({ contractId, status: 'PENDING_PAYMENT', method: 'PIX', plan: 'essencial', period: 'QUARTERLY' });
+  });
+
+  it('verifies the signature over the raw body bytes (req.rawBody)', async () => {
+    const { body } = await checkout({ plan: 'essencial', period: 'QUARTERLY', method: 'PIX' }).expect(201);
+    // Pretty-printed like some senders do: a re-serialized JSON body would not match the signature.
+    const payload = JSON.stringify(checkoutCompleted(body.contractId, { mode: 'payment', paid: true }), null, 2);
+    const send = (raw: string, sigOf: string) =>
+      http().post('/webhooks/stripe').set('stripe-signature', sign(sigOf)).set('content-type', 'application/json').send(raw);
+    await send(JSON.stringify(JSON.parse(payload)), payload).expect(400);
+    await send(payload, payload).expect(200);
+    expect((await contract(body.contractId)).status).toBe('ACTIVE');
   });
 
   it('rejects webhooks with a bad signature', () =>

@@ -55,10 +55,32 @@ describe('admin endpoints (e2e)', () => {
     await contract({ name: 'Bruno Cartão', method: 'CARD', status: 'ACTIVE', endsInDays: 30 });
     await contract({ name: '=HYPERLINK("x")', method: 'PIX', status: 'PENDING_PAYMENT' });
     await prisma.lead.create({
-      data: { name: 'Lia Lead', whatsapp: '11911112222', answers: {}, result: {}, rulesVersion: 'placeholder-0', consentAt: new Date() },
+      data: {
+        name: 'Lia Lead',
+        whatsapp: '11911112222',
+        answers: { monthlyRevenue: 12000 },
+        result: { recommendedPlan: 'profissional' },
+        utm: { source: 'google', campaign: 'abertura' },
+        rulesVersion: 'placeholder-0',
+        consentAt: new Date(),
+      },
     });
   });
   afterAll(() => app.close());
+
+  it('CORS: allows WEB_ORIGIN with credentials and exposes the CSV filename', async () => {
+    const pre = await request(app.getHttpServer())
+      .options('/admin/contracts.csv')
+      .set('Origin', 'http://localhost:3000')
+      .set('Access-Control-Request-Method', 'GET')
+      .expect(204);
+    expect(pre.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    expect(pre.headers['access-control-allow-credentials']).toBe('true');
+    const res = await get('/admin/contracts.csv', adminCookie).set('Origin', 'http://localhost:3000').expect(200);
+    expect(res.headers['access-control-expose-headers']).toContain('Content-Disposition');
+    const other = await get('/health').set('Origin', 'https://evil.example').expect(200);
+    expect(other.headers['access-control-allow-origin']).toBeUndefined();
+  });
 
   it('requires a session (401) and the admin role (403)', async () => {
     await get('/admin/metrics').expect(401);
@@ -99,15 +121,28 @@ describe('admin endpoints (e2e)', () => {
   it('GET /admin/contracts/:id returns customer and payment history', async () => {
     const { body } = await get('/admin/contracts?q=carla', adminCookie);
     const detail = await get(`/admin/contracts/${body.items[0].id}`, adminCookie).expect(200);
-    expect(detail.body.customer.name).toBe('Carla Pix');
-    expect(detail.body.payments).toHaveLength(1);
+    expect(adminContractRowSchema.parse(detail.body).customerName).toBe('Carla Pix');
+    expect(detail.body).toMatchObject({ amountCents: 10000, leadId: null });
+    expect(detail.body.payments).toEqual([
+      expect.objectContaining({ amountCents: 10000, status: 'PAID', method: 'PIX', paidAt: expect.any(String) }),
+    ]);
     await get('/admin/contracts/nope', adminCookie).expect(404);
   });
 
   it('GET /admin/leads lists leads', async () => {
     const { body } = await get('/admin/leads?q=lia', adminCookie).expect(200);
     expect(body.total).toBe(1);
-    expect(body.items[0].whatsapp).toBe('11911112222');
+    expect(body.items[0]).toEqual({
+      id: expect.any(String),
+      name: 'Lia Lead',
+      whatsapp: '11911112222',
+      monthlyRevenue: 12000,
+      recommendedPlan: 'profissional',
+      utmSource: 'google',
+      utmCampaign: 'abertura',
+      rulesVersion: 'placeholder-0',
+      createdAt: expect.any(String),
+    });
   });
 
   it('GET /admin/contracts.csv exports with BOM, ";" and formula neutralization', async () => {
