@@ -114,7 +114,7 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [x] Neon de dev: migrations + seed do admin; login e `POST /leads` validados de ponta a ponta
 - [x] Stripe teste: sessões de cartão/Pix/boleto criadas; webhook verificado sobre `req.rawBody`
 - [x] Webhook pelo `stripe listen` (04/10): trigger gravado em `WebhookEvent`; Pix → `ACTIVE`; assinatura real (`invoice.paid`) → `ACTIVE`; cancelamento → `CANCELED`; reenvio → `duplicate`
-- [ ] Pagamento no Checkout hospedado com 4242 pelo navegador (`pnpm --filter api stripe:flow`)
+- [x] Pagamento no Checkout hospedado com 4242 pelo navegador (`pnpm --filter api stripe:flow`): contrato `ACTIVE` (04/10)
 
 **Integração e testes (14–17/10):** trocar mock pelo API real, testar fluxo completo com Stripe em modo teste, deploy e domínio.
 
