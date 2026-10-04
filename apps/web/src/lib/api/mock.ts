@@ -6,7 +6,11 @@ import {
   type ContractStatusResponse,
   type CreateCheckoutInput,
   type CreateLeadInput,
+  type AdminContractRow,
+  type AdminMetrics,
 } from "@exactra/shared";
+import type { AdminContractDetail, AdminLeadRow, ContractFilters } from "./admin-types";
+import { mockContract, mockContracts, mockLeads, mockMetrics } from "./mock-admin";
 
 /**
  * In-browser stand-in for apps/api. Validates input with the same zod schemas
@@ -54,5 +58,38 @@ export const mockApi = {
     sessionStorage.setItem(contractKey(contractId), JSON.stringify(c));
     const { plan, period, method } = c.input;
     return { contractId, status: mockStatus(c), plan, period, method };
+  },
+
+  // Admin (real API requires an admin session cookie).
+  async adminMetrics(): Promise<AdminMetrics> {
+    await delay(300);
+    return mockMetrics();
+  },
+
+  async adminContracts(filters: ContractFilters = {}): Promise<AdminContractRow[]> {
+    await delay(300);
+    return mockContracts(filters);
+  },
+
+  async adminContract(contractId: string): Promise<AdminContractDetail> {
+    await delay(300);
+    const c = mockContract(contractId);
+    if (!c) throw new Error("Contract not found");
+    return c;
+  },
+
+  async adminLeads(): Promise<AdminLeadRow[]> {
+    await delay(300);
+    return mockLeads();
+  },
+
+  /** GET /admin/contracts.csv with the same filters as the table. */
+  async adminContractsCsv(filters: ContractFilters = {}): Promise<Blob> {
+    await delay(300);
+    const rows = mockContracts(filters);
+    const header = Object.keys(rows[0] ?? { id: "" });
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [header.join(","), ...rows.map((r) => header.map((k) => esc(r[k as keyof AdminContractRow])).join(","))].join("\n");
+    return new Blob([csv], { type: "text/csv;charset=utf-8" });
   },
 };
