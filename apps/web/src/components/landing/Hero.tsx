@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { hero } from "@/config/site";
-import { formatBRL } from "@/lib/format";
+import { CountUp } from "./CountUp";
 
 export function Hero() {
   const p = hero.preview;
@@ -48,7 +48,7 @@ export function Hero() {
           <div className="border-t border-line pt-[18px]">
             <div className="text-[0.76rem] text-faint">{p.resultLabel}</div>
             <div className="mt-1 font-mono text-[1.9rem] font-semibold tabular-nums">
-              {formatBRL(p.resultValueCents)}
+              <CountUp cents={p.resultValueCents} />
               <small className="text-base font-normal text-faint">{p.perMonth}</small>
             </div>
           </div>
