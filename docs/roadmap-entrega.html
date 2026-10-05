@@ -362,9 +362,9 @@
     </div>
     <div class="stamp">
       <div class="label">Atualizado em</div>
-      <div class="value mono" id="stamp-date">01/10/2026</div>
+      <div class="value mono" id="stamp-date">05/10/2026</div>
       <div class="label" style="margin-top:6px;">Dia</div>
-      <div class="value mono" id="stamp-day">1 de 20</div>
+      <div class="value mono" id="stamp-day">5 de 20</div>
     </div>
   </header>
 
@@ -375,13 +375,13 @@
     <div class="ledger-title">Linha do tempo — 01/10 a 20/10</div>
     <div class="ledger-scroll">
       <div class="ledger-track">
-        <span class="today-flag">hoje</span>
+        <span class="today-flag" style="left: 20%;">hoje</span>
         <div class="ruler">
-          <div class="day today"><span class="n">1</span>01/10</div>
+          <div class="day"><span class="n">1</span>01/10</div>
           <div class="day"><span class="n">2</span>02/10</div>
           <div class="day"><span class="n">3</span>03/10</div>
           <div class="day"><span class="n">4</span>04/10</div>
-          <div class="day"><span class="n">5</span>05/10</div>
+          <div class="day today"><span class="n">5</span>05/10</div>
           <div class="day"><span class="n">6</span>06/10</div>
           <div class="day"><span class="n">7</span>07/10</div>
           <div class="day"><span class="n">8</span>08/10</div>
@@ -400,9 +400,9 @@
         </div>
         <div class="phase-bars">
           <div class="bar status-andamento" data-key="p1" style="grid-column:1/3;animation-delay:0s;">Fase 1</div>
-          <div class="bar status-pendente" data-key="p2" style="grid-column:3/7;animation-delay:0.05s;">Fase 2</div>
-          <div class="bar status-pendente" data-key="p3" style="grid-column:7/14;animation-delay:0.1s;">Fase 3</div>
-          <div class="bar status-pendente" data-key="p4" style="grid-column:14/19;animation-delay:0.15s;">Fase 4</div>
+          <div class="bar status-andamento" data-key="p2" style="grid-column:3/7;animation-delay:0.05s;">Fase 2</div>
+          <div class="bar status-andamento" data-key="p3" style="grid-column:7/14;animation-delay:0.1s;">Fase 3</div>
+          <div class="bar status-andamento" data-key="p4" style="grid-column:14/19;animation-delay:0.15s;">Fase 4</div>
           <div class="bar status-pendente" data-key="p5" style="grid-column:19/21;animation-delay:0.2s;">Fase 5</div>
         </div>
       </div>
@@ -420,7 +420,7 @@
   </div>
 
   <!-- FASE 1 -->
-  <section class="phase current">
+  <section class="phase">
     <div class="phase-head">
       <div>
         <div class="num mono">FASE 1</div>
@@ -447,19 +447,19 @@
       </div>
       <div class="phase-dates mono">02/10 – 06/10 · dias 2–6</div>
     </div>
-    <button class="badge pendente" type="button" data-key="p2"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <button class="badge andamento" type="button" data-key="p2"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
     <p class="phase-desc">Um HTML único, navegável, simulando a experiência completa — da home ao checkout — para validar a direção visual e o funil antes de qualquer linha de código de produção.</p>
     <ul class="tasks">
-      <li><span class="name">Home: header, hero, benefícios e serviços</span><button class="badge pendente" type="button" data-key="p2-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Mini-diagnóstico interativo (simulador em etapas)</span><button class="badge pendente" type="button" data-key="p2-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Seção de planos e checkout simulado</span><button class="badge pendente" type="button" data-key="p2-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Onboarding e próximos passos (fictício)</span><button class="badge pendente" type="button" data-key="p2-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Home: header, hero, benefícios e serviços</span><button class="badge concluido" type="button" data-key="p2-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Mini-diagnóstico interativo (simulador em etapas)</span><button class="badge concluido" type="button" data-key="p2-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Seção de planos e checkout simulado</span><button class="badge concluido" type="button" data-key="p2-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Onboarding e próximos passos (fictício)</span><button class="badge concluido" type="button" data-key="p2-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Apresentação e aprovação do cliente</span><button class="badge pendente" type="button" data-key="p2-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
     </ul>
   </section>
 
   <!-- FASE 3 -->
-  <section class="phase">
+  <section class="phase current">
     <div class="phase-head">
       <div>
         <div class="num mono">FASE 3</div>
@@ -467,19 +467,19 @@
       </div>
       <div class="phase-dates mono">06/10 – 13/10 · dias 6–13</div>
     </div>
-    <button class="badge pendente" type="button" data-key="p3"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <button class="badge andamento" type="button" data-key="p3"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
     <p class="phase-desc">O protótipo aprovado ganha vida no projeto de produção (Next.js / Tailwind), com o simulador funcional — ainda sem regras fiscais reais nem pagamento.</p>
     <ul class="tasks">
-      <li><span class="name">Implementação das seções no Next.js</span><button class="badge pendente" type="button" data-key="p3-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Simulador funcional (cálculo simulado)</span><button class="badge pendente" type="button" data-key="p3-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Seção de planos no layout final</span><button class="badge pendente" type="button" data-key="p3-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Responsividade mobile / tablet / desktop</span><button class="badge pendente" type="button" data-key="p3-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Revisão de copy e microinterações</span><button class="badge pendente" type="button" data-key="p3-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Implementação das seções no Next.js</span><button class="badge concluido" type="button" data-key="p3-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Simulador funcional (cálculo simulado)</span><button class="badge concluido" type="button" data-key="p3-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Seção de planos no layout final</span><button class="badge concluido" type="button" data-key="p3-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Responsividade mobile / tablet / desktop</span><button class="badge andamento" type="button" data-key="p3-t4"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+      <li><span class="name">Revisão de copy e microinterações</span><button class="badge andamento" type="button" data-key="p3-t5"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
     </ul>
   </section>
 
   <!-- FASE 4 -->
-  <section class="phase">
+  <section class="phase current">
     <div class="phase-head">
       <div>
         <div class="num mono">FASE 4</div>
@@ -487,20 +487,19 @@
       </div>
       <div class="phase-dates mono">13/10 – 18/10 · dias 13–18</div>
     </div>
-    <button class="badge pendente" type="button" data-key="p4"><span class="dot pendente"></span><span class="label">Pendente</span></button>
+    <button class="badge andamento" type="button" data-key="p4"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
     <p class="phase-desc">A fase de maior risco do cronograma — depende de uma decisão de gateway e de informações que só o contador pode fornecer.</p>
     <ul class="tasks">
-      <li><span class="name">Assinatura recorrente + webhooks de pagamento</span><button class="badge pendente" type="button" data-key="p4-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Persistência de cliente e contratação</span><button class="badge pendente" type="button" data-key="p4-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge pendente" type="button" data-key="p4-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Assinatura recorrente + webhooks de pagamento</span><button class="badge andamento" type="button" data-key="p4-t1"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+      <li><span class="name">Persistência de cliente e contratação</span><button class="badge concluido" type="button" data-key="p4-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge andamento" type="button" data-key="p4-t3"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
     </ul>
 
     <div class="callout decision">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
       <div>
-        <span class="title">Decisão pendente — gateway de pagamento</span>
-        Stripe ou Mercado Pago ainda não foi definido. A escolha entra nesta fase e deve considerar taxas e suporte a assinatura recorrente no Brasil.
-      </div>
+        <span class="title">Decisão tomada — gateway de pagamento</span>
+        Stripe escolhido, em modo teste. Cartão (assinatura mensal) validado de ponta a ponta; Pix e boleto (pagamento antecipado de 3/6/12 meses) têm a sessão de pagamento validada e ainda precisam de teste completo. A conta definitiva da Exactra com Pix e boleto habilitados continua pendente.</div>
     </div>
 
     <div class="callout blocker">
