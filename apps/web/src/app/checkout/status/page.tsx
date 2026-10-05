@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { CheckoutShell } from "@/components/checkout/CheckoutShell";
 import { PaymentStatus } from "@/components/checkout/PaymentStatus";
 
-export const metadata: Metadata = { title: "Pagamento | Exactra Contabilidade", robots: { index: false } };
+export const metadata: Metadata = { title: "Pagamento | Exactra Contabilidade", robots: { index: false, follow: false } };
 
 /** Stripe success_url: /checkout/status?contract={id}&token={statusToken} */
 export default function PaymentStatusPage() {
