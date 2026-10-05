@@ -1,0 +1,107 @@
+# Render Blueprint — STAGING (ambiente publicado de testes, issue #28).
+# Passo a passo: docs/deploy-staging.md. Nenhum segredo neste arquivo: tudo que é segredo usa
+# `sync: false` (o Render pede o valor ao criar o Blueprint) ou `generateValue`.
+#
+# Node: versão em .node-version (24). pnpm: o Render traz um pnpm próprio e não segue o campo
+# `packageManager`, então o build instala a versão do repositório (pnpm 12, exigida pelo lockfile).
+# `--prod=false`: com NODE_ENV=production o pnpm pularia as devDependencies (tsdown, prisma),
+# necessárias no build e no pre-deploy.
+
+services:
+  # ---------------------------------------------------------------- API (NestJS)
+  - type: web
+    name: exactra-api-staging
+    runtime: node
+    plan: 0.5c-512mb # antigo "Starter" (0,5 CPU / 512 MB). Pago: Shell e pre-deploy; o free "dorme"
+    region: virginia # mais perto do Neon (sa-east-1); o Render não tem região na América do Sul
+    branch: feat/app-v2
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .node-version
+    buildCommand: npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build
+    # Migrations antes de cada deploy. Prisma usa DIRECT_URL (conexão direta do Neon, sem -pooler).
+    # Binário local em vez de `pnpm --filter api db:deploy`: não depende do pnpm do runtime.
+    preDeployCommand: cd apps/api && ./node_modules/.bin/prisma migrate deploy
+    startCommand: node apps/api/dist/main.mjs
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Até o contador validar os preços: só aceita chave de TESTE do Stripe (sk_test_).
+      - key: CHECKOUT_ENABLED
+        value: "false"
+      - key: BETTER_AUTH_SECRET
+        generateValue: true # gerado pelo Render; diferente do local
+      - key: DATABASE_URL # Neon dev, conexão POOLED (host com -pooler)
+        sync: false
+      - key: DIRECT_URL # Neon dev, conexão DIRETA (mesmo host sem -pooler)
+        sync: false
+      - key: BETTER_AUTH_URL # URL pública desta API
+        sync: false
+      - key: AUTH_COOKIE_DOMAIN # ex.: .exactracontabilidade.com.br (vazio em *.onrender.com)
+        sync: false
+      - key: WEB_ORIGIN # URL(s) públicas do site, separadas por vírgula
+        sync: false
+      - key: STRIPE_SECRET_KEY # sk_test_...
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET # whsec_... do endpoint criado no Dashboard (não o do stripe listen)
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: ADMIN_NOTIFY_EMAIL
+        sync: false
+      - key: EMAIL_ASSET_BASE_URL # URL pública do site (logo dos e-mails)
+        sync: false
+
+  # ---------------------------------------------------------------- Site (Next.js, export estático)
+  - type: web
+    name: exactra-web-staging
+    runtime: static
+    branch: feat/app-v2
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/shared/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .node-version
+    buildCommand: npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "web..." build
+    staticPublishPath: apps/web/out
+    # NEXT_PUBLIC_* entram no build: mudou o valor, faça um novo deploy do site.
+    envVars:
+      - key: NEXT_PUBLIC_API_URL # URL pública da API (exactra-api-staging)
+        sync: false
+      # Staging usa Stripe em modo teste: checkout ligado para testar com 4242 4242 4242 4242.
+      - key: NEXT_PUBLIC_CHECKOUT_ENABLED
+        value: "true"
+      - key: NEXT_PUBLIC_USE_MOCK
+        value: "false"
+    # Ambiente de testes: fora dos buscadores.
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+    # O export do Next gera /admin.html, /checkout/status.html etc.: serve as URLs sem extensão.
+    # ponytail: lista fixa de páginas; inclua aqui cada nova página do app.
+    routes:
+      - { type: rewrite, source: /admin, destination: /admin.html }
+      - { type: rewrite, source: /admin/contrato, destination: /admin/contrato.html }
+      - { type: rewrite, source: /admin/esqueci-senha, destination: /admin/esqueci-senha.html }
+      - { type: rewrite, source: /admin/leads, destination: /admin/leads.html }
+      - { type: rewrite, source: /admin/login, destination: /admin/login.html }
+      - { type: rewrite, source: /admin/redefinir-senha, destination: /admin/redefinir-senha.html }
+      - { type: rewrite, source: /admin/seguranca, destination: /admin/seguranca.html }
+      - { type: rewrite, source: /checkout, destination: /checkout.html }
+      - { type: rewrite, source: /checkout/status, destination: /checkout/status.html }
+      - { type: rewrite, source: /privacidade, destination: /privacidade.html }
+      - { type: rewrite, source: /termos, destination: /termos.html }

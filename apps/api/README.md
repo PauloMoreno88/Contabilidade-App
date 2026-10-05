@@ -21,12 +21,19 @@ pnpm --filter api test:e2e
 pnpm --filter api lint
 ```
 
-## Deploy no Render (Web Service)
+## Deploy no Render
 
-- **Build command:** `pnpm install --frozen-lockfile && pnpm --filter "api..." build && pnpm --filter api db:deploy`. O `...` inclui as dependências do workspace; assim o `@exactra/emails` é compilado antes da API.
-- **Start command:** `pnpm --filter api start`.
-- **Health check:** `/health`.
-- **Variáveis:** as do `.env.example`, com valores de produção.
+Blueprint em `render.yaml` (raiz). Passo a passo do staging, variáveis e validação: `docs/deploy-staging.md`.
+
+- **Build:** `npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build`.
+  - O pnpm é instalado porque o Render traz outra versão e o lockfile é do pnpm 12.
+  - `--prod=false` mantém as devDependencies (tsdown, prisma) mesmo com `NODE_ENV=production`.
+  - O `...` compila o `@exactra/emails` antes da API.
+- **Pre-deploy (migrations):** `cd apps/api && ./node_modules/.bin/prisma migrate deploy`, usando `DIRECT_URL`. Se falhar, o deploy é cancelado.
+- **Start:** `node apps/api/dist/main.mjs`. O Render define `PORT`.
+- **Health check:** `/health` (não toca no banco). `/health/db` faz `SELECT 1` e responde 503 se o banco cair; serve para validação manual e monitoramento.
+- **Seed do admin:** manual, pelo Shell do Render (`node dist/seed.mjs`; ver `docs/deploy-staging.md`).
+- Esse fluxo foi validado num clone limpo, com `NODE_ENV=production`: build, `migrate deploy` contra o Neon dev ("No pending migrations") e boot com `/health` e `/health/db` respondendo 200.
 
 ## Rotas
 
@@ -45,7 +52,8 @@ Outras origens não recebem `Access-Control-Allow-Origin`. O front deve usar `cr
 
 ### Públicas
 
-- `GET /health` → `{ ok: true }`.
+- `GET /health` → `{ ok: true }` (liveness, sem banco).
+- `GET /health/db` → `{ ok: true, db: true }` com `SELECT 1`; **503** se o banco não responder.
 - `/api/auth/*` — Better Auth (login, 2FA, reset de senha, plugin admin). Cadastro público desligado. Use o client do Better Auth com `twoFactorClient()` e `adminClient()`.
 - `POST /leads` — body `CreateLeadInput`. **201** `{ id: string, result: SimulatorResult }`. O resultado é recalculado no servidor (o enviado pelo front é ignorado).
 - `POST /checkout/sessions` — body `CreateCheckoutInput`. **201** `CheckoutResponse` = `{ contractId, checkoutUrl, statusToken }` → redirecione para `checkoutUrl`.
