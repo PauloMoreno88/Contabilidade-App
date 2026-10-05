@@ -1,5 +1,6 @@
 import request from 'supertest';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { prisma } from '../src/db.js';
 import { seedAdmin } from '../src/seed-admin.js';
 import { createApp } from './app.js';
 
@@ -14,7 +15,17 @@ describe('auth (e2e)', () => {
   });
   afterAll(() => app.close());
 
-  it('GET /health is public', () => request(app.getHttpServer()).get('/health').expect(200, { ok: true }));
+  it('GET /health is public and does not need the database', () =>
+    request(app.getHttpServer()).get('/health').expect(200, { ok: true }));
+
+  it('GET /health/db is public and checks the database with SELECT 1', () =>
+    request(app.getHttpServer()).get('/health/db').expect(200, { ok: true, db: true }));
+
+  it('GET /health/db answers 503 when the database is down (and /health stays 200)', async () => {
+    vi.spyOn(prisma, '$queryRaw').mockRejectedValueOnce(new Error('connection refused'));
+    await request(app.getHttpServer()).get('/health/db').expect(503);
+    await request(app.getHttpServer()).get('/health').expect(200);
+  });
 
   it('seed is idempotent', async () => {
     expect(await seedAdmin(admin.email, admin.password)).toBe(false);
