@@ -13,3 +13,5 @@ Leia primeiro o `AGENTS.md` da raiz e o `docs/plano.md`. Este arquivo só traz o
 - Admin (`/admin`): página cliente que usa o client do Better Auth contra o API (cookies compartilhados entre `www.` e `api.`).
 
 Comandos: `pnpm --filter web dev`, `pnpm --filter web build`, `pnpm --filter web lint`.
+
+Variáveis `NEXT_PUBLIC_*`: ver `.env.example`. O build de produção (padrão) **falha** sem `NEXT_PUBLIC_API_URL` público (ou com localhost) e com `NEXT_PUBLIC_USE_MOCK=true`. Para buildar localmente use `NEXT_PUBLIC_APP_ENV=staging` (e, se quiser, `NEXT_PUBLIC_USE_MOCK=true`). Em export estático o Next não envia headers HTTP: o `X-Robots-Tag` do ambiente de testes precisa vir do Render.
