@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "tsdown",
+    "build": "prisma generate && tsdown",
     "start": "node --env-file-if-exists=.env dist/main.mjs",
     "start:dev": "tsdown --watch --on-success \"node --env-file-if-exists=.env dist/main.mjs\"",
     "seed": "node --env-file-if-exists=.env dist/seed.mjs",
