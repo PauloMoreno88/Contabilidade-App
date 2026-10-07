@@ -79,6 +79,11 @@ services:
     staticPublishPath: apps/web/out
     # NEXT_PUBLIC_* entram no build: mudou o valor, faça um novo deploy do site.
     envVars:
+      # Staging: mostra a faixa 'Ambiente de testes', os cartões de teste e põe noindex nas páginas.
+      - key: NEXT_PUBLIC_APP_ENV
+        value: staging
+      - key: NEXT_PUBLIC_SITE_URL # URL pública do site (robots.txt, sitemap e metadados)
+        sync: false
       - key: NEXT_PUBLIC_API_URL # URL pública da API (exactra-api-staging)
         sync: false
       # Staging usa Stripe em modo teste: checkout ligado para testar com 4242 4242 4242 4242.
