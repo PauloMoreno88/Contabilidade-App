@@ -58,6 +58,8 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      - key: EMAIL_REPLY_TO # caixa real que recebe as respostas dos clientes (o remetente não é uma caixa)
+        sync: false
       - key: ADMIN_NOTIFY_EMAIL
         sync: false
       - key: EMAIL_ASSET_BASE_URL # URL pública do site (logo dos e-mails)

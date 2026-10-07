@@ -3,6 +3,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { prisma } from '../src/db.js';
 import { sendEmail, type Email } from '../src/email.js';
 import { ExpiryJob } from '../src/contracts/expiry.job.js';
+import { notifyActivation } from '../src/notifications.js';
 import { PaymentProvider } from '../src/payments/payment-provider.js';
 import type { StripeProvider } from '../src/payments/stripe.provider.js';
 import { seedAdmin } from '../src/seed-admin.js';
@@ -93,6 +94,24 @@ describe('e-mails and expiry job (e2e)', () => {
     expect(notice.text).toContain('ana@ex.com');
     expect(notice.text).toContain('google / lancamento');
     expect(notice.html).toContain(`/admin/contrato?id=${body.contractId}`);
+  });
+
+  it('activation: a failure sending the welcome e-mail does not block the internal notice', async () => {
+    const c = await contract({ method: 'PIX', endsAt: new Date(Date.now() + 30 * DAY) });
+    sent.mockRejectedValueOnce(new Error('Resend: recipient not allowed in test mode'));
+
+    await expect(notifyActivation(c.id)).resolves.toBeUndefined();
+
+    expect(mails().map((e) => e.to)).toEqual([`ana${n}@ex.com`, 'equipe@exactra.test']);
+  });
+
+  it('activation: a failure sending the internal notice does not throw either', async () => {
+    const c = await contract({ method: 'PIX', endsAt: new Date(Date.now() + 30 * DAY) });
+    sent.mockResolvedValueOnce(undefined);
+    sent.mockRejectedValueOnce(new Error('Resend: boom'));
+
+    await expect(notifyActivation(c.id)).resolves.toBeUndefined();
+    expect(mails()).toHaveLength(2);
   });
 
   it('password reset and 2FA code e-mails go through the templates', async () => {

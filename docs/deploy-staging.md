@@ -146,3 +146,21 @@ Se algo falhar, veja os **Logs** do serviço no Render. O deploy da API mostra a
 - Use segredos novos no staging (#26). Não reaproveite o `.env` local.
 - O plano `0.5c-512mb` não dorme. O plano gratuito dorme e o primeiro acesso leva cerca de 1 minuto: ruim para demonstração.
 - Pagamentos reais continuam bloqueados: `CHECKOUT_ENABLED=false` na API recusa qualquer chave `sk_live_`.
+
+## Resend com domínio próprio (enviar para qualquer e-mail)
+
+Sem domínio verificado, o Resend só envia de `onboarding@resend.dev` e **só para o e-mail do dono da conta**. Para enviar a qualquer cliente:
+
+1. **Domínio de envio:** use um subdomínio, `envio.exactracontabilidade.com.br`, e **não a raiz**. A raiz tem o MX e o SPF do e-mail da Exactra na UOL (`mx.uhserver.com`, `include:spf.whservidor.com`); os registros do Resend ficam sob `envio.` e não conflitam com eles.
+2. No Resend: **Domains → Add Domain**, informe `envio.exactracontabilidade.com.br` e escolha a região mais próxima (São Paulo, se disponível). O Resend lista os registros a criar (MX, TXT/SPF e TXT/DKIM). **Copie os valores exatos da tela**: este guia não os repete porque a chave DKIM é gerada por domínio.
+3. Na UOL, crie os registros exatamente como o Resend mostrar (tipo, nome e valor). A chave DKIM é longa: confira que foi salva inteira e sem aspas extras.
+4. Volte ao Resend e clique em **Verify**. Pode levar de minutos a horas. Os servidores de DNS da UOL são instáveis com CNAME; registros TXT e MX costumam responder bem.
+5. Depois de **Verified**:
+   - `EMAIL_FROM=Exactra <contato@envio.exactracontabilidade.com.br>`
+   - `EMAIL_REPLY_TO=` a caixa real da Exactra que deve receber as respostas (o endereço de envio não é uma caixa de e-mail).
+   - Faça redeploy da API.
+6. **DMARC (opcional, recomendado):** um TXT em `_dmarc.exactracontabilidade.com.br` com `v=DMARC1; p=none; rua=mailto:<caixa da Exactra>`. `p=none` só observa, não bloqueia. Ele vale para todo o domínio, inclusive o e-mail da UOL.
+7. Teste: reset de senha do admin e um checkout de teste com um e-mail que **não** seja o do dono do Resend. Se o log da API mostrar o aviso `EMAIL_FROM uses resend.dev`, o remetente ainda é o de teste.
+
+Cuidado: com o domínio verificado, os e-mails vão para quem digitar o endereço no checkout. Em staging, use só e-mails de teste.
+
