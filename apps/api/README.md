@@ -25,7 +25,7 @@ pnpm --filter api lint
 
 Blueprint em `render.yaml` (raiz). Passo a passo do staging, variáveis e validação: `docs/deploy-staging.md`.
 
-- **Build:** `npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build`.
+- **Build:** `npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build`.
   - O pnpm é instalado porque o Render traz outra versão e o lockfile é do pnpm 12.
   - `--prod=false` mantém as devDependencies (tsdown, prisma) mesmo com `NODE_ENV=production`.
   - O `...` compila o `@exactra/emails` antes da API.

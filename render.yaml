@@ -4,6 +4,8 @@
 #
 # Node: versão em .node-version (24). pnpm: o Render traz um pnpm próprio e não segue o campo
 # `packageManager`, então o build instala a versão do repositório (pnpm 12, exigida pelo lockfile).
+# O pnpm global do Render fica em /usr/lib (somente leitura): `npm install -g` falha com EROFS.
+# Por isso o build instala o pnpm num diretório gravável ($HOME/.pnpm-tools) e o põe no PATH.
 # `--prod=false`: com NODE_ENV=production o pnpm pularia as devDependencies (tsdown, prisma),
 # necessárias no build e no pre-deploy.
 
@@ -24,7 +26,7 @@ services:
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
         - .node-version
-    buildCommand: npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build
+    buildCommand: npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build
     # Migrations antes de cada deploy. Prisma usa DIRECT_URL (conexão direta do Neon, sem -pooler).
     # Binário local em vez de `pnpm --filter api db:deploy`: não depende do pnpm do runtime.
     preDeployCommand: cd apps/api && ./node_modules/.bin/prisma migrate deploy
@@ -75,7 +77,7 @@ services:
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
         - .node-version
-    buildCommand: npm install -g pnpm@12.9.1 && pnpm install --frozen-lockfile --prod=false && pnpm --filter "web..." build
+    buildCommand: npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "web..." build
     staticPublishPath: apps/web/out
     # NEXT_PUBLIC_* entram no build: mudou o valor, faça um novo deploy do site.
     envVars:
