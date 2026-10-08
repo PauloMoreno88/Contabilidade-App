@@ -362,9 +362,9 @@
     </div>
     <div class="stamp">
       <div class="label">Atualizado em</div>
-      <div class="value mono" id="stamp-date">07/10/2026</div>
+      <div class="value mono" id="stamp-date">08/10/2026</div>
       <div class="label" style="margin-top:6px;">Dia</div>
-      <div class="value mono" id="stamp-day">7 de 20</div>
+      <div class="value mono" id="stamp-day">8 de 20</div>
     </div>
   </header>
 
@@ -375,7 +375,7 @@
     <div class="ledger-title">Linha do tempo — 01/10 a 20/10</div>
     <div class="ledger-scroll">
       <div class="ledger-track">
-        <span class="today-flag" style="left: 30%;">hoje</span>
+        <span class="today-flag" style="left: 35%;">hoje</span>
         <div class="ruler">
           <div class="day"><span class="n">1</span>01/10</div>
           <div class="day"><span class="n">2</span>02/10</div>
@@ -383,8 +383,8 @@
           <div class="day"><span class="n">4</span>04/10</div>
           <div class="day"><span class="n">5</span>05/10</div>
           <div class="day"><span class="n">6</span>06/10</div>
-          <div class="day today"><span class="n">7</span>07/10</div>
-          <div class="day"><span class="n">8</span>08/10</div>
+          <div class="day"><span class="n">7</span>07/10</div>
+          <div class="day today"><span class="n">8</span>08/10</div>
           <div class="day"><span class="n">9</span>09/10</div>
           <div class="day"><span class="n">10</span>10/10</div>
           <div class="day"><span class="n">11</span>11/10</div>
@@ -493,7 +493,8 @@
     <ul class="tasks">
       <li><span class="name">Assinatura recorrente + webhooks de pagamento</span><button class="badge andamento" type="button" data-key="p4-t1"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
       <li><span class="name">Persistência de cliente e contratação</span><button class="badge concluido" type="button" data-key="p4-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge andamento" type="button" data-key="p4-t3"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+      <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge concluido" type="button" data-key="p4-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Domínio próprio, HTTPS e e-mail com domínio verificado (staging)</span><button class="badge concluido" type="button" data-key="p4-t5"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Ambiente de testes publicado (staging) para validação</span><button class="badge andamento" type="button" data-key="p4-t4"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
     </ul>
 
@@ -501,14 +502,14 @@
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
       <div>
         <span class="title">Decisão tomada — gateway de pagamento</span>
-        Stripe escolhido, em modo teste. Cartão (assinatura mensal) validado de ponta a ponta; Pix e boleto (pagamento antecipado de 3/6/12 meses) têm a sessão de pagamento validada e ainda precisam de teste completo. A conta definitiva da Exactra com Pix e boleto habilitados continua pendente.</div>
+        Stripe escolhido, com a conta da Exactra em modo de teste. Cartão (assinatura mensal) validado de ponta a ponta no ambiente de testes publicado; Pix e boleto (pagamento antecipado de 3/6/12 meses) ainda precisam de teste completo. A ativação da conta para cobranças reais fica para depois da validação dos preços.</div>
     </div>
 
     <div class="callout blocker">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8h5M8 5.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <div>
         <span class="title">Bloqueios externos — contador e conta da Exactra</span>
-        Valores dos planos e regras tributárias dependem de validação do contador (perguntas já preparadas). Para publicar com cobrança real faltam também a conta Stripe da Exactra com Pix e boleto habilitados e o acesso ao DNS do domínio (subdomínio da API e verificação do e-mail). Enquanto isso, tudo roda em modo de teste, com preços e regras fictícios.</div>
+        Valores dos planos e regras tributárias dependem de validação do contador (perguntas já preparadas). O domínio, o HTTPS e o e-mail de envio já estão configurados no ambiente de testes. Para publicar com cobrança real faltam essa validação, a ativação da conta Stripe para cobranças reais e o domínio definitivo (www e api). Enquanto isso, tudo roda em modo de teste, com preços e regras fictícios.</div>
     </div>
   </section>
 
@@ -526,7 +527,7 @@
     <ul class="tasks">
       <li><span class="name">Testes finais (fluxo completo, pagamentos reais)</span><button class="badge pendente" type="button" data-key="p5-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
       <li><span class="name">Deploy em produção</span><button class="badge pendente" type="button" data-key="p5-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Fluxo de onboarding pós-venda e documentos</span><button class="badge pendente" type="button" data-key="p5-t3"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Fluxo de onboarding pós-venda e documentos</span><button class="badge andamento" type="button" data-key="p5-t3"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
       <li><span class="name">Handoff final para a Exactra</span><button class="badge pendente" type="button" data-key="p5-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
     </ul>
   </section>
