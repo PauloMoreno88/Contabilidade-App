@@ -1,56 +1,31 @@
-import Link from "next/link";
-import { hero } from "@/config/site";
-import { CountUp } from "./CountUp";
+import { MessageCircle } from "lucide-react";
+import { hero, images, whatsappLink } from "@/config/site";
 
+/** Navy hero with a photo on the right. The simulator card overlaps its bottom edge. */
 export function Hero() {
-  const p = hero.preview;
   return (
-    <section id="inicio" className="relative overflow-hidden pb-[72px] pt-[140px] md:pb-24 md:pt-[168px]">
-      <div className="container-x grid items-center gap-10 md:grid-cols-[1.15fr_0.85fr] md:gap-16">
-        <div>
-          <h1 className="max-w-[620px] text-[clamp(2.1rem,4.6vw,3.4rem)] font-semibold leading-[1.12] tracking-tight">
-            {hero.title}
-          </h1>
-          <p className="mb-8 mt-5 max-w-[520px] text-[1.08rem] text-muted">{hero.lede}</p>
-          <div className="flex flex-wrap gap-3.5">
-            <Link href={hero.primaryCta.href} className="btn btn-primary">{hero.primaryCta.label}</Link>
-            <Link href={hero.secondaryCta.href} className="btn btn-ghost">{hero.secondaryCta.label}</Link>
-          </div>
-          <ul className="mt-9 flex flex-wrap gap-x-7 gap-y-2 text-[0.85rem] text-faint">
-            {hero.trust.map((t) => (
-              <li key={t.label}>
-                <strong className="font-mono text-ink tabular-nums">{t.value}</strong> {t.label}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Decorative preview of the simulator. */}
-        <div aria-hidden="true" className="rounded-[20px] border border-line bg-surface p-[26px] shadow-[0_30px_60px_-30px_rgba(16,32,43,0.18)]">
-          <div className="mb-[18px] flex items-center justify-between text-[0.76rem] text-faint">
-            <span>{p.title}</span>
-            <span className="font-mono">{p.step}</span>
-          </div>
-          <div className="mb-[22px] h-1 overflow-hidden rounded bg-surface-3">
-            <i className="block h-full w-2/5 rounded bg-brand" />
-          </div>
-          <div className="mb-3.5 text-[0.98rem]">{p.question}</div>
-          <div className="mb-[22px] flex flex-col gap-2">
-            {p.options.map((o, i) => (
-              <div
-                key={o}
-                className={`rounded-lg border px-3.5 py-2.5 text-[0.86rem] ${i === p.activeOption ? "border-brand bg-brand/5 text-ink" : "border-line text-muted"}`}
-              >
-                {o}
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-line pt-[18px]">
-            <div className="text-[0.76rem] text-faint">{p.resultLabel}</div>
-            <div className="mt-1 font-mono text-[1.9rem] font-semibold tabular-nums">
-              <CountUp cents={p.resultValueCents} />
-              <small className="text-base font-normal text-faint">{p.perMonth}</small>
-            </div>
+    <section className="relative overflow-hidden bg-navy text-white">
+      <div className="absolute inset-0 opacity-35 md:left-auto md:w-[52%] md:opacity-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={images.hero.src} alt={images.hero.alt} className="size-full object-cover object-[30%_center]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,33,51,.4),var(--color-navy))] md:bg-[linear-gradient(90deg,var(--color-navy)_0%,rgba(15,33,51,.55)_35%,rgba(15,33,51,.05)_70%)]" />
+      </div>
+      <div className="container-x relative pb-[150px] pt-11 md:pb-[190px] md:pt-[88px]">
+        <div className="max-w-[590px]">
+          <p className="inline-flex flex-wrap items-center gap-2.5 rounded-full border border-white/15 bg-white/[.08] py-1.5 pl-2 pr-3.5 text-[0.88rem] text-on-navy">
+            <span className="tracking-[1px] text-star" aria-hidden="true">★★★★★</span>
+            <span>
+              <b className="text-white">{hero.rating.value}</b> {hero.rating.text}
+            </span>
+          </p>
+          <h1 className="mt-[22px] font-serif text-[clamp(2.3rem,5.2vw,4rem)] leading-[1.05] font-semibold tracking-[-0.01em]">{hero.title}</h1>
+          <p className="mt-5 max-w-[58ch] text-[1.05rem] text-on-navy md:text-[1.15rem]">{hero.lede}</p>
+          <div className="mt-8 hidden flex-wrap gap-3 sm:flex">
+            <a href={hero.primaryCta.href} className="btn btn-primary">{hero.primaryCta.label}</a>
+            <a href={whatsappLink()} target="_blank" rel="noopener" className="btn btn-ghost-dark">
+              <MessageCircle size={18} aria-hidden="true" />
+              {hero.secondaryCta.label}
+            </a>
           </div>
         </div>
       </div>

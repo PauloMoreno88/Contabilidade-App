@@ -5,7 +5,7 @@ import {
   CONTRACT_STATUSES,
   PAYMENT_METHODS,
   PERIOD_MONTHS,
-  PLAN_IDS,
+  CURRENT_PLAN,
   RULES_VERSION,
   totalPriceCents,
   type AdminContractDetail,
@@ -56,7 +56,7 @@ const leads: AdminLead[] = NAMES.slice(0, 10).map((name, i) => {
 const contracts: AdminContractDetail[] = NAMES.map((name, i) => {
   const method = PAYMENT_METHODS[i % 3];
   const period = method === "CARD" ? "MONTHLY" : BILLING_PERIODS[1 + (i % 3)];
-  const plan = PLAN_IDS[i % 3];
+  const plan = CURRENT_PLAN.id;
   const status = i % 5 === 4 ? "PENDING_PAYMENT" : i % 7 === 6 ? CONTRACT_STATUSES[1 + (i % 4)] : "ACTIVE";
   const created = NOW - (i * 9 + 2) * DAY;
   const starts = status === "PENDING_PAYMENT" ? null : created + DAY;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { PLANS, type AdminLeadsQuery } from "@exactra/shared";
+import { planInfo, type AdminLeadsQuery } from "@exactra/shared";
 import { adminCopy } from "@/config/admin";
 import { api } from "@/lib/api";
 import { formatBRL, formatDate } from "@/lib/format";
@@ -47,7 +47,7 @@ export function LeadsTable() {
                     <a href={`https://wa.me/55${l.whatsapp}`} target="_blank" rel="noopener" className="font-mono tabular-nums hover:text-brand">{l.whatsapp}</a>
                   </td>
                   <td className="px-4 py-3 font-mono tabular-nums">{formatBRL(l.answers.monthlyRevenue * 100)}</td>
-                  <td className="px-4 py-3">{PLANS[l.result.recommendedPlan].name}</td>
+                  <td className="px-4 py-3">{planInfo(l.result.recommendedPlan).name}</td>
                   <td className="px-4 py-3">{[l.utm?.source, l.utm?.campaign].filter(Boolean).join(" / ") || copy.noSource}</td>
                   <td className="px-4 py-3 font-mono tabular-nums">{formatDate(l.createdAt)}</td>
                 </tr>

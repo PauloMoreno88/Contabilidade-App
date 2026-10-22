@@ -4,31 +4,34 @@ import { Brand } from "./Brand";
 
 export function Footer() {
   return (
-    <footer id="contato" className="border-t border-line pb-9 pt-16 text-[0.88rem] text-muted">
+    <footer className="bg-surface-2 pb-8 pt-14 text-[0.93rem] text-muted">
       <div className="container-x">
-        <div className="mb-10 grid gap-7 md:grid-cols-[1.3fr_1fr_1fr] md:gap-10">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <Brand />
-            <p className="mt-3.5 max-w-[300px]">{footer.about}</p>
+            <p className="mt-3.5 max-w-[34ch]">{footer.about}</p>
           </div>
+          {footer.columns.map((col) => (
+            <div key={col.title}>
+              <h4 className="mb-3 text-[0.95rem] font-bold text-ink">{col.title}</h4>
+              <ul className="grid gap-2">
+                {col.links.map((l) => (
+                  <li key={l.label}><Link href={l.href} className="hover:text-ink">{l.label}</Link></li>
+                ))}
+              </ul>
+            </div>
+          ))}
           <div>
-            <h4 className="mb-3.5 text-[0.9rem] font-semibold text-ink">{footer.contactTitle}</h4>
-            <ul className="flex flex-col gap-2.5">
-              <li><a href={`mailto:${contact.email}`} className="break-all hover:text-ink">{contact.email}</a></li>
+            <h4 className="mb-3 text-[0.95rem] font-bold text-ink">{footer.contactTitle}</h4>
+            <ul className="grid gap-2">
               <li>{contact.phone}</li>
-              <li>{contact.hours}</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3.5 text-[0.9rem] font-semibold text-ink">{footer.locationTitle}</h4>
-            <ul className="flex flex-col gap-2.5">
+              <li className="break-all">{contact.email}</li>
               <li>{contact.address}</li>
-              <li>{contact.coverage}</li>
             </ul>
           </div>
         </div>
-        <div className="flex flex-wrap justify-between gap-2.5 border-t border-line pt-6 text-[0.8rem] text-faint">
-          <span>{footer.copyright}</span>
+        <div className="mt-10 flex flex-wrap justify-between gap-3 border-t border-line pt-5 text-[0.84rem]">
+          <span>{footer.copyright}. {footer.crc}.</span>
           <span className="flex gap-4">
             {footer.links.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-ink">{l.label}</Link>

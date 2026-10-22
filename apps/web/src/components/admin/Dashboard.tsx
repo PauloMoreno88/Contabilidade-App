@@ -6,13 +6,14 @@ import { Download, Search } from "lucide-react";
 import {
   CONTRACT_STATUSES,
   PAYMENT_METHODS,
+  planInfo,
   PLAN_IDS,
-  PLANS,
+  STORED_PLAN_IDS,
   type AdminContractsQuery,
   type AdminMetrics,
   type ContractStatus,
   type PaymentMethod,
-  type PlanId,
+  type StoredPlanId,
 } from "@exactra/shared";
 import { adminCopy, statusLabels } from "@/config/admin";
 import { methodLabels } from "@/config/checkout";
@@ -54,7 +55,7 @@ function MetricsView({ m }: { m: AdminMetrics }) {
         ))}
       </dl>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <Breakdown title={copy.metrics.byPlan} rows={PLAN_IDS.map((id) => [PLANS[id].name, m.byPlan[id] ?? 0])} />
+        <Breakdown title={copy.metrics.byPlan} rows={STORED_PLAN_IDS.filter((id) => PLAN_IDS.includes(id as never) || m.byPlan[id]).map((id) => [planInfo(id).name, m.byPlan[id] ?? 0])} />
         <Breakdown title={copy.metrics.byMethod} rows={PAYMENT_METHODS.map((id) => [methodLabels[id].label, m.byMethod[id] ?? 0])} />
       </div>
     </section>
@@ -130,9 +131,9 @@ function ContractsTable() {
           <option value="">{c.allStatuses}</option>
           {CONTRACT_STATUSES.map((s) => <option key={s} value={s}>{statusLabels[s]}</option>)}
         </select>
-        <select aria-label={c.allPlans} className={select} onChange={(e) => set("plan", e.target.value as PlanId)}>
+        <select aria-label={c.allPlans} className={select} onChange={(e) => set("plan", e.target.value as StoredPlanId)}>
           <option value="">{c.allPlans}</option>
-          {PLAN_IDS.map((p) => <option key={p} value={p}>{PLANS[p].name}</option>)}
+          {STORED_PLAN_IDS.map((p) => <option key={p} value={p}>{planInfo(p).name}</option>)}
         </select>
         <select aria-label={c.allMethods} className={select} onChange={(e) => set("method", e.target.value as PaymentMethod)}>
           <option value="">{c.allMethods}</option>
@@ -159,7 +160,7 @@ function ContractsTable() {
                     <Link href={`/admin/contrato?id=${r.id}`} className="font-medium hover:text-brand">{r.customerName}</Link>
                     <div className="text-[0.78rem] text-faint">{r.email}</div>
                   </td>
-                  <td className="px-4 py-3">{PLANS[r.plan].name}</td>
+                  <td className="px-4 py-3">{planInfo(r.plan).name}</td>
                   <td className="px-4 py-3">{methodLabels[r.method].label}</td>
                   <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                   <td className="px-4 py-3 font-mono tabular-nums">{formatDate(r.startsAt)}</td>
