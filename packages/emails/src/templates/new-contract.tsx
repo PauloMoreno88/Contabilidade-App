@@ -1,5 +1,5 @@
 import { Section } from "@react-email/components";
-import { PERIOD_MONTHS, PLANS } from "@exactra/shared";
+import { PERIOD_MONTHS, planInfo } from "@exactra/shared";
 import { methodLabel, newContractCopy as copy, periodLabel } from "../copy";
 import { formatBRL, formatDate, safeUrl } from "../format";
 import { H1, H2, Layout, Ledger, Mono, P, PrimaryButton, WhatsAppButton } from "../ui";
@@ -36,7 +36,7 @@ export function NewContractNotice({ customer, contract: c, source, adminUrl }: N
       <H2>{copy.contractTitle}</H2>
       <Ledger
         rows={[
-          ["Plano", PLANS[c.plan].name],
+          ["Plano", planInfo(c.plan).name],
           ["Pagamento", card ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`],
           ["Valor", <Mono key="v">{formatBRL(c.amountCents)}</Mono>, card ? "por mês" : `${PERIOD_MONTHS[c.period]} meses`],
           ["Início", <Mono key="s">{formatDate(c.startsAt)}</Mono>],

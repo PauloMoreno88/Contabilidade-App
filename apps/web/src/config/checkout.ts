@@ -60,7 +60,7 @@ export const checkoutCopy = {
     title: "Contratação online em breve",
     text: "Enquanto isso, fale com a gente pelo WhatsApp e contrate com o nosso time.",
     cta: "Contratar pelo WhatsApp",
-    whatsappText: (plan: string) => `Olá! Quero contratar o plano ${plan}.`,
+    whatsappText: (plan: string) => `Olá! Quero contratar o ${plan}.`,
   },
 };
 
@@ -93,9 +93,8 @@ export const statusCopy = {
     text: "Nenhum valor foi cobrado. Você pode tentar de novo ou falar com a gente pelo WhatsApp.",
     retry: "Tentar de novo",
   },
-  summary: (plan: string, period: string, method: string) => `Plano ${plan}, ${period.toLowerCase()}, ${method.toLowerCase()}`,
+  summary: (plan: string, period: string, method: string) => `${plan}, ${period.toLowerCase()}, ${method.toLowerCase()}`,
   whatsapp: "Falar no WhatsApp",
   whatsappText: "Olá! Acabei de contratar a Exactra.",
-  nextSteps: "Ver próximos passos",
   home: "Voltar para o site",
 };

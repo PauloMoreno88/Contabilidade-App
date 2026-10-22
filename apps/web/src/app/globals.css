@@ -1,20 +1,30 @@
 @import "tailwindcss";
 
-/* Exactra tokens (variant D of the prototype). */
+/* Exactra tokens (variant G of the prototype): navy + Exactra red, ice-blue surfaces. */
 @theme {
-  --color-bg: #f7f8fa;
+  --color-bg: #f6f8fb;
   --color-surface: #ffffff;
-  --color-surface-2: #eff2f5;
-  --color-surface-3: #e4e9ed;
-  --color-line: #dce3e9;
-  --color-ink: #10202b;
-  --color-muted: #3e4f61;
-  --color-faint: #56697c;
+  --color-surface-2: #eef3f8;
+  --color-surface-3: #e2e9f1;
+  --color-line: #dce4ec;
+  --color-ink: #0f2133;
+  --color-muted: #3a4c60;
+  --color-faint: #627385;
   --color-brand: #c82333;
-  --color-brand-dark: #a61b29;
+  --color-brand-dark: #a51b28;
+  --color-brand-tint: #fbe9eb;
+  --color-navy: #0f2133;
+  --color-navy-2: #173049;
+  --color-navy-3: #24425f;
+  --color-on-navy: #c5d1dd;
+  --color-on-navy-faint: #9fb0c2;
+  --color-ok: #1e7b4f;
+  --color-ok-tint: #e2f2e9;
+  --color-star: #f2b01e;
   --color-wa: #25d366;
   --color-wa-dark: #1fb356;
-  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-figtree), Arial, Helvetica, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
   --font-mono: var(--font-geist-mono), "Courier New", monospace;
 }
 
@@ -31,7 +41,13 @@ body {
 }
 
 section[id] {
-  scroll-margin-top: 76px;
+  scroll-margin-top: 80px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 :focus-visible {
@@ -41,16 +57,30 @@ section[id] {
 
 @layer components {
   .container-x {
-    @apply mx-auto w-full max-w-[1080px] px-4 sm:px-6;
+    @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6;
   }
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg px-[22px] py-[13px] text-[0.95rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35;
+    @apply inline-flex cursor-pointer items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 py-[13px] text-[0.95rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40;
   }
   .btn-primary {
     @apply bg-brand text-white hover:bg-brand-dark;
   }
+  .btn-navy {
+    @apply bg-navy text-white hover:bg-navy-3;
+  }
   .btn-ghost {
     @apply border border-line bg-transparent text-ink hover:border-muted;
+  }
+  /* Outline button on navy backgrounds. */
+  .btn-ghost-dark {
+    @apply border border-white/45 bg-transparent text-white hover:border-white;
+  }
+  /* Short label with a leading rule above section titles, as in the client's references. */
+  .kicker {
+    @apply inline-flex items-center gap-2.5 text-[0.92rem] font-semibold text-brand before:h-0.5 before:w-7 before:bg-current before:content-[''];
+  }
+  .section-title {
+    @apply mt-2.5 font-serif text-[clamp(1.9rem,3.4vw,2.7rem)] leading-[1.12] font-semibold tracking-[-0.01em];
   }
   .btn-wa {
     @apply bg-wa text-[#06130c] hover:bg-wa-dark;

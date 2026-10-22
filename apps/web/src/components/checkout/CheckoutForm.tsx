@@ -9,14 +9,12 @@ import {
   createCheckoutSchema,
   PERIOD_DISCOUNT,
   PAYMENT_METHODS,
+  CURRENT_PLAN,
   PERIOD_MONTHS,
-  PLAN_IDS,
-  PLANS,
   PRICES_ARE_PLACEHOLDER,
   totalPriceCents,
   type BillingPeriod,
   type PaymentMethod,
-  type PlanId,
 } from "@exactra/shared";
 import { CHECKOUT_ENABLED, checkoutCopy as copy, methodLabels, periodLabels } from "@/config/checkout";
 import { IS_STAGING, stagingCopy } from "@/config/env";
@@ -27,21 +25,19 @@ import { ChoiceGroup } from "./ChoiceGroup";
 
 type Field = keyof typeof copy.errors;
 
-const isPlan = (v: string | null): v is PlanId => PLAN_IDS.includes(v as PlanId);
-
 export function CheckoutForm() {
   const params = useSearchParams();
-  const initialPlan = params.get("plan");
   const leadId = params.get("lead") ?? undefined;
   const canceled = params.get("cancelado") === "1";
 
-  const [plan, setPlan] = useState<PlanId>(isPlan(initialPlan) ? initialPlan : "profissional");
+  // A single plan on sale (docs/plano.md, decision 20); ?plan= in old links is ignored.
+  const plan = CURRENT_PLAN;
   const [method, setMethod] = useState<PaymentMethod>("CARD");
   const [period, setPeriod] = useState<BillingPeriod>("MONTHLY");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [sending, setSending] = useState(false);
 
-  const total = totalPriceCents(plan, period);
+  const total = totalPriceCents(plan.id, period);
   const months = PERIOD_MONTHS[period];
 
   function changeMethod(m: PaymentMethod) {
@@ -55,7 +51,7 @@ export function CheckoutForm() {
     const form = new FormData(e.currentTarget);
     const text = (k: string) => String(form.get(k) ?? "").trim();
     const parsed = createCheckoutSchema.safeParse({
-      plan,
+      plan: plan.id,
       period,
       method,
       customer: {
@@ -103,19 +99,16 @@ export function CheckoutForm() {
           </div>
         )}
 
-        <ChoiceGroup
-          name="plan"
-          legend={copy.planTitle}
-          value={plan}
-          onChange={setPlan}
-          options={PLAN_IDS.map((id) => ({
-            value: id,
-            label: PLANS[id].name,
-            hint: PLANS[id].tagline,
-            aside: `${formatBRL(PLANS[id].monthlyPriceCents)}/mês`,
-          }))}
-          columns={1}
-        />
+        <section aria-labelledby="checkout-plan" className="mb-8">
+          <h2 id="checkout-plan" className="mb-3 text-[1.02rem] font-semibold">{copy.planTitle}</h2>
+          <div className="flex items-center justify-between gap-4 rounded-[14px] border border-line bg-surface p-4">
+            <div>
+              <p className="font-semibold">{plan.name}</p>
+              <p className="mt-0.5 text-[0.86rem] text-muted">{plan.tagline}</p>
+            </div>
+            <p className="shrink-0 font-semibold tabular-nums">{formatBRL(plan.monthlyPriceCents)}/mês</p>
+          </div>
+        </section>
 
         <ChoiceGroup
           name="method"
@@ -135,7 +128,7 @@ export function CheckoutForm() {
               value: p,
               label: periodLabels[p],
               hint: copy.discount(Math.round(PERIOD_DISCOUNT[p] * 100)),
-              aside: formatBRL(totalPriceCents(plan, p)),
+              aside: formatBRL(totalPriceCents(plan.id, p)),
             }))}
           />
         )}
@@ -164,7 +157,7 @@ export function CheckoutForm() {
       <aside className="rounded-[20px] border border-line bg-surface p-6 lg:sticky lg:top-6">
         <h2 className="mb-4 font-semibold">{copy.summaryTitle}</h2>
         <p className="text-[0.9rem] text-muted">
-          {PLANS[plan].name}, {methodLabels[method].label.toLowerCase()}
+          {plan.name}, {methodLabels[method].label.toLowerCase()}
           {method !== "CARD" && `, ${periodLabels[period]}`}
         </p>
         <div className="mt-4 border-t border-line pt-4">
@@ -187,7 +180,7 @@ export function CheckoutForm() {
           <div className="mt-5 rounded-lg bg-surface-2 p-4">
             <p className="font-medium">{copy.disabled.title}</p>
             <p className="mb-3 mt-1 text-[0.84rem] text-muted">{copy.disabled.text}</p>
-            <a href={whatsappLink(copy.disabled.whatsappText(PLANS[plan].name))} target="_blank" rel="noopener" className="btn btn-wa w-full">
+            <a href={whatsappLink(copy.disabled.whatsappText(plan.name))} target="_blank" rel="noopener" className="btn btn-wa w-full">
               {copy.disabled.cta}
             </a>
           </div>

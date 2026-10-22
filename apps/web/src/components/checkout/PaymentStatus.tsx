@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
-import { PLANS, type ContractStatusResponse } from "@exactra/shared";
+import { CURRENT_PLAN, planInfo, type ContractStatusResponse } from "@exactra/shared";
 import { methodLabels, periodLabels, statusCopy as copy } from "@/config/checkout";
-import { whatsappLink } from "@/config/site";
+import { onboarding, whatsappLink } from "@/config/site";
 import { api } from "@/lib/api";
 
 const POLL_MS = 4000;
@@ -59,13 +59,23 @@ export function PaymentStatus() {
     );
   }
 
-  const summary = copy.summary(PLANS[data.plan].name, periodLabels[data.period], methodLabels[data.method].label);
+  const summary = copy.summary(planInfo(data.plan).name, periodLabels[data.period], methodLabels[data.method].label);
 
   if (data.status === "ACTIVE") {
     return (
       <StatusCard icon={<CheckCircle2 className="text-wa-dark" />} title={copy.active.title} text={copy.active.text} summary={summary}>
         <a href={whatsappLink(copy.whatsappText)} target="_blank" rel="noopener" className="btn btn-wa w-full">{copy.whatsapp}</a>
-        <Link href="/#onboarding" className="btn btn-ghost w-full">{copy.nextSteps}</Link>
+        <div className="mt-2 text-left">
+          <h2 className="mb-3 text-[0.95rem] font-semibold">{onboarding.title}</h2>
+          <ol className="grid gap-2.5">
+            {onboarding.steps.map((s, i) => (
+              <li key={s.title} className="flex gap-3 text-[0.9rem] text-muted">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-surface-2 text-[0.78rem] font-bold text-ink">{i + 1}</span>
+                <span><b className="font-semibold text-ink">{s.title}.</b> {s.text}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </StatusCard>
     );
   }
@@ -81,7 +91,7 @@ export function PaymentStatus() {
 
   return (
     <StatusCard icon={<XCircle className="text-brand" />} title={copy.failed.title} text={copy.failed.text} summary={summary}>
-      <Link href={`/checkout?plan=${data.plan}`} className="btn btn-primary w-full">{copy.failed.retry}</Link>
+      <Link href={`/checkout?plan=${CURRENT_PLAN.id}`} className="btn btn-primary w-full">{copy.failed.retry}</Link>
       <a href={whatsappLink()} target="_blank" rel="noopener" className="btn btn-ghost w-full">{copy.whatsapp}</a>
     </StatusCard>
   );

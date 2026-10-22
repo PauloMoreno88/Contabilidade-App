@@ -1,5 +1,5 @@
 import { Section } from "@react-email/components";
-import { PLANS, whatsappLink } from "@exactra/shared";
+import { planInfo, whatsappLink } from "@exactra/shared";
 import { expiryCopy as copy, methodLabel, periodLabel } from "../copy";
 import { assetBaseUrl, firstName, formatBRL, formatDate, safeUrl, type DateInput } from "../format";
 import { H1, H2, Layout, Ledger, Mono, P, PrimaryButton, Signature, WhatsAppButton } from "../ui";
@@ -13,7 +13,7 @@ export type ExpiryReminderEmailProps = {
 };
 
 export function ExpiryReminderEmail({ customerName, contract: c, renewUrl }: ExpiryReminderEmailProps) {
-  const plan = PLANS[c.plan];
+  const plan = planInfo(c.plan);
   const ends = formatDate(c.endsAt);
   return (
     <Layout preview={copy.preview}>

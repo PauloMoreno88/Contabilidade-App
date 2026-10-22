@@ -67,7 +67,7 @@ export class CheckoutController {
       const query = `contract=${contract.id}&token=${contract.statusToken}`;
       const session = await this.payments.createCheckout({
         contractId: contract.id,
-        plan: contract.plan,
+        plan: input.plan,
         period: contract.period,
         method: contract.method,
         amountCents: contract.amountCents,

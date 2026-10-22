@@ -34,7 +34,7 @@ describe('POST /leads (e2e)', () => {
     const saved = await prisma.lead.findUniqueOrThrow({ where: { id: res.body.id } });
     expect(saved.rulesVersion).toBe(RULES_VERSION);
     expect(saved.utm).toEqual(lead.utm);
-    expect(res.body.result.recommendedPlan).toBe('profissional');
+    expect(res.body.result.recommendedPlan).toBe('exactra');
     expect(saved.consentAt).toBeInstanceOf(Date);
   });
 

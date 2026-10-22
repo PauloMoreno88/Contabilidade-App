@@ -31,16 +31,16 @@ describe('checkout + Stripe webhooks (e2e)', () => {
   const contract = (id: string) => prisma.contract.findUniqueOrThrow({ where: { id }, include: { payments: true } });
 
   it('creates a card subscription checkout with the shared price', async () => {
-    const res = await checkout({ plan: 'profissional', period: 'MONTHLY', method: 'CARD' }).expect(201);
+    const res = await checkout({ plan: 'exactra', period: 'MONTHLY', method: 'CARD' }).expect(201);
     expect(res.body.checkoutUrl).toContain('checkout.stripe.com');
     const params = createSession.mock.lastCall![0];
     expect(params.mode).toBe('subscription');
     expect(params.allowed_payment_method_types).toEqual(['card']);
-    expect(params.line_items[0].price_data.unit_amount).toBe(totalPriceCents('profissional', 'MONTHLY'));
+    expect(params.line_items[0].price_data.unit_amount).toBe(totalPriceCents('exactra', 'MONTHLY'));
     expect(params.success_url).toBe(
       `http://localhost:3000/checkout/status?contract=${res.body.contractId}&token=${res.body.statusToken}`,
     );
-    expect(params.cancel_url).toBe('http://localhost:3000/checkout?cancelado=1&plan=profissional');
+    expect(params.cancel_url).toBe('http://localhost:3000/checkout?cancelado=1&plan=exactra');
 
     const c = await contract(res.body.contractId);
     expect(c.status).toBe('PENDING_PAYMENT');
@@ -48,21 +48,23 @@ describe('checkout + Stripe webhooks (e2e)', () => {
   });
 
   it('rejects card with a prepaid period and Pix with monthly', async () => {
-    await checkout({ plan: 'essencial', period: 'ANNUAL', method: 'CARD' }).expect(400);
-    await checkout({ plan: 'essencial', period: 'MONTHLY', method: 'PIX' }).expect(400);
+    // Plans sold before the single plan can no longer be bought.
+    await checkout({ plan: 'essencial', period: 'MONTHLY', method: 'CARD' }).expect(400);
+    await checkout({ plan: 'exactra', period: 'ANNUAL', method: 'CARD' }).expect(400);
+    await checkout({ plan: 'exactra', period: 'MONTHLY', method: 'PIX' }).expect(400);
   });
 
   it('status endpoint needs the token', async () => {
-    const res = await checkout({ plan: 'essencial', period: 'QUARTERLY', method: 'PIX' }).expect(201);
+    const res = await checkout({ plan: 'exactra', period: 'QUARTERLY', method: 'PIX' }).expect(201);
     const { contractId, statusToken } = res.body;
     await http().get(`/contracts/${contractId}/status`).expect(404);
     await http().get(`/contracts/${contractId}/status?token=wrong`).expect(404);
     const ok = await http().get(`/contracts/${contractId}/status?token=${statusToken}`).expect(200);
-    expect(ok.body).toEqual({ contractId, status: 'PENDING_PAYMENT', method: 'PIX', plan: 'essencial', period: 'QUARTERLY' });
+    expect(ok.body).toEqual({ contractId, status: 'PENDING_PAYMENT', method: 'PIX', plan: 'exactra', period: 'QUARTERLY' });
   });
 
   it('verifies the signature over the raw body bytes (req.rawBody)', async () => {
-    const { body } = await checkout({ plan: 'essencial', period: 'QUARTERLY', method: 'PIX' }).expect(201);
+    const { body } = await checkout({ plan: 'exactra', period: 'QUARTERLY', method: 'PIX' }).expect(201);
     // Pretty-printed like some senders do: a re-serialized JSON body would not match the signature.
     const payload = JSON.stringify(checkoutCompleted(body.contractId, { mode: 'payment', paid: true }), null, 2);
     const send = (raw: string, sigOf: string) =>
@@ -76,7 +78,7 @@ describe('checkout + Stripe webhooks (e2e)', () => {
     http().post('/webhooks/stripe').set('stripe-signature', 't=1,v1=bad').send({ id: 'evt_x' }).expect(400));
 
   it('boleto: stays pending until the async payment succeeds, then activates for the prepaid period', async () => {
-    const { body } = await checkout({ plan: 'essencial', period: 'SEMIANNUAL', method: 'BOLETO' }).expect(201);
+    const { body } = await checkout({ plan: 'exactra', period: 'SEMIANNUAL', method: 'BOLETO' }).expect(201);
     expect(createSession.mock.lastCall![0].allowed_payment_method_types).toEqual(['boleto']);
 
     await webhook(checkoutCompleted(body.contractId, { mode: 'payment', paid: false })).expect(200);
@@ -91,7 +93,7 @@ describe('checkout + Stripe webhooks (e2e)', () => {
   });
 
   it('is idempotent: the same event twice is applied once', async () => {
-    const { body } = await checkout({ plan: 'essencial', period: 'ANNUAL', method: 'PIX' }).expect(201);
+    const { body } = await checkout({ plan: 'exactra', period: 'ANNUAL', method: 'PIX' }).expect(201);
     const evt = checkoutCompleted(body.contractId, { mode: 'payment', paid: true });
     await webhook(evt).expect(200);
     const dup = await webhook(evt).expect(200);
@@ -101,13 +103,13 @@ describe('checkout + Stripe webhooks (e2e)', () => {
   });
 
   it('async payment failure cancels the pending contract', async () => {
-    const { body } = await checkout({ plan: 'essencial', period: 'QUARTERLY', method: 'BOLETO' }).expect(201);
+    const { body } = await checkout({ plan: 'exactra', period: 'QUARTERLY', method: 'BOLETO' }).expect(201);
     await webhook(asyncPayment(body.contractId, false)).expect(200);
     expect((await contract(body.contractId)).status).toBe('CANCELED');
   });
 
   it('card: activates, renews on invoice.paid, goes PAST_DUE on failure and CANCELED on deletion', async () => {
-    const { body } = await checkout({ plan: 'profissional', period: 'MONTHLY', method: 'CARD' }).expect(201);
+    const { body } = await checkout({ plan: 'exactra', period: 'MONTHLY', method: 'CARD' }).expect(201);
     const sub = `sub_${body.contractId}`;
 
     await webhook(checkoutCompleted(body.contractId, { mode: 'subscription', paid: true })).expect(200);
@@ -130,7 +132,7 @@ describe('checkout + Stripe webhooks (e2e)', () => {
   it('removes the pending contract when Stripe fails', async () => {
     createSession.mockRejectedValueOnce(new Error('stripe down'));
     const before = await prisma.contract.count();
-    await checkout({ plan: 'essencial', period: 'MONTHLY', method: 'CARD' }).expect(500);
+    await checkout({ plan: 'exactra', period: 'MONTHLY', method: 'CARD' }).expect(500);
     expect(await prisma.contract.count()).toBe(before);
   });
 });

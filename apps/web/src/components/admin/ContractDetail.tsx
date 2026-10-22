@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { PLANS } from "@exactra/shared";
+import { planInfo } from "@exactra/shared";
 import { adminCopy, paymentStatusLabels } from "@/config/admin";
 import { methodLabels, periodLabels } from "@/config/checkout";
 import { api } from "@/lib/api";
@@ -44,7 +44,7 @@ export function ContractDetail() {
                         copy.lead,
                         copy.leadSummary(
                           formatBRL(c.customer.lead.answers.monthlyRevenue * 100),
-                          PLANS[c.customer.lead.result.recommendedPlan].name,
+                          planInfo(c.customer.lead.result.recommendedPlan).name,
                           formatDate(c.customer.lead.createdAt),
                         ),
                       ] as [string, string],
@@ -55,7 +55,7 @@ export function ContractDetail() {
             <Panel
               title={copy.contract}
               rows={[
-                [copy.plan, PLANS[c.plan].name],
+                [copy.plan, planInfo(c.plan).name],
                 [copy.period, periodLabels[c.period]],
                 [copy.method, methodLabels[c.method].label],
                 [copy.amount, formatBRLExact(c.amountCents)],

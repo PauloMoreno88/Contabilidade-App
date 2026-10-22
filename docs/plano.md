@@ -24,7 +24,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 5 | Pagamentos | **Stripe**. Cartão = assinatura recorrente mensal. **Pix e boleto = pagamento único antecipado** por 3, 6 ou 12 meses. Tudo atrás de uma interface `PaymentProvider` (permite adicionar Mercado Pago depois) |
 | 6 | Agentes | Um `git worktree` + uma branch por agente: `feat/web` e `feat/api`, saindo de `feat/app-v2` |
 | 7 | Estado atual | Commitar o `page.tsx` modificado e os arquivos soltos antes de migrar; migração em commit separado |
-| 8 | Base do front | Portar a **variante D** do protótipo, em componentes por seção |
+| 8 | Base do front | ~~Variante D~~. Desde 22/10/2026: **variante G** (`docs/prototype/exactra-prototype-g.html`), aprovada pelo cliente. Sem fotos de pessoas |
 | 9 | Backend v1 | Checkout, webhooks, status de contratação, clientes, leads, e-mails (Resend), job de vencimento, **painel admin com login** |
 | 10 | Períodos | Cartão: mensal. Pix/boleto: 3/6/12 meses com desconto crescente. Valores em **um único arquivo** em `packages/shared` |
 | 11 | Auth | **Better Auth** no `apps/api`, adapter Prisma, e-mail+senha sem cadastro público, plugin `admin` (papel `admin`), **2FA e reset de senha no v1**, cookies entre subdomínios |
@@ -36,6 +36,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 17 | Contador atrasado | Preços/regras como `PLACEHOLDER` num só arquivo; flag `CHECKOUT_ENABLED`; Stripe só em modo teste até validação |
 | 18 | Build da API | NestJS 12 em ESM; build com **tsdown** (embute `@exactra/shared`, que exporta TS cru). Prisma 7 com `@prisma/adapter-pg` |
 | 19 | Testes da API | e2e com **PGlite** (Postgres em memória) aplicando as migrations reais; nada depende de Neon/Stripe/Resend |
+| 20 | Planos | **Um único plano**, o Plano Exactra (`exactra`). Decidido em 20/10/2026 e implementado em 22/10/2026 em shared, API (migration aditiva no enum `PlanId`), e-mails, checkout e admin. Planos antigos só aparecem em dados gravados (`STORED_PLAN_IDS`). Mais de 3 funcionários: orçamento sob medida (limite PLACEHOLDER) |
 
 ## 3. Arquitetura alvo
 

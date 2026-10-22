@@ -1,4 +1,4 @@
-import { contact, onboarding, PERIOD_MONTHS, PLANS, whatsappLink } from "@exactra/shared";
+import { contact, onboarding, PERIOD_MONTHS, planInfo, whatsappLink } from "@exactra/shared";
 import {
   brand,
   expiryCopy,
@@ -26,7 +26,7 @@ const billing = (c: ContractSummary) => (c.method === "CARD" ? methodLabel.CARD 
 export function welcomeText({ customerName, contract: c }: WelcomeEmailProps) {
   const copy = welcomeCopy;
   const card = c.method === "CARD";
-  const plan = PLANS[c.plan].name;
+  const plan = planInfo(c.plan).name;
   return join(
     copy.title(firstName(customerName)),
     copy.lede,
@@ -60,7 +60,7 @@ export function newContractText({ customer, contract: c, source, adminUrl }: New
       [copy.source, source || copy.noSource],
     ])}`,
     `${copy.contractTitle.toUpperCase()}\n${rows([
-      ["Plano", PLANS[c.plan].name],
+      ["Plano", planInfo(c.plan).name],
       ["Pagamento", billing(c)],
       ["Valor", `${formatBRL(c.amountCents)} ${c.method === "CARD" ? "por mês" : `por ${PERIOD_MONTHS[c.period]} meses`}`],
       ["Início", formatDate(c.startsAt)],
@@ -100,7 +100,7 @@ export function twoFactorText({ name, code, expiresInMinutes }: TwoFactorCodeEma
 
 export function expiryText({ customerName, contract: c, renewUrl }: ExpiryReminderEmailProps) {
   const copy = expiryCopy;
-  const plan = PLANS[c.plan].name;
+  const plan = planInfo(c.plan).name;
   const ends = formatDate(c.endsAt);
   return join(
     copy.title(firstName(customerName)),

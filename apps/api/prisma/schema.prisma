@@ -96,10 +96,12 @@ model TwoFactor {
 
 // ---------- Domain ----------
 
+// "exactra" is the single plan on sale (docs/plano.md, decision 20). The others stay for stored contracts.
 enum PlanId {
   essencial
   profissional
   empresarial
+  exactra
 }
 
 enum BillingPeriod {

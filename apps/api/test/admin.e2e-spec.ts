@@ -148,7 +148,7 @@ describe('admin endpoints (e2e)', () => {
       whatsapp: '11911112222',
       email: null,
       answers: { monthlyRevenue: 12000 },
-      result: { recommendedPlan: 'profissional' },
+      result: { recommendedPlan: 'exactra' },
       utm: { source: 'google', campaign: 'abertura' },
       rulesVersion: 'placeholder-0',
     });

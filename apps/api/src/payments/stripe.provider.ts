@@ -37,7 +37,7 @@ export class StripeProvider extends PaymentProvider {
                   currency: 'brl',
                   unit_amount: req.amountCents,
                   recurring: { interval: 'month' },
-                  product_data: { name: `Exactra — Plano ${plan.name} (mensal)` },
+                  product_data: { name: `Exactra — ${plan.name} (mensal)` },
                 },
               },
             ],
@@ -56,7 +56,7 @@ export class StripeProvider extends PaymentProvider {
                 price_data: {
                   currency: 'brl',
                   unit_amount: req.amountCents,
-                  product_data: { name: `Exactra — Plano ${plan.name} (${PERIOD_MONTHS[req.period]} meses)` },
+                  product_data: { name: `Exactra — ${plan.name} (${PERIOD_MONTHS[req.period]} meses)` },
                 },
               },
             ],

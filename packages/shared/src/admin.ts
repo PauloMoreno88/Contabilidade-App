@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS } from "./enums";
+import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, STORED_PLAN_IDS } from "./enums";
 import { adminContractRowSchema, utmSchema } from "./schemas";
 import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
 
@@ -29,7 +29,7 @@ const pageQuery = {
 export const adminContractsQuerySchema = z.object({
   ...pageQuery,
   status: z.enum(CONTRACT_STATUSES).optional(),
-  plan: z.enum(PLAN_IDS).optional(),
+  plan: z.enum(STORED_PLAN_IDS).optional(),
   method: z.enum(PAYMENT_METHODS).optional(),
   period: z.enum(BILLING_PERIODS).optional(),
 });
@@ -79,7 +79,7 @@ export type AdminLeadsPage = z.infer<typeof adminLeadsPageSchema>;
 /** GET /admin/contracts/:id */
 export const adminContractDetailSchema = z.object({
   id: z.string(),
-  plan: z.enum(PLAN_IDS),
+  plan: z.enum(STORED_PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
   method: z.enum(PAYMENT_METHODS),
   amountCents: z.number().int(),
