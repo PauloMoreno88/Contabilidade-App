@@ -3,6 +3,8 @@ title: Como trocar de contador sem dor de cabeça
 description: Veja quando vale a pena mudar de contabilidade, o passo a passo da troca, os documentos que precisam ser transferidos e como escolher a nova.
 category: contabilidade
 date: 2026-10-22
+image: /img/blog/como-trocar-de-contador.jpg
+imageAlt: Estante com pastas de arquivo coloridas
 reviewed: nao
 ---
 Muita gente continua com um contador que não responde, cobra cada serviço à parte ou nunca explicou por que a empresa paga o imposto que paga, só porque acha que trocar é complicado. Não é. A troca é um processo comum e, bem feita, não interrompe nada na sua empresa.

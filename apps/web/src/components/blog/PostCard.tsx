@@ -10,7 +10,7 @@ export function PostCard({ post, featured = false }: { post: PostMeta; featured?
       href={`/blog/${post.slug}`}
       className={`group grid overflow-hidden rounded-2xl border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(15,33,51,.35)] ${featured ? "lg:grid-cols-[1.1fr_1fr]" : ""}`}
     >
-      <Cover category={post.category} large={featured} />
+      <Cover category={post.category} image={post.image} alt={post.imageAlt} large={featured} />
       <div className={`flex flex-col gap-2.5 p-5 md:p-6 ${featured ? "lg:justify-center lg:p-10" : ""}`}>
         <p className="flex flex-wrap items-center gap-x-2.5 text-[0.82rem] font-semibold text-faint">
           {featured && <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-brand">{blogCopy.featured}</span>}

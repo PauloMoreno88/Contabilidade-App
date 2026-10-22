@@ -3,6 +3,8 @@ title: Pró-labore e distribuição de lucros: qual a diferença e como tirar di
 description: Entenda o que é o pró-labore, quando a distribuição de lucros é isenta, quais descontos existem e como equilibrar os dois para pagar menos imposto.
 category: gestao
 date: 2026-10-22
+image: /img/blog/pro-labore-e-distribuicao-de-lucros.jpg
+imageAlt: Moedas de real sobre uma superfície escura
 reviewed: nao
 ---
 Uma das dúvidas mais comuns de quem abre empresa é: "como eu pego o meu dinheiro?". Transferir da conta da empresa para a sua sem critério mistura as finanças e pode virar problema com a Receita. O caminho certo passa por duas formas de retirada: o **pró-labore** e a **distribuição de lucros**.

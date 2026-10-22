@@ -3,6 +3,8 @@ title: Fator R: como pagar menos imposto no Simples Nacional
 description: Veja como uma conta simples entre folha de pagamento e faturamento pode baixar o imposto de vários serviços de 15,5% para 6%, com um exemplo em números.
 category: impostos
 date: 2026-10-22
+image: /img/blog/fator-r-simples-nacional.jpg
+imageAlt: Calculadora, tesoura e material de escritório sobre a mesa
 reviewed: nao
 ---
 Se você presta serviço intelectual, como consultoria, tecnologia, marketing, design, engenharia ou várias áreas da saúde, existe uma regra no Simples Nacional que pode cortar seu imposto pela metade ou mais. Ela se chama **Fator R**, e muita gente paga a mais por não conhecer.
