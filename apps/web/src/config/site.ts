@@ -35,6 +35,7 @@ export const nav = {
     { href: "/#sobre", label: "Sobre nós" },
     { href: "/#servicos", label: "Serviços" },
     { href: "/#plano", label: "Plano" },
+    { href: "/blog", label: "Blog" },
     { href: "/#contato", label: "Contato" },
   ],
   // One entrance for customers and the Exactra team. Today only the admin panel exists.
@@ -184,6 +185,7 @@ export const footer = {
         { href: "/#sobre", label: "Sobre nós" },
         { href: "/#plano", label: "Plano" },
         { href: "/#simulador", label: "Simulador" },
+        { href: "/blog", label: "Blog" },
         { href: "/admin/login", label: "Acessar plataforma" },
       ],
     },
