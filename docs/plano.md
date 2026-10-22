@@ -37,6 +37,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 18 | Build da API | NestJS 12 em ESM; build com **tsdown** (embute `@exactra/shared`, que exporta TS cru). Prisma 7 com `@prisma/adapter-pg` |
 | 19 | Testes da API | e2e com **PGlite** (Postgres em memória) aplicando as migrations reais; nada depende de Neon/Stripe/Resend |
 | 20 | Planos | **Um único plano**, o Plano Exactra (`exactra`). Decidido em 20/10/2026 e implementado em 22/10/2026 em shared, API (migration aditiva no enum `PlanId`), e-mails, checkout e admin. Planos antigos só aparecem em dados gravados (`STORED_PLAN_IDS`). Mais de 3 funcionários: orçamento sob medida (limite PLACEHOLDER) |
+| 21 | Blog | **Blog estático** em `/blog` (22/10/2026), para SEO. Um arquivo Markdown por artigo em `apps/web/src/content/blog` (front matter: title, description, category, date, updated, reviewed), lido no build por `src/lib/blog.ts`. Sem fotos: capa com o ícone da categoria. Cada artigo tem dados estruturados (BlogPosting, BreadcrumbList e FAQPage), entra no sitemap e chama o simulador. Temas inspirados no blog da AccountTech, com texto próprio. Os 10 primeiros estão com `reviewed: nao` até o contador revisar |
 
 ## 3. Arquitetura alvo
 
