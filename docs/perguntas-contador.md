@@ -37,3 +37,8 @@ Enquanto não houver resposta, o desenvolvimento segue com valores fictícios e 
 21. Existe contrato de prestação de serviços padrão? Pode enviar para colocarmos na página de checkout?
 22. Política de privacidade e termos de uso: já existem, ou precisamos de rascunho para revisão jurídica?
 23. Quem é o responsável legal pela conta de pagamentos (Stripe) e pelo domínio?
+
+## E. Blog
+
+24. Revisar os 10 artigos do blog (`apps/web/src/content/blog`). Eles citam regras públicas que mudam com o tempo: limites do MEI e do Simples, Fator R, DAS, pró-labore e lucros (regras de 2026), reforma tributária e NFS-e. Depois da revisão, marcar `reviewed: sim` em cada arquivo.
+25. Quais outros temas os clientes mais perguntam? Eles viram os próximos artigos.
