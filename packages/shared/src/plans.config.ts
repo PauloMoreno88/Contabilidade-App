@@ -1,4 +1,4 @@
-import { BillingPeriod, PaymentMethod, PERIOD_MONTHS, PlanId } from "./enums";
+import { BillingPeriod, PaymentMethod, PERIOD_MONTHS, PlanId, StoredPlanId } from "./enums";
 
 /**
  * PLACEHOLDER: every value in this file is fictional until the accountant
@@ -12,34 +12,46 @@ export interface PlanConfig {
   name: string;
   tagline: string;
   monthlyPriceCents: number;
-  highlighted?: boolean;
   features: string[];
 }
 
+/** A single plan on sale (docs/plano.md, decision 20). */
 export const PLANS: Record<PlanId, PlanConfig> = {
-  essencial: {
-    id: "essencial",
-    name: "Essencial",
-    tagline: "Para quem está começando",
-    monthlyPriceCents: 19900,
-    features: ["Abertura e regularização de CNPJ", "Impostos mensais", "Suporte por WhatsApp"],
-  },
-  profissional: {
-    id: "profissional",
-    name: "Profissional",
-    tagline: "Para quem já está rodando",
-    monthlyPriceCents: 39900,
-    highlighted: true,
-    features: ["Tudo do Essencial", "Pró-labore e folha básica", "Planejamento tributário"],
-  },
-  empresarial: {
-    id: "empresarial",
-    name: "Empresarial",
-    tagline: "Para operações maiores",
-    monthlyPriceCents: 89900,
-    features: ["Tudo do Profissional", "Folha completa", "Atendimento prioritário"],
+  exactra: {
+    id: "exactra",
+    name: "Plano Exactra",
+    tagline: "Para prestadores de serviço, profissionais liberais e pequenos negócios",
+    monthlyPriceCents: 29900,
+    features: [
+      "Abertura de CNPJ inclusa",
+      "Troca de contador sem custo",
+      "Impostos calculados e guias prontas",
+      "Declarações entregues no prazo",
+      "Pró-labore dos sócios",
+      "Folha de até 3 funcionários",
+      "Revisão do regime para pagar menos",
+      "Balanço e relatórios do ano",
+      "Atendimento por WhatsApp e vídeo",
+      "Lembretes de vencimento",
+    ],
   },
 };
+
+/** The plan sold today. */
+export const CURRENT_PLAN = PLANS.exactra;
+
+/** Names of the plans sold before decision 20, for contracts and leads already stored. */
+const LEGACY_PLAN_NAMES: Record<Exclude<StoredPlanId, PlanId>, string> = {
+  essencial: "Essencial (antigo)",
+  profissional: "Profissional (antigo)",
+  empresarial: "Empresarial (antigo)",
+};
+
+/** Display name and tagline of any stored plan id, current or legacy. */
+export function planInfo(id: StoredPlanId): { name: string; tagline: string } {
+  if (id in PLANS) return PLANS[id as PlanId];
+  return { name: LEGACY_PLAN_NAMES[id as Exclude<StoredPlanId, PlanId>], tagline: "" };
+}
 
 /** PLACEHOLDER discounts for prepaid periods (Pix/boleto). Fraction off the monthly price. */
 export const PERIOD_DISCOUNT: Record<BillingPeriod, number> = {

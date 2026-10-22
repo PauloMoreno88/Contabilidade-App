@@ -23,7 +23,7 @@ export const onboarding = {
   title: "Contratei. E agora?",
   sub: "O que acontece depois que você fecha com a Exactra.",
   steps: [
-    { title: "Contrate seu plano", text: "Escolha o plano e preencha seus dados no checkout." },
+    { title: "Contrate o Plano Exactra", text: "Preencha seus dados e escolha como pagar no checkout." },
     // PLACEHOLDER: no contact deadline until Exactra confirms one.
     { title: "Receba nosso contato", text: "Nosso time te chama no WhatsApp para começar o atendimento." },
     { title: "Envie seus documentos", text: "Uma lista simples do que precisamos para começar." },

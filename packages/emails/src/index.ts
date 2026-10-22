@@ -1,6 +1,6 @@
 import { render } from "@react-email/render";
 import { createElement, type ReactElement } from "react";
-import { PLANS } from "@exactra/shared";
+import { planInfo } from "@exactra/shared";
 import { expiryCopy, newContractCopy, passwordResetCopy, twoFactorCopy, welcomeCopy } from "./copy";
 import { firstName, formatDate, oneLine } from "./format";
 import { PasswordResetEmail, TwoFactorCodeEmail, type PasswordResetEmailProps, type TwoFactorCodeEmailProps } from "./templates/auth";
@@ -27,7 +27,7 @@ export const renderWelcomeEmail = (props: WelcomeEmailProps) =>
 
 /** Internal notice to ADMIN_NOTIFY_EMAIL, when a contract becomes ACTIVE. */
 export const renderNewContractNotice = (props: NewContractNoticeProps) =>
-  build(newContractCopy.subject(props.customer.name, PLANS[props.contract.plan].name), createElement(NewContractNotice, props), newContractText(props));
+  build(newContractCopy.subject(props.customer.name, planInfo(props.contract.plan).name), createElement(NewContractNotice, props), newContractText(props));
 
 /** Better Auth emailAndPassword.sendResetPassword. */
 export const renderPasswordResetEmail = (props: PasswordResetEmailProps) => build(passwordResetCopy.subject, createElement(PasswordResetEmail, props), passwordResetText(props));

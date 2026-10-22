@@ -47,7 +47,7 @@ export const welcomeCopy = {
   // PLACEHOLDER: no contact deadline until Exactra confirms one.
   whatsappText: "Quer adiantar? Fale com a gente pelo WhatsApp.",
   whatsappCta: "Falar no WhatsApp",
-  whatsappMessage: (plan: string) => `Olá! Acabei de contratar o plano ${plan} da Exactra.`,
+  whatsappMessage: (plan: string) => `Olá! Acabei de contratar o ${plan} da Exactra.`,
 };
 
 export const newContractCopy = {
@@ -93,7 +93,7 @@ export const expiryCopy = {
   subject: (date: string) => `Seu plano na Exactra vence em ${date}`,
   preview: "Renove para continuar com o atendimento sem interrupção.",
   title: (firstName: string) => `${firstName}, seu plano está perto do vencimento`,
-  lede: (plan: string, date: string) => `O plano ${plan} que você pagou adiantado vence em ${date}. No Pix e no boleto ele não renova sozinho.`,
+  lede: (plan: string, date: string) => `O ${plan} que você pagou adiantado vence em ${date}. No Pix e no boleto ele não renova sozinho.`,
   summaryTitle: "Seu plano",
   endsAt: "Vence em",
   cta: "Renovar meu plano",

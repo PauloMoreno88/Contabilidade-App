@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS } from "./enums";
+import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS, STORED_PLAN_IDS } from "./enums";
 import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
 
 export const utmSchema = z
@@ -56,7 +56,7 @@ export const contractStatusResponseSchema = z.object({
   contractId: z.string(),
   status: z.enum(CONTRACT_STATUSES),
   method: z.enum(PAYMENT_METHODS),
-  plan: z.enum(PLAN_IDS),
+  plan: z.enum(STORED_PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
 });
 export type ContractStatusResponse = z.infer<typeof contractStatusResponseSchema>;
@@ -80,7 +80,7 @@ export const adminContractRowSchema = z.object({
   email: z.string(),
   phone: z.string(),
   document: z.string(),
-  plan: z.enum(PLAN_IDS),
+  plan: z.enum(STORED_PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
   method: z.enum(PAYMENT_METHODS),
   status: z.enum(CONTRACT_STATUSES),

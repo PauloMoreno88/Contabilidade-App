@@ -75,7 +75,7 @@ describe('e-mails and expiry job (e2e)', () => {
     const { body } = await http()
       .post('/checkout/sessions')
       .send({
-        plan: 'profissional',
+        plan: 'exactra',
         period: 'ANNUAL',
         method: 'PIX',
         consent: true,
@@ -89,7 +89,7 @@ describe('e-mails and expiry job (e2e)', () => {
     const [welcome, notice] = mails();
     expect(mails().map((e) => e.to)).toEqual(['ana@ex.com', 'equipe@exactra.test']);
     expectRendered(welcome);
-    expect(welcome.text).toContain('Profissional');
+    expect(welcome.text).toContain('Plano Exactra');
     expectRendered(notice);
     expect(notice.text).toContain('ana@ex.com');
     expect(notice.text).toContain('google / lancamento');
