@@ -27,6 +27,9 @@ export type PostMeta = {
   category: BlogCategoryId;
   date: string;
   updated: string;
+  /** Photo in public/ (no people). Without one, the card shows the category artwork. */
+  image?: string;
+  imageAlt?: string;
   reviewed: boolean;
   readingMinutes: number;
 };
@@ -145,6 +148,8 @@ function load(file: string): Post {
     category: data.category as BlogCategoryId,
     date: data.date,
     updated: data.updated || data.date,
+    image: data.image || undefined,
+    imageAlt: data.imageAlt || "",
     reviewed: data.reviewed === "sim",
     readingMinutes: readingMinutes(blocks),
     blocks,
@@ -173,8 +178,8 @@ export function relatedPosts(post: Post, count = 3): PostMeta[] {
 }
 
 export function toMeta(post: Post): PostMeta {
-  const { slug, title, description, category, date, updated, reviewed, readingMinutes } = post;
-  return { slug, title, description, category, date, updated, reviewed, readingMinutes };
+  const { slug, title, description, category, date, updated, image, imageAlt, reviewed, readingMinutes } = post;
+  return { slug, title, description, category, date, updated, image, imageAlt, reviewed, readingMinutes };
 }
 
 /** "22 de outubro de 2026" */

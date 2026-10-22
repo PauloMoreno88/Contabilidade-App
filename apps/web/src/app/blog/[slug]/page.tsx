@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.date,
       modifiedTime: post.updated,
       section: blogCategories[post.category].label,
+      ...(post.image && { images: [{ url: post.image, width: 1200, height: 750, alt: post.imageAlt }] }),
     },
   };
 }
@@ -60,6 +61,7 @@ export default async function PostPage({ params }: Props) {
       dateModified: post.updated,
       inLanguage: "pt-BR",
       mainEntityOfPage: url,
+      ...(post.image && { image: `${SITE_URL}${post.image}` }),
       articleSection: category.label,
       author: org,
       publisher: org,
@@ -117,6 +119,12 @@ export default async function PostPage({ params }: Props) {
             </div>
           </header>
 
+          {post.image && (
+            <div className="container-x -mb-2 pt-8 md:pt-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.image} alt={post.imageAlt} className="aspect-[16/9] w-full rounded-2xl object-cover md:aspect-[21/8]" />
+            </div>
+          )}
           <div className="container-x grid gap-10 pt-10 md:pt-14 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-16">
             <div className="min-w-0 max-w-[720px]">
               <PostBody blocks={post.blocks} />

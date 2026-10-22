@@ -3,6 +3,8 @@ title: Recebi uma proposta para trabalhar como PJ. Vale a pena?
 description: Compare CLT e PJ de verdade: o que você ganha, o que perde, quanto paga de imposto e como calcular o valor mínimo que compensa aceitar a proposta.
 category: abrir-empresa
 date: 2026-10-22
+image: /img/blog/trabalhar-como-pj-vale-a-pena.jpg
+imageAlt: Notebook e xícara de café sobre uma mesa de madeira
 reviewed: nao
 ---
 Propostas para trabalhar como PJ (pessoa jurídica) são cada vez mais comuns, principalmente em tecnologia, marketing, saúde e consultoria. O valor oferecido costuma ser maior do que o salário CLT, mas a comparação direta engana: como PJ, você deixa de ter vários benefícios e passa a ter custos que antes não tinha.

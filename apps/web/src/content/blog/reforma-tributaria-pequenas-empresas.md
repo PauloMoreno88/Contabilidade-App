@@ -3,6 +3,8 @@ title: Reforma tributária: o que muda para pequenas empresas e para o Simples N
 description: CBS, IBS, prazos de transição e o futuro do Simples Nacional explicados de forma direta, com o que o pequeno empresário precisa fazer agora.
 category: novidades
 date: 2026-10-22
+image: /img/blog/reforma-tributaria-pequenas-empresas.jpg
+imageAlt: Congresso Nacional, em Brasília
 reviewed: nao
 ---
 A reforma tributária sobre o consumo já está em andamento. Ela vai trocar cinco tributos por dois novos ao longo de vários anos. Para a maioria das pequenas empresas, a mudança é gradual, mas algumas decisões já começam a pesar nos próximos anos.

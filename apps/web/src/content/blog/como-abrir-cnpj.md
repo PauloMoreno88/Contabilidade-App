@@ -3,6 +3,8 @@ title: Como abrir CNPJ: passo a passo para começar sem erro
 description: Do tipo de empresa ao primeiro imposto, veja as etapas para abrir seu CNPJ, os documentos pedidos e as decisões que mudam quanto você vai pagar.
 category: abrir-empresa
 date: 2026-10-22
+image: /img/blog/como-abrir-cnpj.jpg
+imageAlt: Chave sobre uma mesa escura
 reviewed: nao
 ---
 Abrir um CNPJ deixou de ser um processo de semanas em cartório. Hoje quase tudo é feito pela internet, e a parte que mais pesa no seu bolso não é a burocracia, e sim as escolhas feitas no começo: a atividade registrada, o tipo de empresa e o regime de impostos.

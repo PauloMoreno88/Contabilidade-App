@@ -3,6 +3,8 @@ title: Guia DAS do Simples Nacional: o que é, quando vence e o que fazer se atr
 description: Entenda quais impostos estão dentro do DAS, como o valor é calculado, qual a data de vencimento e como regularizar uma guia em atraso.
 category: impostos
 date: 2026-10-22
+image: /img/blog/guia-das-simples-nacional.jpg
+imageAlt: Calculadora sobre papéis com gráficos ao lado de um notebook
 reviewed: nao
 ---
 Quem tem empresa no Simples Nacional ou é MEI paga quase todos os impostos em uma guia só, todo mês: o **DAS** (Documento de Arrecadação do Simples Nacional). Entender essa guia ajuda a não pagar errado e a não perder prazo.
