@@ -15,3 +15,5 @@ Leia primeiro o `AGENTS.md` da raiz e o `docs/plano.md`. Este arquivo só traz o
 Comandos: `pnpm --filter web dev`, `pnpm --filter web build`, `pnpm --filter web lint`.
 
 Variáveis `NEXT_PUBLIC_*`: ver `.env.example`. O build de produção (padrão) **falha** sem `NEXT_PUBLIC_API_URL` público (ou com localhost) e com `NEXT_PUBLIC_USE_MOCK=true`. Para buildar localmente use `NEXT_PUBLIC_APP_ENV=staging` (e, se quiser, `NEXT_PUBLIC_USE_MOCK=true`). Em export estático o Next não envia headers HTTP: o `X-Robots-Tag` do ambiente de testes precisa vir do Render.
+
+Área do cliente (`/app`, decisões 24–30 do `docs/plano.md`): login único em `/entrar` (o papel do Better Auth decide entre `/app` e `/admin`), componentes em `src/components/portal`, textos em `src/config/portal.ts` (admin: `src/config/admin-portal.ts`). Envio de arquivos direto para o storage por URL assinada (`api.putFile`). Mock: `cliente@exactra.com.br` ou `admin@exactra.com.br`, senha `exactra123`; convite de teste em `/entrar/ativar?token=convite-teste`. Página nova = nova rota no `render.yaml`.

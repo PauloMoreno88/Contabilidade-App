@@ -30,8 +30,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const reload = useCallback(async () => {
     const { data } = await authClient.getSession();
     if (data?.user.role === "admin") setUser(data.user);
-    else router.replace("/admin/login");
-  }, [router]);
+    else router.replace(`/entrar?next=${encodeURIComponent(pathname)}`);
+  }, [router, pathname]);
 
   useEffect(() => {
     reload();
@@ -39,7 +39,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   async function signOut() {
     await authClient.signOut();
-    router.replace("/admin/login");
+    router.replace("/entrar");
   }
 
   if (!user) return <p className="p-8 text-muted">{adminCopy.loading}</p>;

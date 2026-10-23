@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { adminCopy } from "@/config/admin";
+import { authCopy } from "@/config/auth";
 import { authClient } from "@/lib/auth";
 import { AuthCard, Field, FormError } from "./AuthCard";
 
 const MIN_PASSWORD = 8;
 
 export function ForgotPasswordForm() {
-  const copy = adminCopy.forgot;
+  const copy = authCopy.forgot;
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -20,7 +20,7 @@ export function ForgotPasswordForm() {
     // Always show the same message, so the form doesn't reveal which e-mails exist.
     await authClient.requestPasswordReset({
       email: String(new FormData(e.currentTarget).get("email")),
-      redirectTo: `${window.location.origin}/admin/redefinir-senha`,
+      redirectTo: `${window.location.origin}/entrar/redefinir-senha`,
     });
     setSent(true);
   }
@@ -32,17 +32,17 @@ export function ForgotPasswordForm() {
       ) : (
         <form onSubmit={submit}>
           <p className="mb-5 text-[0.9rem] text-muted">{copy.text}</p>
-          <Field id="email" label={adminCopy.login.email} type="email" autoComplete="username" required />
+          <Field id="email" label={authCopy.login.email} type="email" autoComplete="username" required />
           <button type="submit" className="btn btn-primary w-full" disabled={busy}>{copy.submit}</button>
         </form>
       )}
-      <Link href="/admin/login" className="mt-4 block text-center text-[0.86rem] text-muted underline hover:text-ink">{copy.back}</Link>
+      <Link href="/entrar" className="mt-4 block text-center text-[0.86rem] text-muted underline hover:text-ink">{copy.back}</Link>
     </AuthCard>
   );
 }
 
 export function ResetPasswordForm() {
-  const copy = adminCopy.reset;
+  const copy = authCopy.reset;
   const params = useSearchParams();
   const token = params.get("token");
   const [error, setError] = useState<string | undefined>(params.get("error") || !token ? copy.invalid : undefined);
@@ -66,7 +66,7 @@ export function ResetPasswordForm() {
     return (
       <AuthCard title={copy.title}>
         <p role="status" className="mb-5 text-[0.9rem] text-muted">{copy.done}</p>
-        <Link href="/admin/login" className="btn btn-primary w-full">{copy.goLogin}</Link>
+        <Link href="/entrar" className="btn btn-primary w-full">{copy.goLogin}</Link>
       </AuthCard>
     );
   }
@@ -83,7 +83,7 @@ export function ResetPasswordForm() {
       ) : (
         <>
           <FormError>{error}</FormError>
-          <Link href="/admin/esqueci-senha" className="btn btn-ghost w-full">{adminCopy.forgot.submit}</Link>
+          <Link href="/entrar/esqueci-senha" className="btn btn-ghost w-full">{authCopy.forgot.submit}</Link>
         </>
       )}
     </AuthCard>

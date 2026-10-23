@@ -10,6 +10,7 @@ import {
 } from "@exactra/shared";
 import { ApiError, type Api } from "./http";
 import { mockContract, mockContracts, mockContractsCsv, mockLeads, mockMetrics } from "./mock-admin";
+import { mockPortalApi } from "./mock-portal";
 
 /**
  * In-browser stand-in for apps/api, enabled with NEXT_PUBLIC_USE_MOCK=true.
@@ -29,7 +30,7 @@ function mockStatus(c: MockContract): ContractStatus {
   return c.polls >= 2 ? "ACTIVE" : "PENDING_PAYMENT";
 }
 
-export const mockApi: Api = {
+const baseMockApi = {
   async createLead(input: CreateLeadInput) {
     createLeadSchema.parse(input);
     await delay();
@@ -85,3 +86,5 @@ export const mockApi: Api = {
     return mockContractsCsv(query);
   },
 };
+
+export const mockApi: Api = { ...baseMockApi, ...mockPortalApi };

@@ -1,57 +1,72 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient, twoFactorClient } from "better-auth/client/plugins";
+import { adminClient, magicLinkClient, twoFactorClient } from "better-auth/client/plugins";
 import { USE_MOCK } from "@/lib/api";
 
 /**
- * Better Auth client for the admin panel. The session cookie is set by
- * api.* and shared with www.* (AUTH_COOKIE_DOMAIN on the API), so every
- * call goes with credentials.
+ * Better Auth client for the admin panel and the customer area. The session
+ * cookie is set by api.* and shared with www.* (AUTH_COOKIE_DOMAIN on the API),
+ * so every call goes with credentials.
  */
 const realClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   fetchOptions: { credentials: "include" },
-  plugins: [twoFactorClient(), adminClient()],
+  plugins: [twoFactorClient(), adminClient(), magicLinkClient()],
 });
 
 export const AUTH_IS_MOCK = USE_MOCK;
 
-// ---- Mock (NEXT_PUBLIC_USE_MOCK=true): admin@exactra.com.br / exactra123, 2FA code 123456 ----
-// 2FA starts off; turn it on at /admin/seguranca to exercise the second step of the login.
+/** Where each role lands after signing in. */
+export const homeFor = (role?: string | null) => (role === "admin" ? "/admin/mes" : "/app");
 
-const SESSION = "mock-admin-session";
-const TWO_FA = "mock-admin-2fa";
+// ---- Mock (NEXT_PUBLIC_USE_MOCK=true), password exactra123, 2FA code 123456 ----
+// admin@exactra.com.br (team) and cliente@exactra.com.br (customer area).
+// 2FA starts off; turn it on in the security page to exercise the second step of the login.
+
+const SESSION = "mock-session-user";
+const TWO_FA = "mock-2fa";
 const PASSWORD = "exactra123";
 const BACKUP_CODES = ["backup-0001", "backup-0002", "backup-0003", "backup-0004", "backup-0005", "backup-0006"];
-const MOCK_USER = { id: "usr_admin", name: "Admin Exactra", email: "admin@exactra.com.br", role: "admin" };
+const MOCK_USERS = {
+  "admin@exactra.com.br": { id: "usr_admin", name: "Admin Exactra", email: "admin@exactra.com.br", role: "admin" },
+  "cliente@exactra.com.br": { id: "usr_cliente", name: "Marina Costa", email: "cliente@exactra.com.br", role: "customer" },
+} as const;
+type MockEmail = keyof typeof MOCK_USERS;
 const delay = () => new Promise((r) => setTimeout(r, 400));
 const ok = <T>(data: T) => ({ data, error: null });
 const fail = (status: number, message: string) => ({ data: null, error: { status, message, statusText: message } });
-const store = {
-  get: (k: string) => sessionStorage.getItem(k) === "1",
-  set: (k: string, on: boolean) => (on ? sessionStorage.setItem(k, "1") : sessionStorage.removeItem(k)),
-};
-const user = () => ({ ...MOCK_USER, twoFactorEnabled: store.get(TWO_FA) });
-let pending2fa = false;
+const read = (k: string) => sessionStorage.getItem(k);
+const twoFa = (email: string) => read(`${TWO_FA}:${email}`) === "1";
+const setTwoFa = (email: string, on: boolean) => (on ? sessionStorage.setItem(`${TWO_FA}:${email}`, "1") : sessionStorage.removeItem(`${TWO_FA}:${email}`));
+const current = () => read(SESSION) as MockEmail | null;
+const user = (email: MockEmail) => ({ ...MOCK_USERS[email], twoFactorEnabled: twoFa(email) });
+let pending2fa: MockEmail | null = null;
 let enrolling = false;
 
 function finishSignIn(valid: boolean) {
   if (!valid || !pending2fa) return fail(401, "INVALID_CODE");
-  pending2fa = false;
-  store.set(SESSION, true);
-  return ok({ user: user() });
+  sessionStorage.setItem(SESSION, pending2fa);
+  const u = user(pending2fa);
+  pending2fa = null;
+  return ok({ user: u });
 }
 
 const mockClient = {
   signIn: {
     async email({ email, password }: { email: string; password: string }) {
       await delay();
-      if (email !== MOCK_USER.email || password !== PASSWORD) return fail(401, "INVALID_EMAIL_OR_PASSWORD");
-      if (!store.get(TWO_FA)) {
-        store.set(SESSION, true);
-        return ok({ user: user() });
+      const e = email.toLowerCase() as MockEmail;
+      if (!MOCK_USERS[e] || password !== PASSWORD) return fail(401, "INVALID_EMAIL_OR_PASSWORD");
+      if (!twoFa(e)) {
+        sessionStorage.setItem(SESSION, e);
+        return ok({ user: user(e) });
       }
-      pending2fa = true;
+      pending2fa = e;
       return ok({ twoFactorRedirect: true, twoFactorMethods: ["totp", "otp"] });
+    },
+    async magicLink(input: { email: string; callbackURL: string }) {
+      void input;
+      await delay();
+      return ok({ status: true });
     },
   },
   twoFactor: {
@@ -59,15 +74,16 @@ const mockClient = {
       await delay();
       if (password !== PASSWORD) return fail(400, "INVALID_PASSWORD");
       enrolling = true;
-      return ok({ totpURI: "otpauth://totp/Exactra:admin%40exactra.com.br?secret=JBSWY3DPEHPK3PXP&issuer=Exactra", backupCodes: BACKUP_CODES });
+      return ok({ totpURI: "otpauth://totp/Exactra:conta?secret=JBSWY3DPEHPK3PXP&issuer=Exactra", backupCodes: BACKUP_CODES });
     },
     async verifyTotp({ code }: { code: string; trustDevice?: boolean }) {
       await delay();
-      if (enrolling && store.get(SESSION)) {
+      const me = current();
+      if (enrolling && me) {
         if (code !== "123456") return fail(401, "INVALID_CODE");
         enrolling = false;
-        store.set(TWO_FA, true);
-        return ok({ user: user() });
+        setTwoFa(me, true);
+        return ok({ user: user(me) });
       }
       return finishSignIn(code === "123456");
     },
@@ -89,8 +105,9 @@ const mockClient = {
     },
     async disable({ password }: { password: string }) {
       await delay();
-      if (password !== PASSWORD) return fail(400, "INVALID_PASSWORD");
-      store.set(TWO_FA, false);
+      const me = current();
+      if (password !== PASSWORD || !me) return fail(400, "INVALID_PASSWORD");
+      setTwoFa(me, false);
       return ok({ status: true });
     },
   },
@@ -104,13 +121,14 @@ const mockClient = {
     return token ? ok({ status: true }) : fail(400, "INVALID_TOKEN");
   },
   async getSession() {
-    return ok(store.get(SESSION) ? { user: user() } : null);
+    const me = current();
+    return ok(me && MOCK_USERS[me] ? { user: user(me) } : null);
   },
   async signOut() {
-    store.set(SESSION, false);
+    sessionStorage.removeItem(SESSION);
     return ok({ success: true });
   },
 };
 
-// ponytail: the mock covers only the methods the panel calls; cast keeps one client type for the UI.
+// ponytail: the mock covers only the methods the UI calls; cast keeps one client type for the UI.
 export const authClient = USE_MOCK ? (mockClient as unknown as typeof realClient) : realClient;
