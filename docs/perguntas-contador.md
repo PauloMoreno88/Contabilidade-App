@@ -40,5 +40,5 @@ Enquanto não houver resposta, o desenvolvimento segue com valores fictícios e 
 
 ## E. Blog
 
-24. Revisar os 10 artigos do blog (`apps/web/src/content/blog`). Eles citam regras públicas que mudam com o tempo: limites do MEI e do Simples, Fator R, DAS, pró-labore e lucros (regras de 2026), reforma tributária e NFS-e. Depois da revisão, marcar `reviewed: sim` em cada arquivo.
+24. Revisar os 10 artigos do blog (`apps/web/src/content/blog`). Eles citam regras públicas que mudam com o tempo: limites do MEI e do Simples, Fator R, DAS, pró-labore e lucros (regras de 2026), reforma tributária e NFS-e. Depois da revisão, marcar `reviewed: sim` em cada arquivo. **Respondido em 23/10/2026: revisados.**
 25. Quais outros temas os clientes mais perguntam? Eles viram os próximos artigos.
