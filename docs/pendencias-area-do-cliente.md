@@ -4,7 +4,7 @@ Trabalho feito em 23/10/2026 (decisões 24–30 do `docs/plano.md`). O código e
 
 ## 1. Você (contas e configuração)
 
-- [ ] **Cloudflare R2**: criar a conta (ou usar a da Exactra) e um bucket, ex. `exactra-arquivos-staging`.
+- [x] **Cloudflare R2 (staging)**: feito em 23/10/2026 (bucket `exactra-arquivos-staging`, Account API token, CORS e variáveis no Render). Falta o bucket de produção.
   - Criar um token de API com permissão **Object Read & Write só nesse bucket** e anotar: Account ID, Access Key ID e Secret Access Key.
   - Em *Settings → CORS policy* do bucket, liberar o site:
     ```json
