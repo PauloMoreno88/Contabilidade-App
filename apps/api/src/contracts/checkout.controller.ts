@@ -38,7 +38,7 @@ export class CheckoutController {
       throw new ServiceUnavailableException('Contratação online indisponível no momento.');
     }
     if (!allowedPeriods(input.method).includes(input.period)) {
-      throw new BadRequestException('Período não disponível para esta forma de pagamento.');
+      throw new BadRequestException('O plano é vendido só como contrato anual.');
     }
 
     const lead = input.leadId ? await prisma.lead.findUnique({ where: { id: input.leadId } }) : null;
@@ -48,7 +48,7 @@ export class CheckoutController {
         plan: input.plan,
         period: input.period,
         method: input.method,
-        amountCents: totalPriceCents(input.plan, input.period),
+        amountCents: totalPriceCents(input.plan),
         statusToken: randomBytes(24).toString('base64url'),
         customer: {
           create: {

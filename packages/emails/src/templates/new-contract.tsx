@@ -1,6 +1,6 @@
 import { Section } from "@react-email/components";
 import { PERIOD_MONTHS, planInfo } from "@exactra/shared";
-import { methodLabel, newContractCopy as copy, periodLabel } from "../copy";
+import { methodLabel, newContractCopy as copy, periodLabel, isRecurring } from "../copy";
 import { formatBRL, formatDate, safeUrl } from "../format";
 import { H1, H2, Layout, Ledger, Mono, P, PrimaryButton, WhatsAppButton } from "../ui";
 import type { ContractSummary } from "./welcome";
@@ -15,7 +15,7 @@ export type NewContractNoticeProps = {
 };
 
 export function NewContractNotice({ customer, contract: c, source, adminUrl }: NewContractNoticeProps) {
-  const card = c.method === "CARD";
+  const card = isRecurring(c);
   const digits = customer.phone.replace(/\D/g, "");
   return (
     <Layout preview={copy.preview(customer.name)}>

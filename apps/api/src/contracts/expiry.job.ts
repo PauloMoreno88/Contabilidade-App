@@ -7,9 +7,9 @@ import { sendExpiryNotice } from '../notifications.js';
 export const EXPIRY_NOTICE_DAYS = 7;
 
 /**
- * Daily job for prepaid contracts (Pix/boleto), which do not renew by themselves:
- * warns EXPIRY_NOTICE_DAYS before the end and marks ended contracts as EXPIRED.
- * Card subscriptions are handled by Stripe webhooks.
+ * Daily job for prepaid contracts (every contract since decision 22, plus legacy Pix/boleto),
+ * which do not renew by themselves: warns EXPIRY_NOTICE_DAYS before the end and marks
+ * ended contracts as EXPIRED. Legacy card subscriptions are handled by Stripe webhooks.
  */
 @Injectable()
 export class ExpiryJob {
@@ -23,7 +23,7 @@ export class ExpiryJob {
   }
 
   async run(now = new Date()) {
-    const prepaid = { method: { in: ['PIX', 'BOLETO'] }, status: 'ACTIVE' } satisfies Prisma.ContractWhereInput;
+    const prepaid = { stripeSubscriptionId: null, status: 'ACTIVE' } satisfies Prisma.ContractWhereInput;
 
     const { count: expired } = await prisma.contract.updateMany({
       where: { ...prepaid, endsAt: { lte: now } },

@@ -24,44 +24,31 @@ export class StripeProvider extends PaymentProvider {
       cancel_url: req.cancelUrl,
     } satisfies Stripe.Checkout.SessionCreateParams;
 
-    const session =
+    // One-year contract paid upfront (decision 22): card (one charge or installments), Pix or boleto.
+    const methodOptions: Stripe.Checkout.SessionCreateParams.PaymentMethodOptions =
       req.method === 'CARD'
-        ? await this.stripe.checkout.sessions.create({
-            ...common,
-            mode: 'subscription',
-            allowed_payment_method_types: ['card'],
-            line_items: [
-              {
-                quantity: 1,
-                price_data: {
-                  currency: 'brl',
-                  unit_amount: req.amountCents,
-                  recurring: { interval: 'month' },
-                  product_data: { name: `Exactra — ${plan.name} (mensal)` },
-                },
-              },
-            ],
-            subscription_data: { metadata: { contractId: req.contractId } },
-          })
-        : await this.stripe.checkout.sessions.create({
-            ...common,
-            mode: 'payment',
-            customer_creation: 'always',
-            allowed_payment_method_types: [req.method === 'PIX' ? 'pix' : 'boleto'],
-            payment_method_options:
-              req.method === 'PIX' ? { pix: { expires_after_seconds: 86400 } } : { boleto: { expires_after_days: 3 } },
-            line_items: [
-              {
-                quantity: 1,
-                price_data: {
-                  currency: 'brl',
-                  unit_amount: req.amountCents,
-                  product_data: { name: `Exactra — ${plan.name} (${PERIOD_MONTHS[req.period]} meses)` },
-                },
-              },
-            ],
-            payment_intent_data: { metadata: { contractId: req.contractId } },
-          });
+        ? { card: { installments: { enabled: process.env.STRIPE_CARD_INSTALLMENTS === 'true' } } }
+        : req.method === 'PIX'
+          ? { pix: { expires_after_seconds: 86400 } }
+          : { boleto: { expires_after_days: 3 } };
+    const session = await this.stripe.checkout.sessions.create({
+      ...common,
+      mode: 'payment',
+      customer_creation: 'always',
+      allowed_payment_method_types: [req.method === 'CARD' ? 'card' : req.method === 'PIX' ? 'pix' : 'boleto'],
+      payment_method_options: methodOptions,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'brl',
+            unit_amount: req.amountCents,
+            product_data: { name: `Exactra — ${plan.name} (${PERIOD_MONTHS[req.period]} meses)` },
+          },
+        },
+      ],
+      payment_intent_data: { metadata: { contractId: req.contractId } },
+    });
 
     return { sessionId: session.id, url: session.url! };
   }

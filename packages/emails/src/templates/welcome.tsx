@@ -1,7 +1,7 @@
 import { Column, Row, Section, Text } from "@react-email/components";
 import type { ReactNode } from "react";
 import { onboarding, PERIOD_MONTHS, planInfo, whatsappLink, type BillingPeriod, type PaymentMethod, type StoredPlanId } from "@exactra/shared";
-import { methodLabel, periodLabel, welcomeCopy as copy } from "../copy";
+import { methodLabel, periodLabel, welcomeCopy as copy, isRecurring } from "../copy";
 import { firstName, formatBRL, formatDate, type DateInput } from "../format";
 import { color, H1, H2, Layout, Ledger, Mono, P, Panel, Signature, WhatsAppButton, mono } from "../ui";
 
@@ -21,7 +21,7 @@ export type WelcomeEmailProps = { customerName: string; contract: ContractSummar
 export function WelcomeEmail({ customerName, contract: c }: WelcomeEmailProps) {
   const name = firstName(customerName);
   const plan = planInfo(c.plan);
-  const card = c.method === "CARD";
+  const card = isRecurring(c);
   const months = PERIOD_MONTHS[c.period];
 
   return (
