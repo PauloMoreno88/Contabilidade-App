@@ -4,3 +4,6 @@ export * from "./simulator";
 export * from "./schemas";
 export * from "./admin";
 export * from "./content";
+export * from "./barcode";
+export * from "./portal";
+export * from "./portal-admin";
