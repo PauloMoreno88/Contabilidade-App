@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, MessageCircle } from "lucide-react";
-import { CURRENT_PLAN, estimateRegimes, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
+import { CURRENT_PLAN, estimateRegimes, monthlyEquivalentCents, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
 import { simulatorCopy } from "@/config/simulator";
 import { whatsappLink } from "@/config/site";
 import { formatBRL } from "@/lib/format";
@@ -29,6 +29,7 @@ export function ResultView({ answers, result, lead }: Props) {
   const worst = Math.max(...applicable.map((r) => r.taxCents));
   const yearlySaving = (worst - taxCents) * 12;
   const plan = CURRENT_PLAN;
+  const fee = monthlyEquivalentCents(plan.id);
   const checkoutHref = `/checkout?plan=${plan.id}${lead ? `&lead=${lead.id}` : ""}`;
 
   return (
@@ -69,21 +70,11 @@ export function ResultView({ answers, result, lead }: Props) {
       </div>
 
       <div className="rounded-[18px] bg-navy p-[26px] text-on-navy">
-        {result.needsQuote ? (
-          <>
-            <small className="text-on-navy-faint">{copy.quoteLabel}</small>
-            <p className="mt-1 font-serif text-[2rem] leading-tight font-semibold text-white">{copy.quoteTitle}</p>
-            <p className="mt-2.5">{copy.quoteText}</p>
-          </>
-        ) : (
-          <>
-            <small className="text-on-navy-faint">{copy.netLabel}</small>
-            <p className="mt-1 font-serif text-[2.2rem] leading-tight font-semibold text-white tabular-nums">
-              {formatBRL(result.estimatedNetCents - plan.monthlyPriceCents)}
-            </p>
-            <p className="mt-2">{copy.netExplain(formatBRL(plan.monthlyPriceCents), plan.name)}</p>
-          </>
-        )}
+        <small className="text-on-navy-faint">{copy.netLabel}</small>
+        <p className="mt-1 font-serif text-[2.2rem] leading-tight font-semibold text-white tabular-nums">
+          {formatBRL(result.estimatedNetCents - fee)}
+        </p>
+        <p className="mt-2">{copy.netExplain(formatBRL(fee), plan.name)}</p>
         <ul className="mt-3.5 grid gap-2">
           {plan.features.slice(0, 4).map((f) => (
             <li key={f} className="flex gap-2.5">
@@ -92,13 +83,7 @@ export function ResultView({ answers, result, lead }: Props) {
             </li>
           ))}
         </ul>
-        {result.needsQuote ? (
-          <a href={whatsappLink(copy.quoteWhatsapp)} target="_blank" rel="noopener" className="btn btn-primary mt-[18px] w-full">
-            {copy.quoteCta}
-          </a>
-        ) : (
-          <Link href={checkoutHref} className="btn btn-primary mt-[18px] w-full">{copy.planCta(plan.name)}</Link>
-        )}
+        <Link href={checkoutHref} className="btn btn-primary mt-[18px] w-full">{copy.planCta(plan.name)}</Link>
         <a href={whatsappLink(copy.reviewWhatsapp)} target="_blank" rel="noopener" className="btn btn-ghost-dark mt-2.5 w-full">
           <MessageCircle size={18} aria-hidden="true" />
           {copy.review}

@@ -5,7 +5,7 @@ category: impostos
 date: 2026-10-22
 image: /img/blog/fator-r-simples-nacional.jpg
 imageAlt: Calculadora, tesoura e material de escritório sobre a mesa
-reviewed: nao
+reviewed: sim
 ---
 Se você presta serviço intelectual, como consultoria, tecnologia, marketing, design, engenharia ou várias áreas da saúde, existe uma regra no Simples Nacional que pode cortar seu imposto pela metade ou mais. Ela se chama **Fator R**, e muita gente paga a mais por não conhecer.
 

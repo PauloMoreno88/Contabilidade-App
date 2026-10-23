@@ -18,7 +18,7 @@ const company = "[Razão social da Exactra], CNPJ [00.000.000/0001-00], com sede
 
 export const privacyPolicy: LegalDoc = {
   title: "Política de privacidade",
-  updatedAt: "04/10/2026",
+  updatedAt: "23/10/2026",
   intro: `Esta política explica quais dados pessoais a Exactra Contabilidade (${company}) coleta no site, para que usa e quais são os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).`,
   sections: [
     {
@@ -58,7 +58,7 @@ export const privacyPolicy: LegalDoc = {
     {
       title: "Por quanto tempo guardamos",
       paragraphs: [
-        "Os dados do simulador ficam guardados por até [prazo a definir] se você não contratar. Os dados da contratação ficam guardados enquanto o contrato durar e pelo prazo exigido pela legislação fiscal e contábil.", // PLACEHOLDER
+        "Os dados do simulador ficam guardados por até 1 mês se você não contratar. Os dados da contratação ficam guardados enquanto o contrato durar e pelo prazo exigido pela legislação fiscal e contábil.",
       ],
     },
     {
@@ -95,7 +95,7 @@ export const privacyPolicy: LegalDoc = {
 
 export const termsOfUse: LegalDoc = {
   title: "Termos de uso",
-  updatedAt: "04/10/2026",
+  updatedAt: "23/10/2026",
   intro: `Estes termos valem para o uso do site e para a contratação online dos serviços da Exactra Contabilidade (${company}). Ao contratar, você declara que leu e concorda com eles.`,
   sections: [
     {
@@ -107,21 +107,26 @@ export const termsOfUse: LegalDoc = {
     {
       title: "Planos e preços",
       paragraphs: [
-        "Os serviços incluídos em cada plano e os preços são os informados no site no momento da contratação. A Exactra pode mudar planos e preços para novas contratações, avisando quem já é cliente com antecedência de [prazo a definir].", // PLACEHOLDER
+        "Os serviços incluídos no plano e o preço são os informados no site no momento da contratação e valem durante todo o contrato, mesmo que o seu faturamento aumente. Mudanças de plano ou de preço só valem para novas contratações e renovações.",
+        "A Exactra cuida da contabilidade de empresas que já têm CNPJ. A abertura de empresas não faz parte do plano.",
       ],
     },
     {
       title: "Pagamento",
       items: [
-        "Cartão de crédito: cobrança mensal e automática enquanto o contrato estiver ativo.",
-        "Pix ou boleto: pagamento único e antecipado de 3, 6 ou 12 meses, com desconto. Não renova sozinho: avisamos antes do vencimento.",
+        "O contrato tem duração de 12 meses e é pago na contratação.",
+        "Cartão de crédito: à vista ou parcelado. As parcelas são cobradas pela operadora do cartão.",
+        "Pix ou boleto: valor anual à vista.",
+        "Não há taxa de adesão.",
         "O contrato começa quando o pagamento é confirmado. No boleto, a confirmação leva de 1 a 3 dias úteis.",
+        "O contrato não renova sozinho: avisamos antes do vencimento para você decidir se quer continuar.",
       ],
     },
     {
-      title: "Cancelamento",
+      title: "Desistência e cancelamento",
       paragraphs: [
-        "[Regras de cancelamento, multa e reembolso a definir com a Exactra e o contador.]", // PLACEHOLDER
+        "Você pode desistir em até 7 dias após a contratação, com reembolso integral do valor pago, como garante o Código de Defesa do Consumidor (art. 49) para compras feitas pela internet. Para desistir, escreva para o e-mail de contato da Exactra.",
+        "Depois desse prazo, o contrato vale pelos 12 meses contratados e o valor pago não é devolvido, exceto nos casos previstos em lei ou se a Exactra deixar de prestar os serviços contratados.",
       ],
     },
     {
