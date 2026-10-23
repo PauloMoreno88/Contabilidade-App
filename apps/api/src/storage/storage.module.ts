@@ -16,15 +16,23 @@ class NoStorage extends StorageProvider {
   delete = async () => this.fail();
 }
 
-/** R2 when its variables are set; local disk in dev and tests; nothing in production. */
+const r2Configured = () => {
+  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_ENDPOINT } = process.env;
+  return Boolean(R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET && (R2_ACCOUNT_ID || R2_ENDPOINT));
+};
+
+/** Same rule as createStorage: the local controller exists exactly when the local provider is used. */
+export const useLocalStorage = () => !r2Configured() && process.env.NODE_ENV !== 'production';
+
+/** R2 when all its variables are set; local disk in dev and tests; nothing in production. */
 export function createStorage(): StorageProvider {
   const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_ENDPOINT } = process.env;
-  if (R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET && (R2_ACCOUNT_ID || R2_ENDPOINT)) {
+  if (r2Configured()) {
     return new R2Provider({
       accountId: R2_ACCOUNT_ID ?? '',
-      accessKeyId: R2_ACCESS_KEY_ID,
-      secretAccessKey: R2_SECRET_ACCESS_KEY,
-      bucket: R2_BUCKET,
+      accessKeyId: R2_ACCESS_KEY_ID!,
+      secretAccessKey: R2_SECRET_ACCESS_KEY!,
+      bucket: R2_BUCKET!,
       endpoint: R2_ENDPOINT,
     });
   }
@@ -35,4 +43,3 @@ export function createStorage(): StorageProvider {
   return new LocalStorageProvider();
 }
 
-export const useLocalStorage = () => !process.env.R2_BUCKET && process.env.NODE_ENV !== 'production';

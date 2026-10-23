@@ -133,6 +133,8 @@ export class PortalJob {
       where: {
         OR: [{ competence: { lt: keepFrom } }, { uploadedAt: null, createdAt: { lt: new Date(now.getTime() - 86400_000) } }],
       },
+      // Oldest first; a file whose delete keeps failing is logged and retried, after the others.
+      orderBy: { createdAt: 'asc' },
       take: 500,
     });
     for (const f of expired) {

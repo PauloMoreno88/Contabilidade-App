@@ -33,6 +33,7 @@ import {
   guideStatus,
   parseBarcodeLine,
   rejectDocumentSchema,
+  todayInSaoPaulo,
   updateCustomerSchema,
   upsertChecklistItemSchema,
   type AdminCustomerDetail,
@@ -113,7 +114,11 @@ export class AdminPortalController {
         contracts: true,
         members: { include: memberInclude },
         documentRequests: { where: { competence } },
-        guides: { select: { competence: true, dueDate: true, paidAt: true } },
+        // This month's guides and the overdue ones only, not the whole history.
+        guides: {
+          where: { OR: [{ competence }, { paidAt: null, dueDate: { lt: fromDateOnly(todayInSaoPaulo()) } }] },
+          select: { competence: true, dueDate: true, paidAt: true },
+        },
       },
       orderBy: { name: 'asc' },
     });

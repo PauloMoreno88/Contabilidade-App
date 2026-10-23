@@ -1,6 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { UserSession } from '@thallesp/nestjs-better-auth';
-import { customerAccess, type Access } from '@exactra/shared';
+import { customerAccess, type Access, type AccessLevel } from '@exactra/shared';
 import { prisma } from '../db.js';
 import type { CompanyMember, Contract, Customer } from '../generated/prisma/client.js';
 
@@ -11,19 +11,26 @@ export type CompanyContext = {
   access: Access;
 };
 
+const RANK: Record<AccessLevel, number> = { FULL: 0, READ_ONLY: 1, PENDING: 2, BLOCKED: 3 };
+
 /**
- * The company of the signed-in customer. v1 shows one company per login (decision 24):
- * the oldest membership wins; the schema already allows several.
+ * The company of the signed-in customer. v1 shows one company per login (decision 24); when a
+ * login has several (a returning customer who bought again from the site gets a new Customer),
+ * the one with the best access wins, then the newest.
  */
 export async function companyFor(session: UserSession): Promise<CompanyContext> {
-  const member = await prisma.companyMember.findFirst({
+  const members = await prisma.companyMember.findMany({
     where: { userId: session.user.id },
     include: { customer: { include: { contracts: true } } },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
   });
-  if (!member) throw new NotFoundException('Nenhuma empresa vinculada a este login.');
-  const { customer, ...rest } = member;
-  return { userId: session.user.id, member: rest, customer, access: customerAccess(customer.contracts) };
+  if (!members.length) throw new NotFoundException('Nenhuma empresa vinculada a este login.');
+  const ranked = members
+    .map((m) => ({ m, access: customerAccess(m.customer.contracts) }))
+    .sort((a, b) => RANK[a.access.level] - RANK[b.access.level]);
+  const { m, access } = ranked[0];
+  const { customer, ...member } = m;
+  return { userId: session.user.id, member, customer, access };
 }
 
 /** Reading needs a current or recently ended contract (READ_ONLY keeps history available). */

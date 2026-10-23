@@ -253,6 +253,11 @@ describe('customer area (e2e)', () => {
 
     const receipt = await upload(customerCookie, '/app', { purpose: 'receipt', guideId: id, fileName: 'comprovante.jpg', sizeBytes: 3 }, Buffer.from('jpg'));
     await as(customerCookie).post(`/app/guides/${id}/paid`, { receiptFileId: receipt.id }).expect(200);
+    // The same receipt cannot be attached to another guide.
+    const other = await prisma.taxGuide.create({
+      data: { customerId, type: 'ISS', competence: '2026-10', amountCents: 100, dueDate: new Date(due), fileId: (await prisma.storedFile.create({ data: { customerId, kind: 'GUIDE', storageKey: `k-${Date.now()}`, fileName: 'iss.pdf', contentType: 'application/pdf', sizeBytes: 1, competence: '2026-10', uploadedAt: new Date(), byStaff: true } })).id },
+    });
+    await as(customerCookie).post(`/app/guides/${other.id}/paid`, { receiptFileId: receipt.id }).expect(400);
     const paid = portalGuidesSchema.parse((await as(customerCookie).get('/app/guides').expect(200)).body);
     expect(paid.paid[0]).toMatchObject({ id, status: 'PAID', receipt: { fileName: 'comprovante.jpg' } });
     await as(customerCookie).del(`/app/guides/${id}/paid`).expect(200);
@@ -320,6 +325,8 @@ describe('customer area (e2e)', () => {
     expect(plan.canRenew).toBe(true);
 
     const renew = await as(customerCookie).post('/app/plan/renew', { method: 'PIX', consent: true }).expect(201);
+    // A second renewal while the first one waits for payment would charge (and add) another year.
+    await as(customerCookie).post('/app/plan/renew', { method: 'CARD', consent: true }).expect(409);
     const body = JSON.stringify(checkoutCompleted(renew.body.contractId, { mode: 'payment', paid: true }));
     await http().post('/webhooks/stripe').set('stripe-signature', sign(body)).set('content-type', 'application/json').send(body).expect(200);
     const renewed = await prisma.contract.findUniqueOrThrow({ where: { id: renew.body.contractId } });
@@ -374,5 +381,21 @@ describe('customer area (e2e)', () => {
     const r = await app.get(PortalJob).retention();
     expect(r.filesDeleted).toBeGreaterThanOrEqual(1);
     expect(await prisma.storedFile.findUnique({ where: { id: old.id } })).toBeNull();
+  });
+
+  it('a returning customer who buys again from the site keeps the same company and login', async () => {
+    const res = await http()
+      .post('/checkout/sessions')
+      .send({
+        plan: 'exactra',
+        period: 'ANNUAL',
+        method: 'BOLETO',
+        customer: { name: 'Marina Costa', email: 'marina@cliente.test', phone: '21988887777', document: '12.345.678/0001-90' },
+        consent: true,
+      })
+      .expect(201);
+    const contract = await prisma.contract.findUniqueOrThrow({ where: { id: res.body.contractId } });
+    expect(contract.customerId).toBe(customerId);
+    expect(await prisma.companyMember.count({ where: { user: { email: 'marina@cliente.test' } } })).toBe(1);
   });
 });

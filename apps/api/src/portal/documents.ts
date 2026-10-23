@@ -35,7 +35,13 @@ export async function checklistFor(customer: Pick<Customer, 'id' | 'profile' | '
  * Creates the month's checklist for a company. Idempotent (unique customer + competence + item):
  * the daily job and the first page view can both call it. Items already created are not changed.
  */
-export async function ensureRequests(customer: Pick<Customer, 'id' | 'profile' | 'disabledItemIds'>, competence: string): Promise<number> {
+export async function ensureRequests(
+  customer: Pick<Customer, 'id' | 'profile' | 'disabledItemIds'>,
+  competence: string,
+  opts: { force?: boolean } = {},
+): Promise<number> {
+  // Page views call this too: once the month exists, one cheap check and done (force = re-check after a profile change).
+  if (!opts.force && (await prisma.documentRequest.count({ where: { customerId: customer.id, competence } }))) return 0;
   const due = fromDateOnly(documentsDueDate(competence));
   const items = (await checklistFor(customer)).filter((i) => i.applies && !i.disabled).map((i) => i.item);
   if (!items.length) return 0;

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   ForbiddenException,
@@ -77,9 +78,12 @@ export class PortalController {
   @Get('me')
   async me(@Session() session: UserSession): Promise<PortalMe> {
     const user = { id: session.user.id, name: session.user.name, email: session.user.email, twoFactorEnabled: Boolean((session.user as { twoFactorEnabled?: boolean | null }).twoFactorEnabled) };
-    const member = await prisma.companyMember.findFirst({ where: { userId: session.user.id }, orderBy: { createdAt: 'asc' } });
-    if (!member) return { user, company: null, access: { level: 'BLOCKED', endsAt: null, readOnlyUntil: null }, onboarded: false };
-    const ctx = await companyFor(session);
+    const ctx = await companyFor(session).catch((err: unknown) => {
+      if (err instanceof NotFoundException) return null;
+      throw err;
+    });
+    if (!ctx) return { user, company: null, access: { level: 'BLOCKED', endsAt: null, readOnlyUntil: null }, onboarded: false };
+    const { member } = ctx;
     if (!member.lastSeenAt || Date.now() - member.lastSeenAt.getTime() > LAST_SEEN_THROTTLE_MS) {
       await prisma.companyMember.update({ where: { id: member.id }, data: { lastSeenAt: new Date() } });
     }
@@ -105,7 +109,8 @@ export class PortalController {
         consentAt: new Date(),
       },
     });
-    if (ctx.access.level === 'FULL') await ensureRequests(customer, currentDocumentsCompetence());
+    // The profile may change which items apply: add the missing ones to the current month.
+    if (ctx.access.level === 'FULL') await ensureRequests(customer, currentDocumentsCompetence(), { force: true });
     return { ok: true };
   }
 
@@ -223,15 +228,22 @@ export class PortalController {
     });
     const folder = { DOCUMENT: 'documentos', GUIDE: 'guias', RECEIPT: 'comprovantes' } as const;
     const used = new Set<string>();
-    for (const f of files) {
-      let name = `${folder[f.kind]}/${f.fileName.replace(/[/\\]/g, '_')}`;
-      for (let i = 2; used.has(name); i++) name = name.replace(/(\.[^.]+)?$/, ` (${i})$1`);
-      used.add(name);
-      const entry = new ZipPassThrough(name);
-      zip.add(entry);
-      entry.push(await this.storage.get(f.storageKey), true);
+    try {
+      for (const f of files) {
+        const base = `${folder[f.kind]}/${f.fileName.replace(/[/\\]/g, '_')}`;
+        let name = base;
+        for (let i = 2; used.has(name); i++) name = base.replace(/(\.[^.]+)?$/, ` (${i})$1`);
+        used.add(name);
+        const entry = new ZipPassThrough(name);
+        zip.add(entry);
+        // ponytail: one file in memory at a time (max 25 MB); stream from R2 if months get large.
+        entry.push(await this.storage.get(f.storageKey), true);
+      }
+      zip.end();
+    } catch (err) {
+      // Headers are already out: cut the download so the browser shows it failed instead of hanging.
+      res.destroy(err as Error);
     }
-    zip.end();
   }
 
   private async ownFile(ctx: CompanyContext, id: string) {
@@ -263,6 +275,8 @@ export class PortalController {
         where: { id: input.receiptFileId, customerId: ctx.customer.id, kind: 'RECEIPT', uploadedAt: { not: null } },
       });
       if (!receipt) throw new BadRequestException('Comprovante não encontrado.');
+      const usedElsewhere = await prisma.taxGuide.count({ where: { receiptFileId: receipt.id, id: { not: guide.id } } });
+      if (usedElsewhere) throw new BadRequestException('Este comprovante já está em outra guia.');
     }
     const updated = await prisma.taxGuide.update({
       where: { id: guide.id },
@@ -327,6 +341,9 @@ export class PortalController {
       throw new ServiceUnavailableException('Renovação online indisponível no momento.');
     }
     const c = ctx.customer;
+    // One renewal at a time: a boleto takes up to 3 business days, and a second payment would add another year.
+    const pending = await prisma.contract.count({ where: { customerId: c.id, status: 'PENDING_PAYMENT', createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } } });
+    if (pending) throw new ConflictException('Já existe uma renovação aguardando pagamento. Se precisar trocar a forma de pagamento, fale com a gente no WhatsApp.');
     const contract = await prisma.contract.create({
       data: {
         customerId: c.id,
