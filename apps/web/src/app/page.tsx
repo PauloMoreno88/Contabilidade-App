@@ -8,7 +8,6 @@ import { Hero } from "@/components/landing/Hero";
 import { MobileBar } from "@/components/landing/MobileBar";
 import { PlanCard } from "@/components/landing/PlanCard";
 import { Services } from "@/components/landing/Services";
-import { Testimonials } from "@/components/landing/Testimonials";
 import { WhatsAppBlock } from "@/components/landing/WhatsAppBlock";
 import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { Simulator } from "@/components/simulator/Simulator";
@@ -25,7 +24,6 @@ export default function Home() {
         <Services />
         <WhatsAppBlock />
         <PlanCard />
-        <Testimonials />
         <Band />
         <Faq />
         <Contact />

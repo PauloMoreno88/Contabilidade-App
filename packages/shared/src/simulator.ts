@@ -43,15 +43,10 @@ export const simulatorResultSchema = z.object({
   isPlaceholder: z.boolean(),
   // Optional: leads stored with rules "placeholder-0" do not have them.
   regimes: z.array(regimeEstimateSchema).optional(),
-  /** The company is outside the single plan (bigger team) and needs a custom quote. */
+  /** Only on leads stored before decision 22, when bigger teams got a custom quote. */
   needsQuote: z.boolean().optional(),
 });
 export type SimulatorResult = z.infer<typeof simulatorResultSchema>;
-
-/** PLACEHOLDER: bigger teams get a custom quote. Limit to confirm with the accountant. */
-export function needsQuote(a: SimulatorAnswers): boolean {
-  return a.employees === "4-10" || a.employees === "10+";
-}
 
 /** A single plan on sale: every simulation recommends it. */
 export function recommendPlan(_answers: SimulatorAnswers): PlanId {
@@ -108,7 +103,6 @@ export function calculateSimulation(answers: SimulatorAnswers): SimulatorResult 
     disclaimer: SIMULATOR_DISCLAIMER,
     isPlaceholder: true,
     regimes,
-    needsQuote: needsQuote(answers),
   };
 }
 

@@ -5,7 +5,7 @@ category: impostos
 date: 2026-10-22
 image: /img/blog/limite-de-faturamento-mei-e-simples-nacional.jpg
 imageAlt: Folha com um gráfico de linha, régua e canetas
-reviewed: nao
+reviewed: sim
 ---
 Cada formato de empresa tem um teto de faturamento. Passar dele sem perceber é um dos jeitos mais comuns de ganhar uma conta de imposto atrasado. A boa notícia é que dá para acompanhar isso com antecedência e mudar de formato na hora certa.
 

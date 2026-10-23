@@ -5,7 +5,7 @@ category: novidades
 date: 2026-10-22
 image: /img/blog/reforma-tributaria-pequenas-empresas.jpg
 imageAlt: Congresso Nacional, em Brasília
-reviewed: nao
+reviewed: sim
 ---
 A reforma tributária sobre o consumo já está em andamento. Ela vai trocar cinco tributos por dois novos ao longo de vários anos. Para a maioria das pequenas empresas, a mudança é gradual, mas algumas decisões já começam a pesar nos próximos anos.
 

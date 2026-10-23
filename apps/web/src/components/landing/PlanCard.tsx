@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { CURRENT_PLAN } from "@exactra/shared";
+import { CURRENT_PLAN, installmentCents, totalPriceCents } from "@exactra/shared";
 import { planSection as copy } from "@/config/site";
 import { formatBRL } from "@/lib/format";
 
-/** The single plan (docs/plano.md, decision 20): navy summary on the left, what is included on the right. */
+/** The single plan (docs/plano.md, decisions 20 and 22): navy summary on the left, what is included on the right. */
 export function PlanCard() {
   const plan = CURRENT_PLAN;
   return (
@@ -21,11 +21,18 @@ export function PlanCard() {
             <span className="self-start rounded-full bg-brand px-3 py-[5px] text-[0.8rem] font-bold">{copy.tag}</span>
             <h3 className="mt-[18px] font-serif text-[2.2rem] font-semibold">{plan.name}</h3>
             <p className="mt-2 text-on-navy">{plan.tagline}.</p>
-            <p className="mt-7 font-serif text-[3.6rem] leading-none font-semibold tabular-nums">
-              {formatBRL(plan.monthlyPriceCents)}
-              <small className="font-sans text-[1.05rem] font-medium text-on-navy-faint"> {copy.perMonth}</small>
-            </p>
-            <p className="mt-3 text-[0.92rem] text-on-navy">{copy.prepaidNote}</p>
+            {plan.maxInstallments > 1 ? (
+              <>
+                <p className="mt-7 font-serif text-[3.6rem] leading-none font-semibold tabular-nums">
+                  <small className="mr-1.5 font-sans text-[1.05rem] font-medium text-on-navy-faint">{copy.installments(plan.maxInstallments)}</small>
+                  {formatBRL(installmentCents(plan.id))}
+                  <small className="font-sans text-[1.05rem] font-medium text-on-navy-faint"> {copy.perInstallment}</small>
+                </p>
+                <p className="mt-3 text-[0.92rem] text-on-navy">{copy.upfront(formatBRL(totalPriceCents(plan.id)))}</p>
+              </>
+            ) : (
+              <p className="mt-7 font-serif text-[3.6rem] leading-none font-semibold tabular-nums">{formatBRL(totalPriceCents(plan.id))}</p>
+            )}
             <Link href={`/checkout?plan=${plan.id}`} className="btn btn-primary mt-7 w-full">{copy.cta}</Link>
             <a href={copy.simulate.href} className="mt-3.5 text-center text-[0.93rem] font-semibold underline underline-offset-4">
               {copy.simulate.label}
@@ -41,10 +48,6 @@ export function PlanCard() {
                 </li>
               ))}
             </ul>
-            <p className="mt-[26px] border-t border-line pt-[18px] text-[0.93rem] text-muted">
-              {copy.quote.text}{" "}
-              <a href="#contato" className="underline">{copy.quote.link}</a>.
-            </p>
           </div>
         </div>
 

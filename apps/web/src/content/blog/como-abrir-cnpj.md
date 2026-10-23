@@ -5,7 +5,7 @@ category: abrir-empresa
 date: 2026-10-22
 image: /img/blog/como-abrir-cnpj.jpg
 imageAlt: Chave sobre uma mesa escura
-reviewed: nao
+reviewed: sim
 ---
 Abrir um CNPJ deixou de ser um processo de semanas em cartório. Hoje quase tudo é feito pela internet, e a parte que mais pesa no seu bolso não é a burocracia, e sim as escolhas feitas no começo: a atividade registrada, o tipo de empresa e o regime de impostos.
 
@@ -59,7 +59,7 @@ Em geral, para abrir a empresa você vai precisar de:
 
 ## Quanto custa abrir um CNPJ
 
-O MEI é gratuito e aberto direto no portal do governo. Para ME e EPP, existem as taxas da Junta Comercial e da prefeitura, que mudam de estado para estado, além do certificado digital. A abertura em si costuma ser feita pela contabilidade que vai cuidar da empresa. No Plano Exactra, ela já está inclusa: você paga só as taxas do governo.
+O MEI é gratuito e aberto direto no portal do governo. Para ME e EPP, existem as taxas da Junta Comercial e da prefeitura, que mudam de estado para estado, além do certificado digital. A abertura em si costuma ser feita por uma contabilidade. A Exactra ainda não faz a abertura, mas assume a contabilidade assim que o CNPJ sair.
 
 ## Perguntas frequentes
 

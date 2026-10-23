@@ -5,7 +5,7 @@ category: gestao
 date: 2026-10-22
 image: /img/blog/nota-fiscal-de-servico-nfs-e.jpg
 imageAlt: Formulários e caneta sobre uma mesa de madeira
-reviewed: nao
+reviewed: sim
 ---
 Se você presta serviço com CNPJ, a nota fiscal faz parte da rotina. Ela comprova o serviço, é a base para o cálculo do imposto e é o que dá segurança ao seu cliente. Veja o que você precisa saber para emitir certo.
 

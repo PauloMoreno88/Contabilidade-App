@@ -2,7 +2,7 @@
  * Landing copy (variant G of the prototype, docs/prototype/exactra-prototype-g.html).
  * Everything the client may ask to change lives here, not in JSX.
  * The price and plan features come from @exactra/shared (CURRENT_PLAN).
- * PLACEHOLDER: trust numbers, rating and testimonials must be confirmed by Exactra.
+ * Numbers and plan rules confirmed by Exactra on 22/10/2026 (no Google rating or testimonials for now).
  * Images: no photos of people (client requirement, 20/10/2026).
  */
 import {
@@ -11,7 +11,7 @@ import {
   Calculator,
   MessageSquare,
   Receipt,
-  Rocket,
+  MonitorSmartphone,
   Scale,
   Users,
   type LucideIcon,
@@ -52,7 +52,7 @@ export const images = {
 };
 
 export const hero = {
-  rating: { value: "4,9", text: "no Google, 120 avaliações" }, // PLACEHOLDER
+  badge: "Contabilidade online para todo o Brasil", // PLACEHOLDER: confirm nationwide service
   title: "A contabilidade que mostra quanto sobra para você.",
   lede: "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Antes de contratar, você simula grátis e vê quanto pagaria em cada regime.",
   primaryCta: { href: "#simulador", label: "Fazer a simulação" },
@@ -62,17 +62,16 @@ export const hero = {
 export const about = {
   kicker: "Sobre nós",
   title: "Contabilidade que acompanha o seu negócio de perto",
-  // PLACEHOLDER: confirm with Exactra.
   stats: [
     { value: "10", suffix: "+", label: "anos de experiência" },
-    { value: "500", suffix: "+", label: "empresas atendidas" },
+    { value: "100", suffix: "+", label: "empresas atendidas" },
     { value: "1 dia", label: "para responder no WhatsApp" },
   ],
   simple: { title: "Sem complicação", text: "Você recebe as guias prontas para pagar e entende o que cada uma significa, sem termo técnico." },
   human: { title: "Atendimento de verdade", text: "Surgiu uma dúvida? Você fala com um contador da equipe, não com um robô." },
   focus: {
     title: "Feita para pequenos e médios negócios",
-    text: "Do primeiro CNPJ à empresa com equipe, a Exactra cuida da parte contábil para você decidir com mais segurança. Tudo online, para empresas de todo o Brasil.",
+    text: "Do profissional liberal à empresa com equipe, a Exactra cuida da parte contábil para você decidir com mais segurança. Tudo online, para empresas de todo o Brasil.",
     link: { href: "#servicos", label: "Conhecer os serviços" },
   },
 };
@@ -82,30 +81,29 @@ export const services: { kicker: string; title: string; sub: string; items: Icon
   title: "Tudo o que o seu CNPJ precisa",
   sub: "Escolha por onde começar. Se não souber, a simulação indica o caminho.",
   items: [
-    { icon: Rocket, title: "Abertura de empresa", text: "Do registro até o CNPJ pronto para emitir nota fiscal." },
-    { icon: Calculator, title: "Contabilidade mensal", text: "Impostos calculados, guias e declarações entregues no prazo." },
+    { icon: Calculator, title: "Contabilidade completa", text: "Impostos calculados, guias e declarações obrigatórias entregues no prazo." },
     { icon: Users, title: "Folha e pró-labore", text: "Admissões, salários, encargos e o pró-labore dos sócios." },
     { icon: Scale, title: "Planejamento tributário", text: "Revisão do regime para você não pagar imposto a mais." },
     { icon: Receipt, title: "Notas fiscais", text: "Orientação para emitir certo e manter tudo organizado." },
-    { icon: Building2, title: "Troca de contador", text: "Pedimos seus documentos ao contador atual e fazemos a transição." },
+    { icon: Building2, title: "Troca de contador", text: "Pedimos seus documentos ao contador atual e fazemos a transição, sem custo." },
+    { icon: MonitorSmartphone, title: "Plataforma online", text: "Guias, documentos e relatórios do ano reunidos em um só lugar." },
   ],
 };
 
 export const whatsappBlock = {
   kicker: "Atendimento",
-  title: "Sua contabilidade cabe no WhatsApp",
-  sub: "As guias chegam prontas para pagar, os prazos são lembrados com antecedência e as dúvidas vão direto para quem cuida da sua empresa.",
-  // PLACEHOLDER: confirm how Exactra sends the tax guides today.
+  title: "Atendimento de gente, no canal que você preferir",
+  sub: "As guias chegam prontas para pagar no seu e-mail, os prazos são lembrados com antecedência e as dúvidas vão direto para quem cuida da sua empresa.",
   items: [
-    { icon: Receipt, title: "Guias no dia certo", text: "Você recebe o boleto ou o Pix do imposto antes de vencer." },
+    { icon: Receipt, title: "Guias no seu e-mail", text: "Você recebe a guia do imposto pronta para pagar, antes de vencer. Em breve, também pela plataforma." },
     { icon: Bell, title: "Prazos lembrados", text: "Nada de multa por esquecer uma declaração." },
-    { icon: MessageSquare, title: "Resposta humana", text: "Um contador responde, em dias úteis." },
+    { icon: MessageSquare, title: "Resposta humana", text: "Por WhatsApp, e-mail, telefone ou vídeo, no mesmo dia útil." },
   ] satisfies IconItem[],
   chat: {
     name: "Exactra Contabilidade",
     status: "online",
     messages: [
-      { me: false, text: "Oi, Ana! A guia do Simples de outubro já está pronta.", file: { name: "DAS outubro.pdf", due: "Vence em 20/11" }, after: "Valor: R$ 1.800,00. Dá para pagar por Pix.", time: "09:12" },
+      { me: false, text: "Oi, Ana! Mandei para o seu e-mail a guia do Simples de outubro.", file: { name: "DAS outubro.pdf", due: "Vence em 20/11" }, after: "Valor: R$ 1.800,00. Dá para pagar por Pix.", time: "09:12" },
       { me: true, text: "Perfeito, obrigada! Esse mês faturei mais, muda alguma coisa?", time: "09:15" },
       { me: false, text: "Muda um pouco a alíquota, mas você continua no regime mais barato. Te mando o resumo hoje à tarde.", time: "09:18" },
     ],
@@ -115,33 +113,20 @@ export const whatsappBlock = {
 export const planSection = {
   kicker: "Plano",
   title: "Um preço fixo, sem surpresa no fim do mês",
-  sub: "Tudo o que o seu CNPJ precisa num plano só. O valor não sobe porque você faturou mais.",
+  sub: "Tudo o que o seu CNPJ precisa num plano só, com contrato anual. O valor não sobe porque você faturou mais.",
   tag: "Um plano, tudo incluso",
-  perMonth: "/mês",
-  prepaidNote: "No Pix ou boleto, com desconto pagando 3, 6 ou 12 meses.",
+  installments: (n: number) => `${n}x de`,
+  perInstallment: "no cartão",
+  upfront: (v: string) => `ou ${v} à vista no cartão, Pix ou boleto`,
   cta: "Contratar o Plano Exactra",
   simulate: { href: "#simulador", label: "Antes, simular quanto vou pagar de imposto" },
   includedTitle: "O que está incluso",
-  // PLACEHOLDER: limit to confirm with the accountant (same rule as needsQuote in @exactra/shared).
-  quote: { text: "Mais de 3 funcionários ou uma operação maior?", link: "Peça um orçamento" },
-  payment: ["Cartão: mensal, cancele quando quiser", "Pix ou boleto: 3, 6 ou 12 meses com desconto", "Sem taxa de adesão"],
-};
-
-export const testimonials = {
-  kicker: "Depoimentos",
-  title: "Quem já é cliente recomenda",
-  // PLACEHOLDER: replace with real Google reviews, with the customers' permission.
-  score: { value: "4,9", text: "Nota média no Google, com 120 avaliações" },
-  items: [
-    { initials: "MC", name: "Nome da cliente", role: "Psicóloga, Cidade", quote: "Pela primeira vez eu entendo o que estou pagando. A simulação já mostrou que eu estava no regime errado." },
-    { initials: "RS", name: "Nome do cliente", role: "Dono de restaurante, Cidade", quote: "Troquei de contador sem precisar ligar para o antigo. Eles resolveram tudo e me mantiveram informado." },
-    { initials: "JP", name: "Nome do cliente", role: "Consultor, Cidade", quote: "Respondem no WhatsApp no mesmo dia. Abri meu CNPJ sem sair de casa." },
-  ],
+  payment: ["Contrato anual", "Cartão à vista ou parcelado, Pix ou boleto", "Sem taxa de adesão", "O valor não sobe se você faturar mais"],
 };
 
 export const band = {
   title: "Comece pela simulação. É grátis e leva 1 minuto.",
-  text: "Você vê quanto pagaria de imposto em cada regime e quanto sobra por mês, já com a mensalidade da Exactra.",
+  text: "Você vê quanto pagaria de imposto em cada regime e quanto sobra por mês, já pagando a Exactra.",
   cta: { href: "#simulador", label: "Simular agora" },
 };
 
@@ -151,11 +136,10 @@ export const faq: { kicker: string; title: string; sub: string; items: { q: stri
   sub: "Não achou a sua? Fale com a gente.",
   items: [
     { q: "A simulação é confiável?", a: "Ela usa as regras gerais de cada regime para dar uma boa ideia do seu caso. Antes de qualquer decisão, um contador confere sua atividade e sua cidade." },
-    { q: "Preciso já ter CNPJ?", a: "Não. A abertura faz parte da contratação. Você paga só as taxas do governo." },
-    { q: "Como funciona a troca de contador?", a: "Depois que você contrata, pedimos seus documentos ao contador atual e fazemos a transição." },
-    { q: "A mensalidade sobe se eu faturar mais?", a: "Não. Ela muda só se a empresa passar a ter mais de 3 funcionários." }, // PLACEHOLDER: confirm with the accountant
-    { q: "Como funciona o pagamento?", a: "No cartão, a cobrança é mensal e recorrente. No Pix ou boleto, você paga 3, 6 ou 12 meses adiantado, com desconto." },
-    { q: "Posso cancelar quando quiser?", a: "Sim. No cartão, a cobrança para no mês seguinte." }, // PLACEHOLDER: confirm cancellation rules
+    { q: "Como funciona a troca de contador?", a: "Depois que você contrata, pedimos seus documentos ao contador atual e fazemos a transição, sem custo." },
+    { q: "O valor sobe se eu faturar mais?", a: "Não. O valor do plano é o mesmo durante todo o contrato, mesmo que você fature mais." },
+    { q: "Como funciona o pagamento?", a: "O contrato é anual. No cartão, você paga à vista ou parcelado. No Pix ou no boleto, o valor anual é pago à vista. Não há taxa de adesão." },
+    { q: "Posso desistir depois de contratar?", a: "Sim, em até 7 dias após a contratação, com reembolso integral, como garante o Código de Defesa do Consumidor. Depois disso, o contrato vale pelos 12 meses." },
   ],
 };
 
@@ -173,8 +157,8 @@ export const footer = {
     {
       title: "Serviços",
       links: [
-        { href: "/#servicos", label: "Abertura de empresa" },
-        { href: "/#servicos", label: "Contabilidade mensal" },
+        { href: "/#servicos", label: "Contabilidade completa" },
+        { href: "/#servicos", label: "Folha e pró-labore" },
         { href: "/#servicos", label: "Troca de contador" },
         { href: "/#servicos", label: "Planejamento tributário" },
       ],

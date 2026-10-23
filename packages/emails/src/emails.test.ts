@@ -44,6 +44,14 @@ describe("e-mails", () => {
     expect(e.subject).toBe("Boas-vindas à Exactra, João");
   });
 
+  it("welcome: the annual card contract is prepaid, with no next charge", async () => {
+    const e = await renderWelcomeEmail({ customerName: "Ana", contract: { ...prepaid, method: "CARD" } });
+    expect(e.text).toContain("Cartão de crédito, 12 meses");
+    expect(e.text).toContain("Válido até: 04/10/2027");
+    expect(e.text).not.toContain("Próxima cobrança");
+    expect(e.text).toContain("não renova sozinho");
+  });
+
   it("internal notice escapes every customer field", async () => {
     const e = await renderNewContractNotice({
       customer: { name: evil, email: `x@y.com${evil}`, phone: "21999990000", document: evil },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allowedPeriods, totalPriceCents } from "./plans.config";
+import { allowedPeriods, installmentCents, monthlyEquivalentCents, totalPriceCents } from "./plans.config";
 import { calculateSimulation, RULES_VERSION, simulatorAnswersSchema } from "./simulator";
 
 const base = {
@@ -18,10 +18,9 @@ describe("simulator (placeholder rules)", () => {
     expect(r.estimatedTaxMinCents).toBeLessThanOrEqual(r.estimatedTaxMaxCents);
   });
 
-  it("always recommends the single plan and flags bigger teams for a quote", () => {
-    expect(calculateSimulation({ ...base, employees: "4-10" }).recommendedPlan).toBe("exactra");
-    expect(calculateSimulation({ ...base, employees: "4-10" }).needsQuote).toBe(true);
-    expect(calculateSimulation(base).needsQuote).toBe(false);
+  it("always recommends the single plan, whatever the team size", () => {
+    expect(calculateSimulation({ ...base, employees: "10+" }).recommendedPlan).toBe("exactra");
+    expect(calculateSimulation({ ...base, employees: "10+" }).needsQuote).toBeUndefined();
   });
 
   it("picks the cheapest applicable regime", () => {
@@ -40,13 +39,15 @@ describe("simulator (placeholder rules)", () => {
 });
 
 describe("plans", () => {
-  it("card is monthly only; pix/boleto are prepaid", () => {
-    expect(allowedPeriods("CARD")).toEqual(["MONTHLY"]);
-    expect(allowedPeriods("PIX")).toEqual(["QUARTERLY", "SEMIANNUAL", "ANNUAL"]);
+  it("sells only the one-year contract, for every payment method", () => {
+    expect(allowedPeriods("CARD")).toEqual(["ANNUAL"]);
+    expect(allowedPeriods("PIX")).toEqual(["ANNUAL"]);
+    expect(allowedPeriods("BOLETO")).toEqual(["ANNUAL"]);
   });
 
-  it("applies the prepaid discount", () => {
-    expect(totalPriceCents("exactra", "MONTHLY")).toBe(29900);
-    expect(totalPriceCents("exactra", "ANNUAL")).toBeLessThan(29900 * 12);
+  it("charges the annual price, split in up to 12 card installments", () => {
+    expect(totalPriceCents("exactra")).toBe(358800);
+    expect(installmentCents("exactra")).toBe(29900);
+    expect(monthlyEquivalentCents("exactra")).toBe(29900);
   });
 });

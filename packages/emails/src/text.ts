@@ -8,6 +8,7 @@ import {
   periodLabel,
   twoFactorCopy,
   welcomeCopy,
+  isRecurring,
 } from "./copy";
 import { assetBaseUrl, firstName, formatBRL, formatDate } from "./format";
 import type { PasswordResetEmailProps, TwoFactorCodeEmailProps } from "./templates/auth";
@@ -21,11 +22,11 @@ const footer = `--\n${brand.name}\n${contact.email}\n${brand.footer}`;
 const join = (...blocks: (string | false | null | undefined)[]) => blocks.filter(Boolean).join("\n\n") + "\n";
 const rows = (pairs: [string, string][]) => pairs.map(([k, v]) => `${k}: ${v}`).join("\n");
 
-const billing = (c: ContractSummary) => (c.method === "CARD" ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`);
+const billing = (c: ContractSummary) => (isRecurring(c) ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`);
 
 export function welcomeText({ customerName, contract: c }: WelcomeEmailProps) {
   const copy = welcomeCopy;
-  const card = c.method === "CARD";
+  const card = isRecurring(c);
   const plan = planInfo(c.plan).name;
   return join(
     copy.title(firstName(customerName)),
@@ -62,9 +63,9 @@ export function newContractText({ customer, contract: c, source, adminUrl }: New
     `${copy.contractTitle.toUpperCase()}\n${rows([
       ["Plano", planInfo(c.plan).name],
       ["Pagamento", billing(c)],
-      ["Valor", `${formatBRL(c.amountCents)} ${c.method === "CARD" ? "por mês" : `por ${PERIOD_MONTHS[c.period]} meses`}`],
+      ["Valor", `${formatBRL(c.amountCents)} ${isRecurring(c) ? "por mês" : `por ${PERIOD_MONTHS[c.period]} meses`}`],
       ["Início", formatDate(c.startsAt)],
-      [c.method === "CARD" ? "Próxima cobrança" : "Válido até", c.endsAt ? formatDate(c.endsAt) : "—"],
+      [isRecurring(c) ? "Próxima cobrança" : "Válido até", c.endsAt ? formatDate(c.endsAt) : "—"],
       ["ID do contrato", c.id],
     ])}`,
     adminUrl && `${copy.adminCta}: ${adminUrl}`,

@@ -54,6 +54,8 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET # whsec_... do endpoint criado no Dashboard (não o do stripe listen)
         sync: false
+      - key: STRIPE_CARD_INSTALLMENTS # true = parcelamento no cartão; só depois de testar no Stripe
+        value: "false"
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM

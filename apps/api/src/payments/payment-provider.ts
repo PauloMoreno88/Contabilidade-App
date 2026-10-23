@@ -13,11 +13,11 @@ export interface CheckoutRequest {
 
 /** Provider-agnostic payment events that drive the contract lifecycle. */
 export type PaymentEvent =
-  /** Pix/boleto prepaid: money is in (immediately or after async confirmation). */
+  /** Prepaid contract (card, Pix or boleto): money is in (immediately or after async confirmation). */
   | { type: 'prepaid.paid'; contractId: string; customerId?: string; paymentIntentId?: string; amountCents: number }
   /** Async payment failed or the checkout expired before paying. */
   | { type: 'checkout.failed'; contractId: string }
-  /** Card: first payment done, recurring subscription created. */
+  /** Legacy monthly card subscriptions (sold before decision 22) keep sending these events. */
   | { type: 'subscription.started'; contractId: string; subscriptionId: string; customerId?: string }
   | {
       type: 'invoice.paid';
@@ -38,7 +38,7 @@ export interface VerifiedWebhook {
   event: PaymentEvent | null;
 }
 
-/** Card = monthly subscription; Pix/boleto = one-off prepaid payment for 3/6/12 months. */
+/** Every new contract is a one-off prepaid payment for one year (card, Pix or boleto). */
 export abstract class PaymentProvider {
   /** False when no API key is configured. */
   abstract readonly configured: boolean;

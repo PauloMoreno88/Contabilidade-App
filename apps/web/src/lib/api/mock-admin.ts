@@ -60,7 +60,7 @@ const contracts: AdminContractDetail[] = NAMES.map((name, i) => {
   const status = i % 5 === 4 ? "PENDING_PAYMENT" : i % 7 === 6 ? CONTRACT_STATUSES[1 + (i % 4)] : "ACTIVE";
   const created = NOW - (i * 9 + 2) * DAY;
   const starts = status === "PENDING_PAYMENT" ? null : created + DAY;
-  const amountCents = totalPriceCents(plan, period);
+  const amountCents = totalPriceCents("exactra");
   const id = `ctr_${String(i + 1).padStart(3, "0")}`;
   const payment = (n: number, at: number | null): AdminPayment => ({
     id: `pay_${i}_${n}`,

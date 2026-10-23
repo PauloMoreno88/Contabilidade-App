@@ -3,10 +3,11 @@ import type { BillingPeriod, PaymentMethod } from "@exactra/shared";
 /** Online checkout is on only when NEXT_PUBLIC_CHECKOUT_ENABLED=true (see .env.example). */
 export const CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === "true";
 
-export const methodLabels: Record<PaymentMethod, { label: string; hint: string }> = {
-  CARD: { label: "Cartão de crédito", hint: "Cobrança mensal automática" },
-  PIX: { label: "Pix", hint: "Pague adiantado com desconto" },
-  BOLETO: { label: "Boleto", hint: "Pague adiantado com desconto. Compensa em 1 a 3 dias úteis" },
+/** Every method pays the one-year contract upfront (docs/plano.md, decision 22). */
+export const methodLabels: Record<PaymentMethod, { label: string; hint: (maxInstallments: number) => string }> = {
+  CARD: { label: "Cartão de crédito", hint: (n) => (n > 1 ? `À vista ou em até ${n}x` : "Pagamento à vista") },
+  PIX: { label: "Pix", hint: () => "Valor anual à vista, confirmação na hora" },
+  BOLETO: { label: "Boleto", hint: () => "Valor anual à vista. Compensa em 1 a 3 dias úteis" },
 };
 
 export const periodLabels: Record<BillingPeriod, string> = {
@@ -25,9 +26,9 @@ export const checkoutCopy = {
   },
   back: "Voltar para o site",
   planTitle: "Plano",
+  perYear: "contrato anual",
+  contract: "Contrato anual",
   methodTitle: "Forma de pagamento",
-  periodTitle: "Quantos meses pagar adiantado",
-  discount: (pct: number) => `${pct}% de desconto`,
   customerTitle: "Seus dados",
   fields: {
     name: { label: "Nome completo", placeholder: "Seu nome" },
@@ -41,9 +42,8 @@ export const checkoutCopy = {
   consentLink: { href: "/privacidade", label: "política de privacidade" },
   summaryTitle: "Resumo",
   totalNow: "Total agora",
-  perMonthEquivalent: (v: string) => `Equivale a ${v}/mês`,
-  recurring: "Renova todo mês no cartão. Cancele quando quiser.",
-  prepaid: (months: number) => `Pagamento único referente a ${months} meses.`,
+  installments: (n: number, v: string) => `ou ${n}x de ${v} no cartão`,
+  annualNote: "Contrato de 12 meses. Você pode desistir em até 7 dias após a contratação, com reembolso integral.",
   submit: "Ir para o pagamento",
   submitting: "Abrindo pagamento...",
   secureNote: "O pagamento é feito no ambiente seguro da Stripe. Não guardamos dados de cartão.",

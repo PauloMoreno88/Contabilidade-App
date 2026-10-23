@@ -5,7 +5,7 @@ category: abrir-empresa
 date: 2026-10-22
 image: /img/blog/mei-ou-me-quando-sair-do-mei.jpg
 imageAlt: Placa de loja aberta pendurada na porta
-reviewed: nao
+reviewed: sim
 ---
 O MEI é uma ótima porta de entrada: pouca burocracia e um imposto fixo e baixo. Mas ele foi feito para negócios pequenos, e chega um momento em que continuar nele sai caro ou simplesmente não é mais permitido.
 

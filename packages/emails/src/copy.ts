@@ -25,6 +25,12 @@ export const periodLabel: Record<BillingPeriod, string> = {
   ANNUAL: "12 meses",
 };
 
+/**
+ * Monthly card subscriptions were sold before decision 22 (one-year contract paid upfront).
+ * Every other contract, card included, is prepaid and does not renew by itself.
+ */
+export const isRecurring = (c: { period: BillingPeriod }) => c.period === "MONTHLY";
+
 export const welcomeCopy = {
   subject: (firstName: string) => `Boas-vindas à Exactra, ${firstName}`,
   preview: "Seu pagamento foi confirmado. Veja o resumo e os próximos passos.",
@@ -40,7 +46,7 @@ export const welcomeCopy = {
   nextCharge: "Próxima cobrança",
   endsAt: "Válido até",
   cardNote: "No cartão, a cobrança se renova todo mês automaticamente.",
-  prepaidNote: "No Pix e no boleto o plano não renova sozinho. Avisamos você antes do vencimento.",
+  prepaidNote: "O plano vale pelo período pago e não renova sozinho. Avisamos você antes do vencimento.",
   stepsTitle: "Contratei. E agora?",
   done: "Feito",
   docsTitle: "Documentos que normalmente pedimos",
@@ -93,7 +99,7 @@ export const expiryCopy = {
   subject: (date: string) => `Seu plano na Exactra vence em ${date}`,
   preview: "Renove para continuar com o atendimento sem interrupção.",
   title: (firstName: string) => `${firstName}, seu plano está perto do vencimento`,
-  lede: (plan: string, date: string) => `O ${plan} que você pagou adiantado vence em ${date}. No Pix e no boleto ele não renova sozinho.`,
+  lede: (plan: string, date: string) => `O seu contrato do ${plan} vence em ${date}. Ele não renova sozinho.`,
   summaryTitle: "Seu plano",
   endsAt: "Vence em",
   cta: "Renovar meu plano",

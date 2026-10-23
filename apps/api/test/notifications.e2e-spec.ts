@@ -28,12 +28,14 @@ function expectRendered(e: Email) {
 }
 
 let n = 0;
-async function contract(data: { method: 'PIX' | 'BOLETO' | 'CARD'; endsAt: Date }) {
+/** `subscription`: a legacy monthly card contract, renewed by Stripe instead of the daily job. */
+async function contract(data: { method: 'PIX' | 'BOLETO' | 'CARD'; endsAt: Date; subscription?: boolean }) {
   return prisma.contract.create({
     data: {
       plan: 'essencial',
-      period: data.method === 'CARD' ? 'MONTHLY' : 'QUARTERLY',
+      period: data.subscription ? 'MONTHLY' : 'QUARTERLY',
       method: data.method,
+      stripeSubscriptionId: data.subscription ? `sub_${n + 1}` : undefined,
       amountCents: 59700,
       status: 'ACTIVE',
       statusToken: `tok_${++n}`,
@@ -140,22 +142,24 @@ describe('e-mails and expiry job (e2e)', () => {
     expect(otp.text).toContain('3 minutos');
   });
 
-  it('daily job: reminder e-mail before the end, expires ended prepaid contracts, ignores card', async () => {
+  it('daily job: reminder e-mail before the end, expires ended prepaid contracts, ignores card subscriptions', async () => {
     const now = new Date();
     const soon = await contract({ method: 'BOLETO', endsAt: new Date(now.getTime() + 3 * DAY) });
     const later = await contract({ method: 'PIX', endsAt: new Date(now.getTime() + 30 * DAY) });
     const ended = await contract({ method: 'PIX', endsAt: new Date(now.getTime() - DAY) });
-    const card = await contract({ method: 'CARD', endsAt: new Date(now.getTime() - DAY) });
+    const annualCard = await contract({ method: 'CARD', endsAt: new Date(now.getTime() - DAY) });
+    const card = await contract({ method: 'CARD', endsAt: new Date(now.getTime() - DAY), subscription: true });
     const job = app.get(ExpiryJob);
 
     await job.run(now);
     const status = async (id: string) => (await prisma.contract.findUniqueOrThrow({ where: { id } })).status;
     expect(await status(ended.id)).toBe('EXPIRED');
+    expect(await status(annualCard.id)).toBe('EXPIRED');
     expect(await status(card.id)).toBe('ACTIVE');
     expect(await status(later.id)).toBe('ACTIVE');
 
     const reminders = mails();
-    expect(reminders.map((e) => e.to)).toEqual([`ana${n - 3}@ex.com`]); // only "soon"
+    expect(reminders.map((e) => e.to)).toEqual([`ana${n - 4}@ex.com`]); // only "soon"
     expectRendered(reminders[0]);
     expect(reminders[0].html).toContain('https://www.exactra.test/checkout?plan=essencial');
     expect((await prisma.contract.findUniqueOrThrow({ where: { id: soon.id } })).expiryNoticeSentAt).not.toBeNull();

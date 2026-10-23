@@ -7,6 +7,7 @@ import { auth } from './auth.js';
 import { CheckoutController } from './contracts/checkout.controller.js';
 import { ExpiryJob } from './contracts/expiry.job.js';
 import { WebhookController } from './contracts/webhook.controller.js';
+import { LeadRetentionJob } from './lead-retention.job.js';
 import { LeadsController } from './leads.controller.js';
 import { PaymentProvider } from './payments/payment-provider.js';
 import { StripeProvider } from './payments/stripe.provider.js';
@@ -15,6 +16,6 @@ import { StripeProvider } from './payments/stripe.provider.js';
   // rawBody keeps req.rawBody for Stripe signature verification. CORS is set in setup-app.ts.
   imports: [AuthModule.forRoot({ auth, bodyParser: { rawBody: true }, disableTrustedOriginsCors: true }), ScheduleModule.forRoot()],
   controllers: [AppController, AdminController, LeadsController, CheckoutController, WebhookController],
-  providers: [{ provide: PaymentProvider, useClass: StripeProvider }, ExpiryJob],
+  providers: [{ provide: PaymentProvider, useClass: StripeProvider }, ExpiryJob, LeadRetentionJob],
 })
 export class AppModule {}

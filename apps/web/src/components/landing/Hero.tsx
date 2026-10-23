@@ -12,11 +12,9 @@ export function Hero() {
       </div>
       <div className="container-x relative pb-[150px] pt-11 md:pb-[190px] md:pt-[88px]">
         <div className="max-w-[590px]">
-          <p className="inline-flex flex-wrap items-center gap-2.5 rounded-full border border-white/15 bg-white/[.08] py-1.5 pl-2 pr-3.5 text-[0.88rem] text-on-navy">
-            <span className="tracking-[1px] text-star" aria-hidden="true">★★★★★</span>
-            <span>
-              <b className="text-white">{hero.rating.value}</b> {hero.rating.text}
-            </span>
+          <p className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[.08] py-1.5 pl-3 pr-3.5 text-[0.88rem] text-on-navy">
+            <span className="size-2 rounded-full bg-ok" aria-hidden="true" />
+            {hero.badge}
           </p>
           <h1 className="mt-[22px] font-serif text-[clamp(2.3rem,5.2vw,4rem)] leading-[1.05] font-semibold tracking-[-0.01em]">{hero.title}</h1>
           <p className="mt-5 max-w-[58ch] text-[1.05rem] text-on-navy md:text-[1.15rem]">{hero.lede}</p>
