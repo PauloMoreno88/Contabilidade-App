@@ -29,6 +29,8 @@ export const auth = betterAuth({
       });
     },
   },
+  // Signed session copy in a cookie: most requests skip the database lookup. A revoked session keeps working for up to 5 min.
+  session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },
   plugins: [
     admin(),
     twoFactor({
