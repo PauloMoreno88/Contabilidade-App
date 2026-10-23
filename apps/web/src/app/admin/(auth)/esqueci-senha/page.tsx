@@ -1,5 +1,6 @@
-import { ForgotPasswordForm } from "@/components/admin/PasswordReset";
+import { Redirect } from "@/components/common/Redirect";
 
-export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />;
+/** Old address: sign-in moved to /entrar/esqueci-senha (one entrance for customers and the team). */
+export default function Page() {
+  return <Redirect to="/entrar/esqueci-senha" />;
 }

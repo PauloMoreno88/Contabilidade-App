@@ -1,15 +1,16 @@
 import { Brand } from "@/components/landing/Brand";
 
-/** Centered card used by login, 2FA and password reset screens. */
-export function AuthCard({ title, children }: { title: string; children: React.ReactNode }) {
+/** Centered card used by sign-in, 2FA, password and activation screens. */
+export function AuthCard({ title, lede, children }: { title: string; lede?: string; children: React.ReactNode }) {
   return (
     <main className="grid min-h-dvh place-items-center px-4 py-10">
-      <div className="w-full max-w-[400px]">
+      <div className="w-full max-w-[420px]">
         <div className="mb-6 flex justify-center">
           <Brand />
         </div>
         <div className="rounded-[20px] border border-line bg-surface p-6 sm:p-8">
-          <h1 className="mb-5 text-[1.3rem] font-semibold">{title}</h1>
+          <h1 className={`font-serif text-[1.55rem] font-semibold leading-tight tracking-[-0.01em] ${lede ? "mb-1.5" : "mb-5"}`}>{title}</h1>
+          {lede && <p className="mb-5 text-[0.9rem] text-muted">{lede}</p>}
           {children}
         </div>
       </div>

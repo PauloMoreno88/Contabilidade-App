@@ -5,14 +5,17 @@ import QRCode from "react-qr-code";
 import { ShieldCheck, ShieldOff } from "lucide-react";
 import { adminCopy } from "@/config/admin";
 import { authClient } from "@/lib/auth";
-import { Field, FormError } from "./AuthCard";
-import { useAdminSession } from "./AdminShell";
+import { Field, FormError } from "@/components/auth/AuthCard";
 
 const copy = adminCopy.security;
 
-/** Better Auth twoFactor enrollment: enable (password) → scan TOTP → save backup codes → verify. */
-export function TwoFactorSettings() {
-  const { user, reload } = useAdminSession();
+type SessionUser = { twoFactorEnabled?: boolean | null };
+
+/**
+ * Better Auth twoFactor enrollment: enable (password) → scan TOTP → save backup codes → verify.
+ * Used by the admin panel and the customer area, each with its own session.
+ */
+export function TwoFactorSettings({ user, reload }: { user: SessionUser; reload: () => Promise<void> }) {
   const [setup, setSetup] = useState<{ totpURI: string; backupCodes: string[] } | null>(null);
   const [freshCodes, setFreshCodes] = useState<string[] | null>(null);
   const [done, setDone] = useState(false);

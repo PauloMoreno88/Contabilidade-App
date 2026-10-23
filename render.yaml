@@ -115,13 +115,30 @@ services:
     # ponytail: lista fixa de páginas; inclua aqui cada nova página do app.
     routes:
       - { type: rewrite, source: /admin, destination: /admin.html }
+      - { type: rewrite, source: /admin/checklist, destination: /admin/checklist.html }
+      - { type: rewrite, source: /admin/cliente, destination: /admin/cliente.html }
+      - { type: rewrite, source: /admin/clientes, destination: /admin/clientes.html }
+      - { type: rewrite, source: /admin/clientes/novo, destination: /admin/clientes/novo.html }
       - { type: rewrite, source: /admin/contrato, destination: /admin/contrato.html }
       - { type: rewrite, source: /admin/esqueci-senha, destination: /admin/esqueci-senha.html }
+      - { type: rewrite, source: /admin/guias/nova, destination: /admin/guias/nova.html }
       - { type: rewrite, source: /admin/leads, destination: /admin/leads.html }
       - { type: rewrite, source: /admin/login, destination: /admin/login.html }
+      - { type: rewrite, source: /admin/mes, destination: /admin/mes.html }
       - { type: rewrite, source: /admin/redefinir-senha, destination: /admin/redefinir-senha.html }
       - { type: rewrite, source: /admin/seguranca, destination: /admin/seguranca.html }
+      - { type: rewrite, source: /app, destination: /app.html }
+      - { type: rewrite, source: /app/boas-vindas, destination: /app/boas-vindas.html }
+      - { type: rewrite, source: /app/documentos, destination: /app/documentos.html }
+      - { type: rewrite, source: /app/empresa, destination: /app/empresa.html }
+      - { type: rewrite, source: /app/empresa/seguranca, destination: /app/empresa/seguranca.html }
+      - { type: rewrite, source: /app/guias, destination: /app/guias.html }
+      - { type: rewrite, source: /app/plano, destination: /app/plano.html }
       - { type: rewrite, source: /checkout, destination: /checkout.html }
       - { type: rewrite, source: /checkout/status, destination: /checkout/status.html }
+      - { type: rewrite, source: /entrar, destination: /entrar.html }
+      - { type: rewrite, source: /entrar/ativar, destination: /entrar/ativar.html }
+      - { type: rewrite, source: /entrar/esqueci-senha, destination: /entrar/esqueci-senha.html }
+      - { type: rewrite, source: /entrar/redefinir-senha, destination: /entrar/redefinir-senha.html }
       - { type: rewrite, source: /privacidade, destination: /privacidade.html }
       - { type: rewrite, source: /termos, destination: /termos.html }
