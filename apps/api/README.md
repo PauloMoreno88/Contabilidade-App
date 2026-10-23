@@ -96,6 +96,52 @@ CSV:
 - células que começam com `= + - @` ganham `'` na frente (proteção contra injeção de fórmula);
 - para baixar: `fetch(url, { credentials: 'include' })` → `blob()`; o nome do arquivo vem em `Content-Disposition`.
 
+### Área do cliente (`/app/*`, papel `customer`)
+
+Login do cliente = usuário do Better Auth com `role: "customer"`, ligado à empresa (`Customer`) por `CompanyMember` (N:N; a v1 usa a primeira empresa). Clientes **nunca** acessam `/admin/*` e admins **nunca** acessam `/app/*` (**403**). Schemas em `packages/shared/src/portal.ts`.
+
+O acesso vem dos contratos (`customerAccess`): `FULL` com contrato `ACTIVE`/`PAST_DUE`; `READ_ONLY` por 90 dias depois do fim (só leitura, pode renovar); `BLOCKED` depois disso (só `/app/me` e `/app/plan`). Escrever fora do `FULL` responde **403**.
+
+| Rota | O que faz |
+|---|---|
+| `GET /app/me` | usuário, empresa, acesso e se já fez o primeiro acesso (`portalMeSchema`) |
+| `POST /app/onboarding` | telefone, perfil da empresa (gera o checklist) e aceite dos termos |
+| `GET /app/home` | tarefas por urgência, resumo de documentos e guias (`portalHomeSchema`) |
+| `GET /app/documents?competence=AAAA-MM` | checklist do mês + "Outros documentos" (`documentsMonthSchema`). Sem `competence`: o mês anterior |
+| `POST /app/uploads` → PUT na URL assinada → `POST /app/uploads/:id/complete` | envio direto para o storage (`createUploadSchema`, máx. 25 MB, tipo pela extensão) |
+| `DELETE /app/files/:id` | remove arquivo próprio enquanto o mês ainda está aberto |
+| `GET /app/files/:id/download[?inline=1]` | URL assinada de 5 min |
+| `GET /app/files.zip?competence=` | tudo do mês num ZIP (aviso de retenção) |
+| `GET /app/guides` | guias em aberto e pagas (`portalGuidesSchema`) |
+| `POST /app/guides/:id/paid` / `DELETE …/paid` | "Já paguei" (comprovante opcional) e desfazer |
+| `GET /app/plan` / `POST /app/plan/renew` | contratos e pagamentos; renovação 60 dias antes do fim (novo Checkout, mesma empresa; começa quando o atual termina) |
+| `GET /app/company` / `PATCH /app/company` | dados, perfil e usuários. Nome e CPF/CNPJ só mudam pela equipe |
+
+Públicas (link do e-mail de convite): `GET /account/invite?token=` e `POST /account/activate { token, password }`. O token vale 7 dias, uma vez; só o SHA-256 fica no banco. Depois o front faz `sign-in/email` com a senha nova.
+
+Admin da área do cliente (`src/portal/admin-portal.controller.ts`, papel `admin`):
+
+| Rota | O que faz |
+|---|---|
+| `GET /admin/month?competence&filter&q&page` | visão do mês: documentos, guias vencidas, acesso (`adminMonthPageSchema`; filtros `late`, `rejected`, `unpaid`, `no_access`) |
+| `GET /admin/customers`, `GET /admin/customers/:id` | lista e ficha (membros, convites, contratos, checklist que se aplica) |
+| `POST /admin/customers` | cliente manual: empresa + contrato `MANUAL` (sem Stripe) + login + convite |
+| `PATCH /admin/customers/:id` | lembretes, perfil e itens do checklist desligados |
+| `POST /admin/customers/:id/invite` | cria o login se faltar e reenvia o convite (**409** se já ativou) |
+| `GET /admin/customers/:id/documents?competence=` / `POST /admin/document-requests/:id/reject` | documentos do cliente e recusa com motivo (e-mail ao cliente) |
+| `GET /admin/files/:id/download` | qualquer arquivo |
+| `POST /admin/uploads` (`purpose: "guide"`, `customerId`) → PUT → `POST /admin/uploads/:id/complete` | PDF da guia |
+| `POST /admin/guides/parse { fileId }` | lê o PDF e sugere tipo, competência, vencimento, valor e linha digitável. **Não publica** |
+| `POST /admin/guides` / `DELETE /admin/guides/:id` | publica (e-mail ao cliente) / remove guia publicada por engano |
+| `GET /admin/customers/:id/guides` | guias do cliente |
+| `GET|POST /admin/checklist-items`, `PATCH /admin/checklist-items/:id` | modelos do checklist (`customerId` = item só daquela empresa) |
+
+Travas da guia (decisão 25): a linha só é aceita se **todos** os dígitos verificadores baterem (`parseBarcodeLine`, arrecadação mod 10/11 e boleto); com linha, o valor digitado tem de ser o da linha (**400**); o leitor avisa quando o valor da linha não aparece no PDF e quando o CPF/CNPJ do PDF não é o do cliente; quem publica é sempre uma pessoa.
+
+Storage (`src/storage/`): `StorageProvider` com `R2Provider` (aws4fetch, URLs assinadas; `Content-Type` assinado no PUT, tipo e nome forçados no GET). Sem `R2_*`: em dev e testes, `LocalStorageProvider` grava em `STORAGE_LOCAL_DIR` e a própria API serve as URLs assinadas (`/storage/local/:token`); em produção, envio e download respondem **503**.
+
+Job diário da área do cliente (07h, `src/portal/portal.job.ts`), cada e-mail uma única vez (`NotificationLog`): cria o checklist do mês e avisa; lembra documentos pendentes 5 e 1 dia antes e no dia do prazo (dia 10, PLACEHOLDER); lembra guias abertas 3 dias antes e no dia; avisa 30 dias antes de apagar os arquivos e apaga o que passou de 12 meses da competência (e uploads nunca confirmados, depois de 1 dia).
+
 ## Pagamentos e ciclo do contrato
 
 Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só existe `StripeProvider`. Os eventos do Stripe viram eventos neutros, e `src/contracts/contract-lifecycle.ts` aplica:
@@ -167,7 +213,10 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 | Aviso interno de nova contratação (para `ADMIN_NOTIFY_EMAIL`) | idem; inclui origem do lead (UTM) e link `WEB_ORIGIN/admin/contrato?id=…` | `renderNewContractNotice` | `src/notifications.ts` |
 | Redefinição de senha | `POST /api/auth/request-password-reset` | `renderPasswordResetEmail` (link expira em 60 min) | `src/auth.ts` |
 | Código 2FA por e-mail | `POST /api/auth/two-factor/send-otp` | `renderTwoFactorCodeEmail` (código expira em 3 min) | `src/auth.ts` |
-| Lembrete de vencimento | job diário, 7 dias antes (Pix/boleto) | `renderExpiryReminderEmail` (renovação em `EMAIL_ASSET_BASE_URL/checkout?plan=…`) | `src/notifications.ts` |
+| Lembrete de vencimento | job diário, 7 dias antes (Pix/boleto); não sai se já houver renovação paga | `renderExpiryReminderEmail` (renovação em `/app/plano` para quem tem login) | `src/notifications.ts` |
+| Convite da área do cliente | boas-vindas (link junto) ou cliente manual / reenvio | `renderWelcomeEmail({ activation })`, `renderPortalInviteEmail` | `src/notifications.ts`, `src/portal/invites.ts` |
+| Link de acesso sem senha | `POST /api/auth/sign-in/magic-link` (só papel `customer` sem 2FA) | `renderMagicLinkEmail` (15 min) | `src/auth.ts` |
+| Guia nova, guia vencendo, documentos do mês, lembrete, recusa, retenção | admin publica/recusa; job diário | `renderGuidePublishedEmail`, `renderGuideDueEmail`, `renderDocumentsOpenEmail`, `renderDocumentsReminderEmail`, `renderDocumentRejectedEmail`, `renderRetentionNoticeEmail` | `src/portal/` |
 
 - **Falhas:** erro de e-mail na ativação só é logado, porque o pagamento já está gravado. No job, o contrato é tentado de novo no dia seguinte.
 - **Sem chave:** sem `RESEND_API_KEY`, os e-mails só aparecem no log (dev/testes). Em produção, a falta da chave gera erro.
@@ -176,7 +225,7 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 - **Escape:** nomes e dados do usuário são escapados pelo React. O e2e (`test/notifications.e2e-spec.ts`) confere `subject`, `html` e `text` de cada e-mail e que um nome com `<script>` sai escapado.
 - **Job diário** (09h, horário de Brasília, `src/contracts/expiry.job.ts`), só para Pix/boleto: avisa 7 dias antes do vencimento (uma vez) e marca como `EXPIRED` o que já venceu. Cartão segue os webhooks do Stripe.
 
-## Autenticação (admin)
+## Autenticação (admin e cliente)
 
 - E-mail + senha, sem cadastro público. O primeiro admin vem do `seed`; outros são criados por um admin (`/api/auth/admin/create-user`).
 - 2FA: TOTP (app autenticador) ou código por e-mail; o admin ativa em `/api/auth/two-factor/enable`.
@@ -184,6 +233,8 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 - Todas as rotas exigem sessão por padrão (guard global); rotas públicas usam `@AllowAnonymous()` e rotas de admin usam `@Roles(['admin'])`.
 - Produção: `AUTH_COOKIE_DOMAIN=.exactracontabilidade.com.br` compartilha o cookie entre `www.` e `api.`.
 - Rate limit do login: o padrão do Better Auth (em memória, ativo em produção).
+- Papéis: `admin` (equipe) e `customer` (área do cliente, sem nenhuma permissão do plugin admin). Clientes nascem do webhook de pagamento (`ensurePortalUser`) ou do cadastro manual.
+- Link mágico (`magicLink`, cadastro desligado): só é enviado para `customer` sem 2FA, porque o link entra sem o segundo fator. Para os outros e-mails, a resposta é a mesma, mas nada é enviado.
 
 ## O que falta configurar (externo)
 
@@ -197,5 +248,6 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 - [ ] DNS do subdomínio `api.` apontando para o Render.
 - [ ] Stripe: conta definitiva da Exactra com **Pix e boleto habilitados** (o checkout usa `allowed_payment_method_types`, que só filtra métodos ativos).
 - [ ] Stripe: endpoint de webhook `https://api.exactracontabilidade.com.br/webhooks/stripe` com os eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed` e `customer.subscription.deleted`; segredo em `STRIPE_WEBHOOK_SECRET`.
+- [ ] Cloudflare R2: bucket, token de API (Object Read & Write só nesse bucket) e as variáveis `R2_*`; regra de CORS do bucket liberando `PUT`, `GET` e `HEAD` para as origens do `WEB_ORIGIN`, com o header `Content-Type`.
 - [ ] Resend: domínio verificado (DNS) para o `EMAIL_FROM` de produção (`RESEND_API_KEY`, `EMAIL_FROM` e `ADMIN_NOTIFY_EMAIL` já estão no `.env` de dev).
 - [ ] `EMAIL_ASSET_BASE_URL=https://www.exactracontabilidade.com.br` em produção (o logo precisa estar publicado em `/email/logo.png`).

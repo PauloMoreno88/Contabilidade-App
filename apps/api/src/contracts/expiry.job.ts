@@ -37,7 +37,9 @@ export class ExpiryJob {
     let notified = 0;
     for (const c of due) {
       try {
-        await sendExpiryNotice(c);
+        // Already renewed: the next contract starts when this one ends.
+        const renewed = await prisma.contract.count({ where: { customerId: c.customerId, status: 'ACTIVE', endsAt: { gt: c.endsAt! } } });
+        if (!renewed) await sendExpiryNotice(c);
         await prisma.contract.update({ where: { id: c.id }, data: { expiryNoticeSentAt: now } });
         notified++;
       } catch (err) {
