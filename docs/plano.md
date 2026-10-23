@@ -40,6 +40,13 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 21 | Blog | **Blog estático** em `/blog` (22/10/2026), para SEO. Um arquivo Markdown por artigo em `apps/web/src/content/blog` (front matter: title, description, category, date, updated, reviewed), lido no build por `src/lib/blog.ts`. Cada artigo tem foto do Unsplash (licença gratuita, **sem pessoas**) em `public/img/blog/<slug>.jpg`, indicada no front matter (`image`, `imageAlt`); sem foto, a capa mostra o ícone da categoria. Cada artigo tem dados estruturados (BlogPosting, BreadcrumbList e FAQPage), entra no sitemap e chama o simulador. Temas inspirados no blog da AccountTech, com texto próprio. Os 10 primeiros estão com `reviewed: nao` até o contador revisar |
 | 22 | Pagamento | **Contrato anual pago na contratação** (respostas da Exactra em 22/10/2026), no lugar de "cartão mensal recorrente + Pix/boleto de 3/6/12 meses com desconto". Cartão à vista ou parcelado em até 12x (`STRIPE_CARD_INSTALLMENTS`, desligado até testar no Stripe), Pix ou boleto à vista; sem desconto, sem taxa de adesão, valor fixo durante o contrato. Todo contrato novo é `mode: payment` com período `ANNUAL` e não renova sozinho (o job diário avisa e expira). Assinaturas mensais antigas continuam tratadas pelos webhooks. Preço anual PLACEHOLDER (12 × R$ 299). Desistência em 7 dias (CDC art. 49) nos termos. Também: sem limite de funcionários, sem abertura de CNPJ e sem oferta de orientação para abrir (23/10/2026), sem nota do Google e sem depoimentos por enquanto |
 | 23 | LGPD | Dados do simulador guardados por **até 1 mês** (Exactra, 23/10/2026). Job diário `LeadRetentionJob` (`apps/api/src/lead-retention.job.ts`) apaga leads com mais de 30 dias que não viraram cliente |
+| 24 | Área do cliente: acesso | Desenhada com o usuário em 23/10/2026. **Login único em `/entrar`**: o papel do Better Auth decide o destino (`admin` → `/admin`, `customer` → `/app`). Cliente entra com e-mail + senha ou **link mágico** (só para `customer` sem 2FA, porque o link pula o segundo fator); 2FA opcional para cliente, obrigatório (recomendado) para a equipe. A conta nasce do **webhook de pagamento** (link de ativação dentro do e-mail de boas-vindas) ou do **cadastro manual** no admin. Modelo N:N (`CompanyMember`: uma pessoa com várias empresas, uma empresa com vários logins); a v1 mostra uma empresa e um login |
+| 25 | Área do cliente: guias | A Exactra sobe o PDF da guia e o sistema **lê o texto para pré-preencher** (tipo, competência, vencimento, valor, linha digitável). Travas: a linha só vale se **todos os dígitos verificadores** baterem; com linha, o valor tem de ser o da linha; avisos quando o valor não aparece no PDF e quando o CPF/CNPJ do PDF não é o do cliente; **uma pessoa sempre confirma** antes de publicar; o PDF é a fonte da verdade. Estados calculados: a pagar → paga (o cliente informa "Já paguei", comprovante opcional) → vencida. Upload em lote (casar pelo CNPJ) fica para depois |
+| 26 | Área do cliente: documentos | **Checklist mensal por competência**, gerado a partir do perfil da empresa (atividade, funcionários, bancos) com modelos editáveis no admin e itens só de um cliente, mais "Outros documentos". Modelo de **exceção**: enviado conta como entregue; a Exactra só age para recusar (motivo + observação), e o item volta a pendente. Itens, prazo (dia 10) e motivos são PLACEHOLDER (issue #62) |
+| 27 | Área do cliente: arquivos | **Cloudflare R2** (S3) atrás de `StorageProvider`; upload e download direto do navegador por URL assinada. PDF, fotos, XML, OFX, planilhas e ZIP até 25 MB; o tipo vem da extensão. **Retenção de 1 ano** a partir da competência (decisão do usuário, 23/10/2026), com aviso 30 dias antes e "Baixar tudo (ZIP)"; o portal não é o arquivo fiscal oficial. Em dev/testes sem R2, disco local servido pela própria API |
+| 28 | Área do cliente: plano | Tela com vigência, pagamentos e **renovação 60 dias antes do fim** (novo Checkout, mesma empresa; o contrato novo começa quando o atual termina). Contrato vencido ou cancelado: **somente leitura por 90 dias**, depois bloqueado. Clientes antigos entram por cadastro manual (contrato `MANUAL`, sem Stripe); importação por planilha fica para depois |
+| 29 | Área do cliente: avisos | **Só e-mail** (Resend) na v1, uma ação por e-mail: guia nova, guia vencendo (3 dias e no dia), documentos do mês, lembrete (5 e 1 dia antes e no dia), recusa, aviso de retenção. Cada e-mail sai uma vez (`NotificationLog`); a Exactra desliga os lembretes por cliente. WhatsApp automático fica para a v2. Sem chat interno: botão de WhatsApp com o assunto pronto |
+| 30 | Área do cliente: escopo e visual | v1: Início (tarefas por urgência), Documentos, Guias, Plano, Empresa e primeiro acesso (3 passos, perfil pulável). Admin: Visão do mês, clientes, ficha, publicar guia, checklist. Fora: certificado digital e senhas de prefeitura (#61), chat, relatórios. Visual: mesma marca, Figtree na interface, Source Serif só em saudações e valores; **vermelho só para ação e urgência**, verde para "em dia"; a guia é desenhada como canhoto de arrecadação. Sem protótipo HTML antes (decisão do usuário) |
 
 ## 3. Arquitetura alvo
 
@@ -85,6 +92,8 @@ Autenticação (Better Auth): `/api/auth/*`.
 
 Admin (exige sessão com papel `admin`): `GET /admin/metrics`, `GET /admin/contracts`, `GET /admin/contracts/:id`, `GET /admin/leads`, `GET /admin/contracts.csv`.
 
+Área do cliente (papel `customer`): `/app/*`; ativação pública em `/account/*`; admin da área em `/admin/month`, `/admin/customers*`, `/admin/guides*`, `/admin/checklist-items*`. Lista completa em `apps/api/README.md`.
+
 Job diário: marca contratos vencidos e envia aviso antes do vencimento (necessário para Pix/boleto, que não renovam sozinhos).
 
 ## 6. Fases e cronograma
@@ -129,6 +138,16 @@ Hoje é 04/10; o roadmap termina em 20/10.
 
 **Depois:** aprovação do cliente → refazer telas e refatorar.
 
+**Área do cliente — `feat/acesso-cliente` (23/10/2026, decisões 24–30)**
+- [x] Contrato em `packages/shared` (`portal.ts`, `portal-admin.ts`, `barcode.ts`) com testes
+- [x] E-mails novos em `@exactra/emails` (convite, link mágico, guia, documentos, recusa, retenção)
+- [x] API: papéis e convite, link mágico, empresas e membros, checklist, uploads (R2/local), guias com leitura do PDF, plano e renovação, admin (mês, clientes, ficha, checklist), job diário; e2e com PGlite
+- [x] Front: `/entrar`, `/app/*` e telas novas do admin, com mocks
+- [ ] Conta e bucket no Cloudflare R2, CORS e variáveis no Render (usuário)
+- [ ] Teste ponta a ponta com a API real e o R2 (staging)
+- [ ] Respostas do contador (#62) e revisão dos textos pela Exactra
+- [ ] Depois: upload de guias em lote, importação de clientes por planilha, WhatsApp automático, certificado digital (#61)
+
 ## 7. Como os agentes trabalham
 
 - Cada agente altera apenas sua pasta (`apps/web` ou `apps/api`). `packages/shared` só muda avisando o outro lado.
@@ -157,3 +176,4 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - Acesso ao DNS do domínio (subdomínio `api.` e verificação de domínio no Resend).
 - Respostas do contador: `docs/perguntas-contador.md`.
 - Aprovação final do protótipo pelo cliente.
+- Cloudflare R2 para a área do cliente (ver `docs/pendencias-area-do-cliente.md`).

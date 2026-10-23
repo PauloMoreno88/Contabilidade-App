@@ -42,3 +42,13 @@ Enquanto não houver resposta, o desenvolvimento segue com valores fictícios e 
 
 24. Revisar os 10 artigos do blog (`apps/web/src/content/blog`). Eles citam regras públicas que mudam com o tempo: limites do MEI e do Simples, Fator R, DAS, pró-labore e lucros (regras de 2026), reforma tributária e NFS-e. Depois da revisão, marcar `reviewed: sim` em cada arquivo. **Respondido em 23/10/2026: revisados.**
 25. Quais outros temas os clientes mais perguntam? Eles viram os próximos artigos.
+
+## F. Área do cliente (issue #62)
+
+26. Quais documentos vocês pedem todo mês, por tipo de empresa (serviço, comércio, com e sem funcionários)? Hoje o sistema usa uma lista de exemplo, editável em `/admin/checklist`.
+27. Até que dia do mês seguinte o cliente precisa enviar os documentos? (Hoje: dia 10.)
+28. Quais são os motivos mais comuns para recusar um documento? (Hoje: incompleto, ilegível, de outro mês, não é o documento pedido, outro.)
+29. Quais guias vocês publicam para os clientes (DAS, DARF, FGTS, GPS, ISS, outras) e com quantos dias de antecedência?
+30. Qual sistema contábil vocês usam? Ele exporta as guias em lote? Quantos clientes ativos têm hoje?
+31. A área do cliente guarda arquivos por 1 ano. Vocês arquivam tudo no sistema contábil? (A empresa precisa guardar documentos fiscais por 5 anos.)
+32. Prazos de renovação (abre 60 dias antes) e de consulta depois do fim (90 dias): estão bons?
