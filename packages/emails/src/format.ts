@@ -23,3 +23,9 @@ export function safeUrl(url: string): string {
 export function assetBaseUrl(): string {
   return (process.env.EMAIL_ASSET_BASE_URL || "https://www.exactracontabilidade.com.br").replace(/\/+$/, "");
 }
+
+/** "2026-11-20" (date only, no time zone) → "20/11/2026". */
+export function formatDay(date: string): string {
+  const [y, m, d] = date.slice(0, 10).split("-");
+  return `${d}/${m}/${y}`;
+}

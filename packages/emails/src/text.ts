@@ -1,6 +1,7 @@
 import { contact, onboarding, PERIOD_MONTHS, planInfo, whatsappLink } from "@exactra/shared";
 import {
   brand,
+  portalCopy,
   expiryCopy,
   methodLabel,
   newContractCopy,
@@ -18,19 +19,21 @@ import type { ContractSummary, WelcomeEmailProps } from "./templates/welcome";
 
 /** Plain-text versions, written by hand so they read well in text-only clients. */
 
-const footer = `--\n${brand.name}\n${contact.email}\n${brand.footer}`;
+export const footer = `--\n${brand.name}\n${contact.email}\n${brand.footer}`;
 const join = (...blocks: (string | false | null | undefined)[]) => blocks.filter(Boolean).join("\n\n") + "\n";
 const rows = (pairs: [string, string][]) => pairs.map(([k, v]) => `${k}: ${v}`).join("\n");
 
 const billing = (c: ContractSummary) => (isRecurring(c) ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`);
 
-export function welcomeText({ customerName, contract: c }: WelcomeEmailProps) {
+export function welcomeText({ customerName, contract: c, activation }: WelcomeEmailProps) {
   const copy = welcomeCopy;
   const card = isRecurring(c);
   const plan = planInfo(c.plan).name;
   return join(
     copy.title(firstName(customerName)),
     copy.lede,
+    activation &&
+      `${portalCopy.welcomeActivation.title.toUpperCase()}\n${portalCopy.welcomeActivation.text}\n${portalCopy.welcomeActivation.cta}: ${activation.url}\n${portalCopy.welcomeActivation.expires(activation.expiresInDays)}`,
     `${copy.summaryTitle.toUpperCase()}\n${rows([
       [copy.plan, plan],
       [copy.billing, billing(c)],
