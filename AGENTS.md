@@ -23,6 +23,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - **Front em 22/10/2026 (variante G)**: landing refeita em `apps/web/src/components/landing` (Hero com foto, simulador sobreposto ao hero, Sobre com números e mosaico, Serviços, bloco do WhatsApp, card do plano único, Depoimentos, faixa de chamada, Dúvidas, Contato e barra fixa no celular). Simulador em `components/simulator` (cards com ícone, faturamento por barra deslizante, cadastro, comparativo de regimes vindo de `estimateRegimes` em `@exactra/shared`). Fontes Source Serif 4 (títulos) e Figtree (texto); tokens em `globals.css`. Botão "Acessar plataforma" leva a `/admin/login` (área do cliente ainda não existe). Contato sem formulário (não há endpoint): WhatsApp, telefone e e-mail.
 - **Blog em 22/10/2026**: `/blog` (lista com filtro por assunto) e `/blog/[slug]`, gerados no build a partir de `apps/web/src/content/blog/*.md` (formato em `src/lib/blog.ts`; textos fixos em `src/config/blog.ts`). 10 artigos iniciais, revisados pelo contador em 23/10/2026 (`reviewed: sim`). Fotos dos artigos em `public/img/blog` (Unsplash, sem pessoas). Link "Blog" no menu e no rodapé; artigos no sitemap.
 - `packages/shared` agora tem os schemas das respostas do admin (`src/admin.ts`) e de `POST /leads`.
+- **Área do cliente em 23/10/2026** (branch `feat/acesso-cliente`, decisões 24–30 do `docs/plano.md`): login único em `/entrar` (papel `admin` → `/admin`, `customer` → `/app`), link mágico para clientes, convite por e-mail. `/app`: Início, Documentos (checklist mensal + upload direto ao R2), Guias (leitura do PDF com conferência dos dígitos verificadores, "Já paguei"), Plano (renovação), Empresa e primeiro acesso. Admin: `/admin/mes`, `/admin/clientes`, `/admin/cliente`, `/admin/guias/nova`, `/admin/checklist`. Contrato em `packages/shared/src/portal.ts` e `portal-admin.ts`. Regras PLACEHOLDER em `PORTAL_RULES`. Pendências: `docs/pendencias-area-do-cliente.md`.
 
 ## 3. Estrutura alvo (monorepo pnpm)
 
@@ -43,6 +44,7 @@ docs/           plano.md, perguntas-contador.md, prompt.md, roadmap-entrega.html
 - Auth do admin: **Better Auth** no `apps/api` (e-mail+senha, sem cadastro público, plugin `admin`, 2FA e reset de senha no v1, cookies compartilhados entre `www.` e `api.`).
 - Pagamentos: **Stripe**. Desde 22/10/2026 (decisão 22): **contrato anual pago na contratação**, no cartão (à vista ou parcelado), Pix ou boleto. Assinaturas mensais antigas continuam tratadas. Tudo atrás de uma interface `PaymentProvider`.
 - E-mail: **Resend**.
+- Arquivos da área do cliente: **Cloudflare R2** (S3), atrás de `StorageProvider` (decisão 27).
 - Hospedagem: **Render** (front estático, API como Web Service).
 - Não trocar de stack sem pedir ao usuário.
 
@@ -56,6 +58,7 @@ docs/           plano.md, perguntas-contador.md, prompt.md, roadmap-entrega.html
 - Status do contrato: `PENDING_PAYMENT → ACTIVE → PAST_DUE | CANCELED | EXPIRED`.
 - Contratos pré-pagos (todos os novos, anuais) não renovam sozinhos: um job diário avisa o vencimento e marca contratos vencidos.
 - A flag `CHECKOUT_ENABLED` controla pagamentos reais. Até o contador validar preços, só Stripe em **modo teste**.
+- Área do cliente: cliente nunca acessa `/admin` e equipe nunca acessa `/app` (papel do Better Auth). Toda rota `/app` resolve a empresa do login; arquivo de outra empresa responde 404. Linha digitável só é publicada se todos os dígitos verificadores baterem, e sempre por uma pessoa. Arquivos ficam 1 ano (retenção a partir da competência).
 - LGPD: guardamos nome, e-mail, telefone e CPF/CNPJ. Exige consentimento explícito (simulador e checkout) e acesso restrito ao admin. Leads do simulador que não viram cliente são apagados após 30 dias (job diário).
 - Não copiar o site, os textos nem a paleta da Studio Fiscal (apenas inspiração de estrutura). Preservar a identidade visual da Exactra (paleta extraída do site atual; vermelho `#C82333` é a cor de destaque usada nos materiais do projeto).
 

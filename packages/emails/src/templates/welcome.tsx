@@ -1,9 +1,9 @@
 import { Column, Row, Section, Text } from "@react-email/components";
 import type { ReactNode } from "react";
 import { onboarding, PERIOD_MONTHS, planInfo, whatsappLink, type BillingPeriod, type PaymentMethod, type StoredPlanId } from "@exactra/shared";
-import { methodLabel, periodLabel, welcomeCopy as copy, isRecurring } from "../copy";
-import { firstName, formatBRL, formatDate, type DateInput } from "../format";
-import { color, H1, H2, Layout, Ledger, Mono, P, Panel, Signature, WhatsAppButton, mono } from "../ui";
+import { methodLabel, periodLabel, portalCopy, welcomeCopy as copy, isRecurring } from "../copy";
+import { firstName, formatBRL, formatDate, safeUrl, type DateInput } from "../format";
+import { color, H1, H2, Layout, Ledger, Mono, P, Panel, PrimaryButton, Signature, WhatsAppButton, mono } from "../ui";
 
 export type ContractSummary = {
   plan: StoredPlanId;
@@ -16,9 +16,14 @@ export type ContractSummary = {
   endsAt?: DateInput | null;
 };
 
-export type WelcomeEmailProps = { customerName: string; contract: ContractSummary };
+export type WelcomeEmailProps = {
+  customerName: string;
+  contract: ContractSummary;
+  /** Link to create the customer area password (sent with the welcome so the customer gets one e-mail). */
+  activation?: { url: string; expiresInDays: number };
+};
 
-export function WelcomeEmail({ customerName, contract: c }: WelcomeEmailProps) {
+export function WelcomeEmail({ customerName, contract: c, activation }: WelcomeEmailProps) {
   const name = firstName(customerName);
   const plan = planInfo(c.plan);
   const card = isRecurring(c);
@@ -28,6 +33,14 @@ export function WelcomeEmail({ customerName, contract: c }: WelcomeEmailProps) {
     <Layout preview={copy.preview}>
       <H1>{copy.title(name)}</H1>
       <P>{copy.lede}</P>
+      {activation && (
+        <Panel>
+          <Text className="x-text" style={{ margin: "0 0 6px", fontSize: 16, lineHeight: "22px", fontWeight: 600, color: color.text }}>{portalCopy.welcomeActivation.title}</Text>
+          <Text className="x-muted" style={{ margin: "0 0 14px", fontSize: 14, lineHeight: "21px", color: color.muted }}>{portalCopy.welcomeActivation.text}</Text>
+          <PrimaryButton href={safeUrl(activation.url)}>{portalCopy.welcomeActivation.cta}</PrimaryButton>
+          <Text className="x-faint" style={{ margin: "12px 0 0", fontSize: 12, lineHeight: "18px", color: color.faint }}>{portalCopy.welcomeActivation.expires(activation.expiresInDays)}</Text>
+        </Panel>
+      )}
 
       <H2>{copy.summaryTitle}</H2>
       <Ledger

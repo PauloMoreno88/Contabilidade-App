@@ -1,11 +1,6 @@
-import { Suspense } from "react";
-import { ResetPasswordForm } from "@/components/admin/PasswordReset";
+import { Redirect } from "@/components/common/Redirect";
 
-/** Better Auth reset link target: ?token=... or ?error=INVALID_TOKEN */
-export default function ResetPasswordPage() {
-  return (
-    <Suspense>
-      <ResetPasswordForm />
-    </Suspense>
-  );
+/** Old address: sign-in moved to /entrar/redefinir-senha (one entrance for customers and the team). */
+export default function Page() {
+  return <Redirect to="/entrar/redefinir-senha" />;
 }

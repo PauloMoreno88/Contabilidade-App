@@ -74,10 +74,10 @@ export const newContractCopy = {
 };
 
 export const passwordResetCopy = {
-  subject: "Redefinir sua senha do painel Exactra",
+  subject: "Redefinir sua senha da Exactra",
   preview: "Use o link para criar uma nova senha.",
   title: "Redefinir senha",
-  lede: (name: string) => `Olá, ${name}. Recebemos um pedido para criar uma nova senha no painel da Exactra.`,
+  lede: (name: string) => `Olá, ${name}. Recebemos um pedido para criar uma nova senha na sua conta da Exactra.`,
   cta: "Criar nova senha",
   expires: (minutes: number) => `O link vale por ${minutes} minutos e só pode ser usado uma vez.`,
   expiresUnknown: "O link expira depois de um tempo e só pode ser usado uma vez.",
@@ -87,9 +87,9 @@ export const passwordResetCopy = {
 
 export const twoFactorCopy = {
   subject: (code: string) => `${code} é o seu código de acesso da Exactra`,
-  preview: "Use este código para terminar o login no painel.",
+  preview: "Use este código para terminar o login.",
   title: "Seu código de acesso",
-  lede: (name?: string) => `${name ? `Olá, ${name}. ` : ""}Use o código abaixo para terminar o login no painel da Exactra.`,
+  lede: (name?: string) => `${name ? `Olá, ${name}. ` : ""}Use o código abaixo para terminar o login na Exactra.`,
   expires: (minutes: number) => `O código vale por ${minutes} minutos.`,
   expiresUnknown: "O código vale por poucos minutos.",
   ignore: "Não tentou entrar? Troque sua senha: alguém pode estar usando ela.",
@@ -106,4 +106,85 @@ export const expiryCopy = {
   help: "Prefere falar com alguém? Chame a gente no WhatsApp.",
   whatsappCta: "Falar no WhatsApp",
   whatsappMessage: "Olá! Quero renovar meu plano na Exactra.",
+};
+
+/** Customer area (/app). One action per e-mail, straight to the item. */
+export const portalCopy = {
+  invite: {
+    subject: "Ative seu acesso à área do cliente da Exactra",
+    preview: "Crie sua senha para enviar documentos e ver suas guias.",
+    title: (firstName: string) => `${firstName}, sua área do cliente está pronta`,
+    lede: (company: string | null) =>
+      `É por ela que você envia os documentos do mês, recebe as guias de impostos${company ? ` da ${company}` : ""} e acompanha seu plano.`,
+    cta: "Criar minha senha",
+    expires: (days: number) => `O link vale por ${days} dias. Depois disso, peça um novo pelo WhatsApp.`,
+    fallback: "Se o botão não funcionar, copie e cole este endereço no navegador:",
+  },
+  welcomeActivation: {
+    title: "Seu acesso à área do cliente",
+    text: "Crie sua senha para enviar documentos, receber as guias e acompanhar tudo num só lugar.",
+    cta: "Ativar meu acesso",
+    expires: (days: number) => `O link vale por ${days} dias.`,
+  },
+  magicLink: {
+    subject: "Seu link para entrar na Exactra",
+    preview: "Toque no botão para entrar sem senha.",
+    title: "Entrar na área do cliente",
+    lede: (firstName: string) => `Olá, ${firstName}. Use o botão abaixo para entrar. Não precisa de senha.`,
+    cta: "Entrar agora",
+    expires: (minutes: number) => `O link vale por ${minutes} minutos e só funciona uma vez.`,
+    ignore: "Não pediu este link? Ignore este e-mail: ninguém entra sem ele.",
+  },
+  guidePublished: {
+    subject: (guide: string, date: string) => `Nova guia: ${guide}, vence em ${date}`,
+    preview: "A guia já está na sua área do cliente.",
+    title: "Tem guia nova para pagar",
+    lede: (firstName: string) => `${firstName}, a Exactra publicou uma guia para você.`,
+    cta: "Ver a guia",
+    note: "Na área do cliente você baixa o PDF, copia o código de barras e marca como paga.",
+  },
+  guideDue: {
+    subject: (guide: string, days: number) => (days === 0 ? `${guide} vence hoje` : `${guide} vence em ${days} ${days === 1 ? "dia" : "dias"}`),
+    preview: "Pague em dia para evitar multa e juros.",
+    title: (days: number) => (days === 0 ? "Sua guia vence hoje" : "Sua guia está perto do vencimento"),
+    lede: (firstName: string) => `${firstName}, ainda não vimos esta guia marcada como paga.`,
+    cta: "Ver a guia",
+    note: "Já pagou? Marque como paga na área do cliente e os lembretes param.",
+  },
+  documentsOpen: {
+    subject: (month: string) => `Documentos de ${month}: já pode enviar`,
+    preview: "Veja a lista do que precisamos este mês.",
+    title: (month: string) => `Documentos de ${month}`,
+    lede: (firstName: string, date: string) => `${firstName}, já pode enviar os documentos do mês. O prazo é ${date}.`,
+    listTitle: "O que precisamos",
+    cta: "Enviar documentos",
+  },
+  documentsReminder: {
+    subject: (n: number, month: string) => `${n === 1 ? "Falta 1 documento" : `Faltam ${n} documentos`} de ${month}`,
+    preview: "Envie para fecharmos o mês da sua empresa.",
+    title: (days: number) => (days === 0 ? "O prazo dos documentos é hoje" : "Faltam alguns documentos"),
+    lede: (firstName: string, date: string) => `${firstName}, para fechar o mês precisamos destes documentos até ${date}.`,
+    listTitle: "Ainda não recebemos",
+    cta: "Enviar agora",
+  },
+  documentRejected: {
+    subject: (title: string) => `Precisamos de um novo envio: ${title}`,
+    preview: "Um documento precisa ser enviado de novo.",
+    title: "Precisamos de um novo envio",
+    lede: (firstName: string, title: string, month: string) => `${firstName}, o documento "${title}" de ${month} não pôde ser usado.`,
+    reason: "Motivo",
+    note: "Observação",
+    cta: "Enviar de novo",
+  },
+  retention: {
+    subject: (month: string) => `Arquivos de ${month} serão apagados em breve`,
+    preview: "Baixe uma cópia se quiser guardar.",
+    title: (month: string) => `Arquivos de ${month}`,
+    lede: (firstName: string, date: string) =>
+      `${firstName}, a área do cliente guarda os arquivos por 12 meses. Os documentos e guias deste mês serão apagados em ${date}.`,
+    cta: "Baixar tudo (ZIP)",
+    note: "A Exactra mantém os registros contábeis da sua empresa. A área do cliente é o canal de troca de arquivos, não o arquivo oficial.",
+  },
+  rows: { guide: "Guia", competence: "Competência", amount: "Valor", dueDate: "Vencimento" },
+  whatsappCta: "Falar no WhatsApp",
 };

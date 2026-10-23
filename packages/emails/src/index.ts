@@ -7,12 +7,35 @@ import { PasswordResetEmail, TwoFactorCodeEmail, type PasswordResetEmailProps, t
 import { ExpiryReminderEmail, type ExpiryReminderEmailProps } from "./templates/expiry";
 import { NewContractNotice, type NewContractNoticeProps } from "./templates/new-contract";
 import { WelcomeEmail, type WelcomeEmailProps } from "./templates/welcome";
-import { expiryText, newContractText, passwordResetText, twoFactorText, welcomeText } from "./text";
+import { expiryText, footer, newContractText, passwordResetText, twoFactorText, welcomeText } from "./text";
+import {
+  documentRejectedMessage,
+  documentsOpenMessage,
+  documentsReminderMessage,
+  guideDueMessage,
+  guidePublishedMessage,
+  magicLinkMessage,
+  portalInviteMessage,
+  portalText,
+  retentionNoticeMessage,
+} from "./portal";
+import { PortalEmail, type PortalMessage } from "./templates/portal";
 
 export type { ContractSummary, WelcomeEmailProps } from "./templates/welcome";
 export type { NewContractNoticeProps } from "./templates/new-contract";
 export type { PasswordResetEmailProps, TwoFactorCodeEmailProps } from "./templates/auth";
 export type { ExpiryReminderEmailProps } from "./templates/expiry";
+export type {
+  DocumentRejectedProps,
+  DocumentsOpenProps,
+  DocumentsReminderProps,
+  GuideDueProps,
+  GuidePublishedProps,
+  GuideSummary,
+  MagicLinkProps,
+  PortalInviteProps,
+  RetentionNoticeProps,
+} from "./portal";
 
 export type EmailContent = { subject: string; html: string; text: string };
 
@@ -38,3 +61,23 @@ export const renderTwoFactorCodeEmail = (props: TwoFactorCodeEmailProps) => buil
 /** Daily job, before a prepaid (Pix/boleto) contract ends. */
 export const renderExpiryReminderEmail = (props: ExpiryReminderEmailProps) =>
   build(expiryCopy.subject(formatDate(props.contract.endsAt)), createElement(ExpiryReminderEmail, props), expiryText(props));
+
+// ---------- Customer area ----------
+
+function portal<P>(message: (props: P) => PortalMessage) {
+  return (props: P) => {
+    const m = message(props);
+    return build(m.subject, createElement(PortalEmail, { m }), portalText(m, footer));
+  };
+}
+
+/** Activation link: first password for the customer area (manual customers and resent invites). */
+export const renderPortalInviteEmail = portal(portalInviteMessage);
+/** Better Auth magicLink sendMagicLink. */
+export const renderMagicLinkEmail = portal(magicLinkMessage);
+export const renderGuidePublishedEmail = portal(guidePublishedMessage);
+export const renderGuideDueEmail = portal(guideDueMessage);
+export const renderDocumentsOpenEmail = portal(documentsOpenMessage);
+export const renderDocumentsReminderEmail = portal(documentsReminderMessage);
+export const renderDocumentRejectedEmail = portal(documentRejectedMessage);
+export const renderRetentionNoticeEmail = portal(retentionNoticeMessage);

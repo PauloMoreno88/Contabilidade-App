@@ -1,5 +1,6 @@
-import { LoginForm } from "@/components/admin/LoginForm";
+import { Redirect } from "@/components/common/Redirect";
 
-export default function LoginPage() {
-  return <LoginForm />;
+/** Old address: sign-in moved to /entrar (one entrance for customers and the team). */
+export default function Page() {
+  return <Redirect to="/entrar" />;
 }

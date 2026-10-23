@@ -38,8 +38,8 @@ export const nav = {
     { href: "/blog", label: "Blog" },
     { href: "/#contato", label: "Contato" },
   ],
-  // One entrance for customers and the Exactra team. Today only the admin panel exists.
-  platform: { href: "/admin/login", label: "Acessar plataforma" },
+  // One entrance for customers (área do cliente) and the Exactra team.
+  platform: { href: "/entrar", label: "Acessar plataforma" },
   openMenu: "Abrir menu",
   closeMenu: "Fechar menu",
 };

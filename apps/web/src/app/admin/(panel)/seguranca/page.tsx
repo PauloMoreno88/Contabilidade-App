@@ -1,5 +1,9 @@
+"use client";
+
+import { useAdminSession } from "@/components/admin/AdminShell";
 import { TwoFactorSettings } from "@/components/admin/TwoFactorSettings";
 
 export default function SecurityPage() {
-  return <TwoFactorSettings />;
+  const { user, reload } = useAdminSession();
+  return <TwoFactorSettings user={user} reload={reload} />;
 }
