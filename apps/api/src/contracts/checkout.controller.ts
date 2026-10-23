@@ -43,6 +43,13 @@ export class CheckoutController {
 
     const lead = input.leadId ? await prisma.lead.findUnique({ where: { id: input.leadId } }) : null;
     const { customer } = input;
+    const document = customer.document.replace(/\D/g, '');
+    // A returning customer (same CPF/CNPJ and e-mail, already with a login) keeps the same company,
+    // so the new contract shows up in the customer area they already use.
+    const returning = await prisma.customer.findFirst({
+      where: { document, email: { equals: customer.email, mode: 'insensitive' }, members: { some: {} } },
+      orderBy: { createdAt: 'desc' },
+    });
     const contract = await prisma.contract.create({
       data: {
         plan: input.plan,
@@ -50,18 +57,13 @@ export class CheckoutController {
         method: input.method,
         amountCents: totalPriceCents(input.plan),
         statusToken: randomBytes(24).toString('base64url'),
-        customer: {
-          create: {
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            document: customer.document.replace(/\D/g, ''),
-            consentAt: new Date(),
-            leadId: lead?.id,
-          },
-        },
+        customer: returning
+          ? { connect: { id: returning.id } }
+          : { create: { name: customer.name, email: customer.email, phone: customer.phone, document, consentAt: new Date(), leadId: lead?.id } },
       },
     });
+    // The checkout consent is new for this purchase too.
+    if (returning) await prisma.customer.update({ where: { id: returning.id }, data: { consentAt: new Date() } });
 
     try {
       const query = `contract=${contract.id}&token=${contract.statusToken}`;
@@ -79,7 +81,7 @@ export class CheckoutController {
       return { contractId: contract.id, checkoutUrl: session.url, statusToken: contract.statusToken };
     } catch (err) {
       await prisma.contract.delete({ where: { id: contract.id } });
-      await prisma.customer.delete({ where: { id: contract.customerId } });
+      if (!returning) await prisma.customer.delete({ where: { id: contract.customerId } });
       throw err;
     }
   }

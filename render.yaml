@@ -66,6 +66,15 @@ services:
         sync: false
       - key: EMAIL_ASSET_BASE_URL # URL pública do site (logo dos e-mails)
         sync: false
+      # Arquivos da área do cliente (Cloudflare R2). Sem eles, envio e download de arquivos ficam desligados.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
 
   # ---------------------------------------------------------------- Site (Next.js, export estático)
   - type: web

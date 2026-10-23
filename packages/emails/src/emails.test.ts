@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  renderDocumentRejectedEmail,
+  renderDocumentsOpenEmail,
+  renderDocumentsReminderEmail,
+  renderGuideDueEmail,
+  renderGuidePublishedEmail,
+  renderMagicLinkEmail,
+  renderPortalInviteEmail,
+  renderRetentionNoticeEmail,
   renderExpiryReminderEmail,
   renderNewContractNotice,
   renderPasswordResetEmail,
@@ -82,5 +90,41 @@ describe("e-mails", () => {
     expectSafe(e);
     expect(e.html).toContain("/checkout?plan=essencial");
     expect(e.subject).toContain("04/10/2027");
+  });
+});
+
+describe("customer area e-mails", () => {
+  const url = "https://www.exactracontabilidade.com.br/app/guias";
+  const guide = { type: "DAS", competence: "2026-10", amountCents: 41250, dueDate: "2026-11-20" } as const;
+
+  it("welcome carries the activation link when given", async () => {
+    const e = await renderWelcomeEmail({ customerName: "Ana", contract: prepaid, activation: { url: "https://www.exactracontabilidade.com.br/entrar/ativar?token=abc", expiresInDays: 7 } });
+    for (const s of [e.html, e.text]) expect(s).toContain("/entrar/ativar?token=abc");
+    expect(e.text).toContain("Ativar meu acesso");
+  });
+
+  it("invite, magic link and notices escape data", async () => {
+    const all = await Promise.all([
+      renderPortalInviteEmail({ name: evil, companyName: evil, url: "https://x.com/entrar/ativar?token=1", expiresInDays: 7 }),
+      renderMagicLinkEmail({ name: evil, url: "https://api.x.com/api/auth/magic-link/verify?token=1", expiresInMinutes: 15 }),
+      renderGuidePublishedEmail({ customerName: evil, guide: { ...guide, label: evil }, url }),
+      renderGuideDueEmail({ customerName: "Ana", guide, url, daysLeft: 0 }),
+      renderDocumentsOpenEmail({ customerName: "Ana", competence: "2026-10", dueDate: "2026-11-10", items: [evil], url }),
+      renderDocumentsReminderEmail({ customerName: "Ana", competence: "2026-10", dueDate: "2026-11-10", items: ["Extratos"], url, daysLeft: 1 }),
+      renderDocumentRejectedEmail({ customerName: "Ana", competence: "2026-10", title: "Extratos", reason: "illegible", note: evil, url }),
+      renderRetentionNoticeEmail({ customerName: "Ana", competence: "2025-10", deletesOn: "2026-11-01", url }),
+    ]);
+    all.forEach(expectSafe);
+    await expect(renderMagicLinkEmail({ name: "A", url: "javascript:alert(1)", expiresInMinutes: 5 })).rejects.toThrow(/Unsafe URL/);
+  });
+
+  it("formats date-only values without shifting the day", async () => {
+    const e = await renderGuidePublishedEmail({ customerName: "Ana", guide, url });
+    expect(e.subject).toBe("Nova guia: DAS, vence em 20/11/2026");
+    expect(e.text).toContain("Competência: outubro de 2026");
+    expect(e.text).toMatch(/Valor: R\$\s412,50/);
+    expect((await renderGuideDueEmail({ customerName: "Ana", guide, url, daysLeft: 0 })).subject).toBe("DAS vence hoje");
+    const rem = await renderDocumentsReminderEmail({ customerName: "Ana", competence: "2026-10", dueDate: "2026-11-10", items: ["A", "B"], url, daysLeft: 3 });
+    expect(rem.subject).toBe("Faltam 2 documentos de outubro de 2026");
   });
 });
