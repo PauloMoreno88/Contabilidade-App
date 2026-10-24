@@ -7,3 +7,4 @@ export * from "./content";
 export * from "./barcode";
 export * from "./portal";
 export * from "./portal-admin";
+export * from "./tax-id";

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ArrowLeft, Plus, Search } from "lucide-react";
-import { todayInSaoPaulo, type AdminCustomersQuery } from "@exactra/shared";
+import { isValidTaxId, todayInSaoPaulo, type AdminCustomersQuery } from "@exactra/shared";
 import { adminCopy } from "@/config/admin";
 import { accessLabels, adminPortalCopy } from "@/config/admin-portal";
 import { api, ApiError } from "@/lib/api";
@@ -79,6 +79,7 @@ export function NewCustomerForm() {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const reais = String(f.get("amount") || "0").replace(/\./g, "").replace(",", ".");
+    if (!isValidTaxId(String(f.get("document")))) return setError(c.invalidDocument);
     setBusy(true);
     try {
       const { id } = await api.adminCreateCustomer({

@@ -49,6 +49,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 30 | Área do cliente: escopo e visual | v1: Início (tarefas por urgência), Documentos, Guias, Plano, Empresa e primeiro acesso (3 passos, perfil pulável). Admin: Visão do mês, clientes, ficha, publicar guia, checklist. Fora: certificado digital e senhas de prefeitura (#61), chat, relatórios. Visual: mesma marca, Figtree na interface, Source Serif só em saudações e valores; **vermelho só para ação e urgência**, verde para "em dia"; a guia é desenhada como canhoto de arrecadação. Sem protótipo HTML antes (decisão do usuário) |
 | 31 | Checklist: quando um item novo começa | Ao criar um item (modelo ou só de um cliente), o admin escolhe **"Vale a partir de"**: **Agora** (entra na competência aberta das empresas cujo mês já foi gerado, sem e-mail novo; se o prazo já passou, aparece atrasado) ou um dos 6 meses seguintes. Nunca um mês passado. Padrão: próximo mês. Desligar e mudar textos continuam valendo a partir do próximo mês. Campo `startsCompetence` (null nos itens antigos = todo mês). Decisão de 24/10/2026 |
 | 32 | E-mails de renovação | Quando um novo contrato é pago por uma empresa que já teve contrato iniciado, o cliente e a Exactra recebem confirmação de renovação com o novo período; as instruções de primeira contratação e a origem do lead não aparecem. Um contrato anterior que nunca iniciou não conta como renovação. Decisão de 24/10/2026 |
+| 33 | CPF e CNPJ | Checkout e cadastro manual conferem os **dígitos verificadores** (`isValidTaxId` em `@exactra/shared`). Aceita o **CNPJ alfanumérico** (em vigor desde julho de 2026): o documento é guardado só com letras e números, em maiúsculas. Decisão de 24/10/2026 |
 
 ## 3. Arquitetura alvo
 
@@ -148,6 +149,7 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [ ] Conta e bucket no Cloudflare R2, CORS e variáveis no Render (usuário)
 - [ ] Teste ponta a ponta com a API real e o R2 (staging)
 - [ ] Respostas do contador (#62) e revisão dos textos pela Exactra
+- [x] Página de fluxos para teste manual e apresentação (`docs/fluxos.html`) e testes Playwright dos 8 fluxos no staging (`e2e/`, 24/10/2026)
 - [ ] Depois: upload de guias em lote, importação de clientes por planilha, WhatsApp automático, certificado digital (#61)
 
 ## 7. Como os agentes trabalham

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { contact, footer } from "@/config/site";
+import { contact, footer, phoneLink } from "@/config/site";
 import { Brand } from "./Brand";
 
 export function Footer() {
@@ -24,8 +24,8 @@ export function Footer() {
           <div>
             <h4 className="mb-3 text-[0.95rem] font-bold text-ink">{footer.contactTitle}</h4>
             <ul className="grid gap-2">
-              <li>{contact.phone}</li>
-              <li className="break-all">{contact.email}</li>
+              <li><a href={phoneLink()} className="hover:text-ink">{contact.phone}</a></li>
+              <li className="break-all"><a href={`mailto:${contact.email}`} className="hover:text-ink">{contact.email}</a></li>
               <li>{contact.address}</li>
             </ul>
           </div>

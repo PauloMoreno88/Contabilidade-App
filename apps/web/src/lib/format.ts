@@ -1,3 +1,5 @@
+import { normalizeTaxId } from "@exactra/shared";
+
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 const brlCents = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -32,8 +34,8 @@ export const formatBytes = (bytes: number) =>
 
 /** "12.345.678/0001-90" or "123.456.789-09". */
 export const formatDocument = (doc: string) => {
-  const d = doc.replace(/\D/g, "");
-  if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  const d = normalizeTaxId(doc);
+  if (d.length === 14) return d.replace(/^(\w{2})(\w{3})(\w{3})(\w{4})(\d{2})$/, "$1.$2.$3/$4-$5");
   if (d.length === 11) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
   return doc;
 };

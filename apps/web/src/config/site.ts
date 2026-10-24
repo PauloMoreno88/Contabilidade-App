@@ -21,7 +21,7 @@ type Item = { title: string; text: string };
 type IconItem = Item & { icon: LucideIcon };
 
 // Contact data and the onboarding timeline are shared with the e-mails (packages/emails).
-export { contact, onboarding, whatsappLink } from "@exactra/shared";
+export { contact, onboarding, phoneLink, whatsappLink } from "@exactra/shared";
 
 export const seo = {
   title: "Exactra Contabilidade | A contabilidade que mostra quanto sobra para você",

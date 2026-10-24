@@ -18,6 +18,9 @@ export function whatsappLink(text: string = contact.whatsappText) {
   return `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(text)}`;
 }
 
+/** tel: link for the phone shown on the site (Brazilian number, +55). */
+export const phoneLink = () => `tel:+55${contact.phone.replace(/\D/g, "")}`;
+
 /** "Contratei. E agora?" timeline and the documents usually requested. */
 export const onboarding = {
   title: "Contratei. E agora?",

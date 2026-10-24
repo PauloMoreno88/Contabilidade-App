@@ -6,14 +6,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import { MessageCircle } from "lucide-react";
 import { whatsappLink } from "@exactra/shared";
 import { authCopy } from "@/config/auth";
-import { AUTH_IS_MOCK, authClient, homeFor } from "@/lib/auth";
+import { AUTH_IS_MOCK, authClient } from "@/lib/auth";
+import { destinationFor, safeNext } from "@/lib/redirect";
 import { AuthCard, Field, FormError } from "./AuthCard";
 
 const copy = authCopy;
 type Step = "password" | "link" | "linkSent" | "totp" | "otp" | "backup";
 
-/** Only paths inside the site, so ?next= cannot send people elsewhere. */
-const safeNext = (next: string | null) => (next && next.startsWith("/") && !next.startsWith("//") ? next : null);
 
 /**
  * One entrance for customers and the team. E-mail + password (then the second factor: app,
@@ -32,15 +31,12 @@ export function SignInForm() {
 
   // Already signed in: go straight in.
   useEffect(() => {
-    authClient.getSession().then(({ data }) => data?.user && router.replace(next ?? homeFor(data.user.role)));
+    authClient.getSession().then(({ data }) => data?.user && router.replace(destinationFor(data.user.role, next)));
   }, [router, next]);
 
   async function enter() {
     const { data } = await authClient.getSession();
-    const role = data?.user.role;
-    // A customer cannot land on /admin (and the reverse) even with ?next=.
-    const fits = next && (role === "admin" ? next.startsWith("/admin") : next.startsWith("/app"));
-    router.replace(fits ? next : homeFor(role));
+    router.replace(destinationFor(data?.user.role, next));
   }
 
   async function submitPassword(e: FormEvent<HTMLFormElement>) {

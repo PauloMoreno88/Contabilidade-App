@@ -32,7 +32,7 @@ const mails = () => sent.mock.calls.map(([e]) => e);
 
 const DAY = 86400_000;
 const admin = { email: 'equipe@exactra.test', password: 'senha-forte-123' };
-const CNPJ = '12345678000190';
+const CNPJ = '12345678000195';
 
 /** Valid 48-digit DAS line (value id 8, mod 11) for the given amount. */
 function dasLine(amountCents: number) {
@@ -113,7 +113,7 @@ describe('customer area (e2e)', () => {
         plan: 'exactra',
         period: 'ANNUAL',
         method: 'PIX',
-        customer: { name: 'Marina Costa', email: 'Marina@Cliente.test', phone: '21988887777', document: '12.345.678/0001-90' },
+        customer: { name: 'Marina Costa', email: 'Marina@Cliente.test', phone: '21988887777', document: '12.345.678/0001-95' },
         consent: true,
       })
       .expect(201);
@@ -221,7 +221,7 @@ describe('customer area (e2e)', () => {
     const [y, m, d] = due.split('-');
     const pdf = pdfWithText([
       'Documento de Arrecadacao do Simples Nacional',
-      'CNPJ 12.345.678/0001-90',
+      'CNPJ 12.345.678/0001-95',
       'Periodo de Apuracao 10/2026',
       `Pagar este documento ate ${d}/${m}/${y}`,
       'Valor Total do Documento 412,50',
@@ -316,7 +316,7 @@ describe('customer area (e2e)', () => {
     const today = todayInSaoPaulo();
     const nextYear = `${Number(today.slice(0, 4)) + 1}${today.slice(4)}`;
     const { id } = (
-      await as(adminCookie).post('/admin/customers', { name: 'Padaria Sol', email: 'dono@padaria.test', phone: '11955554444', document: '98.765.432/0001-10', startsAt: today, endsAt: nextYear }).expect(201)
+      await as(adminCookie).post('/admin/customers', { name: 'Padaria Sol', email: 'dono@padaria.test', phone: '11955554444', document: '98.765.432/0001-98', startsAt: today, endsAt: nextYear }).expect(201)
     ).body;
     expect(mails()[0]).toMatchObject({ to: 'dono@padaria.test', subject: 'Ative seu acesso à área do cliente da Exactra' });
     const c = await prisma.customer.findUniqueOrThrow({ where: { id }, include: { contracts: true } });
@@ -326,7 +326,7 @@ describe('customer area (e2e)', () => {
     const token = tokenFrom(mails().at(-1)!.text);
     await http().post('/account/activate').send({ token, password: 'padaria-123' }).expect(200);
     await as(adminCookie).post(`/admin/customers/${id}/invite`).expect(409);
-    await as(adminCookie).post('/admin/customers', { name: 'Outra Sol', email: 'x@padaria.test', phone: '11955554444', document: '98765432000110', startsAt: today, endsAt: nextYear }).expect(409);
+    await as(adminCookie).post('/admin/customers', { name: 'Outra Sol', email: 'x@padaria.test', phone: '11955554444', document: '98765432000198', startsAt: today, endsAt: nextYear }).expect(409);
 
     const padaria = await signIn('dono@padaria.test', 'padaria-123');
     const company = portalCompanySchema.parse((await as(padaria).get('/app/company').expect(200)).body);
@@ -413,7 +413,7 @@ describe('customer area (e2e)', () => {
         plan: 'exactra',
         period: 'ANNUAL',
         method: 'BOLETO',
-        customer: { name: 'Marina Costa', email: 'marina@cliente.test', phone: '21988887777', document: '12.345.678/0001-90' },
+        customer: { name: 'Marina Costa', email: 'marina@cliente.test', phone: '21988887777', document: '12.345.678/0001-95' },
         consent: true,
       })
       .expect(201);

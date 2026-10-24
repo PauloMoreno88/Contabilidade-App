@@ -29,8 +29,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const reload = useCallback(async () => {
     const { data } = await authClient.getSession();
-    if (data?.user.role === "admin") setUser(data.user);
-    else router.replace(`/entrar?next=${encodeURIComponent(pathname)}`);
+    if (!data?.user) return router.replace(`/entrar?next=${encodeURIComponent(pathname)}`);
+    if (data.user.role !== "admin") return router.replace("/app");
+    setUser(data.user);
   }, [router, pathname]);
 
   useEffect(() => {
