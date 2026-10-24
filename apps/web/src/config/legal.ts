@@ -139,7 +139,16 @@ export const termsOfUse: LegalDoc = {
     {
       title: "Responsabilidades da Exactra",
       paragraphs: [
-        "A Exactra presta os serviços contábeis descritos no plano contratado, seguindo as normas da profissão. [Limites de responsabilidade a definir.]", // PLACEHOLDER
+        "A Exactra presta os serviços contábeis descritos no plano contratado, seguindo as normas da profissão, e entrega as guias e declarações dentro dos prazos legais quando recebe as informações e os documentos a tempo.",
+        "Se uma multa ou juros forem cobrados por erro ou atraso da Exactra, a Exactra paga esse valor. Os impostos em si são sempre devidos pela sua empresa, mesmo quando a guia é calculada pela Exactra.",
+        "A Exactra não responde por:",
+      ],
+      items: [
+        "multas, juros ou cobranças causados por informações erradas, incompletas ou enviadas fora do prazo combinado;",
+        "guias que a Exactra entregou no prazo e que não foram pagas até o vencimento;",
+        "decisões de órgãos públicos, mudanças na lei e falhas ou atrasos em sistemas do governo, como a Receita Federal, a Junta Comercial e a prefeitura;",
+        "fatos anteriores ao início do contrato, como declarações e pagamentos de períodos em que outro contador cuidava da empresa, salvo se a correção fizer parte do serviço contratado;",
+        "decisões de negócio que você tomar com base nas informações contábeis, inclusive na estimativa do simulador.",
       ],
     },
     {
