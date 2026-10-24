@@ -84,18 +84,23 @@ Dois agentes paralelos, cada um em seu worktree e sua branch, saindo de `feat/ap
 pnpm install
 pnpm --filter web dev        # Next.js
 pnpm --filter api start:dev  # NestJS
+pnpm test                    # todos os testes unitários e e2e do API (Vitest)
 pnpm --filter shared test    # Vitest
+pnpm --filter web test       # unitários do front (src/lib)
+pnpm --filter api test:unit  # unitários do API (src/**/*.test.ts)
 pnpm --filter api test:e2e
+pnpm --filter e2e staging    # fluxos completos no staging (Playwright); e-mails esperados: pnpm --filter e2e emails
 ```
 
 `pnpm --filter api ...` só funciona depois que o scaffold do Nest existir. Ajuste esta seção se os nomes dos scripts mudarem.
 
 ## 8. Testes e ambientes
 
-- Vitest em `packages/shared` (principalmente o cálculo do simulador).
+- Vitest em `packages/shared` (simulador, linha digitável, CPF/CNPJ, competências), `packages/emails` e `apps/web/src/lib` (formatação, blog, destino após o login).
+- Unitários do API ao lado do código (`src/**/*.test.ts`: leitura de guias, datas de contrato, serialização); `pnpm --filter api test` roda eles e os e2e.
 - e2e do Nest com supertest e banco de teste.
 - Webhooks com fixtures do Stripe e Stripe CLI.
-- Smoke com Playwright no funil, no final.
+- Fluxos completos com Playwright em `e2e/` (24/10/2026), contra o staging publicado: os 8 fluxos de `docs/fluxos.html`. Logins de teste em `e2e/.env` (fora do Git). Não leem e-mail: registram os envios esperados para conferência manual. Detalhes em `e2e/README.md`.
 - Ambientes: local (branch de dev no Neon, Stripe em modo teste) e produção.
 - Cada app tem `.env.example`. **Nunca** commitar segredos ou `.env`.
 

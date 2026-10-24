@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { extractText, getDocumentProxy } from 'unpdf';
-import { findBarcodeLines, type GuideParseResult, type GuideType } from '@exactra/shared';
+import { findBarcodeLines, normalizeTaxId, type GuideParseResult, type GuideType } from '@exactra/shared';
 
 const log = new Logger('GuideParser');
 
@@ -71,10 +71,10 @@ export function parseGuideText(text: string, customerDocument: string): GuidePar
   if (line && !line.amountCents) warnings.push('A linha digitável não traz valor. Digite o valor da guia.');
   else if (line && !amountMatchesText) warnings.push('O valor da linha digitável não aparece no PDF. Confira antes de publicar.');
 
-  const documentsFound = [
-    ...new Set([...text.matchAll(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g)].map((m) => m[0].replace(/\D/g, ''))),
-  ];
-  const own = customerDocument.replace(/\D/g, '');
+  // Numeric CNPJ (with or without punctuation), alphanumeric CNPJ (punctuated only, to skip plain words) and CPF.
+  const documentPattern = /\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b|\b[0-9A-Z]{2}\.[0-9A-Z]{3}\.[0-9A-Z]{3}\/[0-9A-Z]{4}-\d{2}\b|\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g;
+  const documentsFound = [...new Set([...text.matchAll(documentPattern)].map((m) => normalizeTaxId(m[0])))];
+  const own = normalizeTaxId(customerDocument);
   // The CNPJ base (8 digits) is enough: branches share it.
   const documentMatches = documentsFound.length
     ? documentsFound.some((d) => d === own || (d.length === 14 && own.length === 14 && d.slice(0, 8) === own.slice(0, 8)))

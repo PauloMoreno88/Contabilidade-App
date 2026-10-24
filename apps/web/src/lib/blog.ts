@@ -48,7 +48,7 @@ function slugify(text: string) {
     .replace(/^-|-$/g, "");
 }
 
-function parseFrontMatter(raw: string, file: string) {
+export function parseFrontMatter(raw: string, file: string) {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(raw);
   if (!match) throw new Error(`${file}: missing front matter`);
   const data: Record<string, string> = {};
@@ -65,7 +65,7 @@ function parseFrontMatter(raw: string, file: string) {
 
 const cells = (line: string) => line.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
 
-function parseBody(body: string): Block[] {
+export function parseBody(body: string): Block[] {
   const lines = body.split(/\r?\n/);
   const blocks: Block[] = [];
   let i = 0;
@@ -112,7 +112,7 @@ function parseBody(body: string): Block[] {
 }
 
 /** Questions under the "Perguntas frequentes" heading: each ### and the paragraph after it. */
-function extractFaq(blocks: Block[]): Faq[] {
+export function extractFaq(blocks: Block[]): Faq[] {
   const start = blocks.findIndex((b) => b.type === "h2" && b.text === FAQ_HEADING);
   if (start < 0) return [];
   const faq: Faq[] = [];

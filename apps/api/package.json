@@ -14,7 +14,8 @@
     "db:deploy": "prisma migrate deploy",
     "lint": "tsc --noEmit && oxlint --type-aware src/ test/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "test": "vitest run --config vitest.config.e2e.ts",
+    "test": "vitest run && vitest run --config vitest.config.e2e.ts",
+    "test:unit": "vitest run",
     "test:e2e": "vitest run --config vitest.config.e2e.ts"
   },
   "dependencies": {

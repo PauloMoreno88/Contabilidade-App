@@ -4,6 +4,7 @@ import {
   addMonthsToCompetence,
   canRenew,
   competenceLabel,
+  competenceShort,
   createGuideSchema,
   createUploadSchema,
   currentDocumentsCompetence,
@@ -14,6 +15,7 @@ import {
   itemApplies,
   itemStarted,
   retentionDeletionDate,
+  todayInSaoPaulo,
   uploadContentType,
 } from "./portal";
 
@@ -74,6 +76,16 @@ describe("barcode line", () => {
     const text = `Documento de Arrecadação do Simples Nacional\nCNPJ 12.345.678/0001-90\nValor Total R$ 412,50\n${formatBarcodeLine(line)}\nPagar até 20/11/2026`;
     expect(findBarcodeLines(text).map((l) => l.line)).toEqual([line]);
   });
+
+  it("finds two lines printed one after the other", () => {
+    const a = arrecadacao("8", 41250);
+    const b = arrecadacao("8", 10000);
+    const text = `Guia
+${formatBarcodeLine(a)}
+${formatBarcodeLine(b)}
+Pagar até 20/11/2026`;
+    expect(findBarcodeLines(text).map((l) => l.line)).toEqual([a, b]);
+  });
 });
 
 describe("competence", () => {
@@ -99,6 +111,10 @@ describe("competence", () => {
     expect(competenceLabel("2026-03")).toBe("março de 2026");
     expect(daysUntil("2026-11-20", new Date("2026-11-17T12:00:00Z"))).toBe(3);
     expect(daysUntil("2026-11-20", new Date("2026-11-21T02:00:00Z"))).toBe(0);
+    expect(competenceShort("2026-03")).toBe("mar/2026");
+    // 02:00 UTC is still the previous day in São Paulo.
+    expect(todayInSaoPaulo(new Date("2026-11-21T02:00:00Z"))).toBe("2026-11-20");
+    expect(todayInSaoPaulo(new Date("2026-11-21T03:00:00Z"))).toBe("2026-11-21");
   });
 });
 
@@ -154,6 +170,9 @@ describe("guides and documents", () => {
     expect(uploadContentType("Extrato Outubro.PDF")).toBe("application/pdf");
     expect(uploadContentType("foto.heic")).toBe("image/heic");
     expect(uploadContentType("site.html")).toBeNull();
+    // Only the extension counts: a file called "pdf" or "nota.pdf.exe" is not a PDF.
+    expect(uploadContentType("pdf")).toBeNull();
+    expect(uploadContentType("nota.pdf.exe")).toBeNull();
     expect(createUploadSchema.safeParse({ purpose: "document", fileName: "a.exe", sizeBytes: 10 }).success).toBe(false);
     expect(createUploadSchema.safeParse({ purpose: "document", fileName: "a.pdf", sizeBytes: 26 * 1024 * 1024 }).success).toBe(false);
   });

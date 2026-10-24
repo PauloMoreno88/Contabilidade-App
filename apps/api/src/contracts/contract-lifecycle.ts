@@ -2,9 +2,14 @@ import { PERIOD_MONTHS } from '@exactra/shared';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { PaymentEvent } from '../payments/payment-provider.js';
 
+/** Same day N months later (UTC). A day the target month lacks (31st, 29/02) becomes its last day. */
 export function addMonths(date: Date, months: number): Date {
   const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDay));
   return d;
 }
 
