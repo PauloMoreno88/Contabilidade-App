@@ -48,7 +48,7 @@ export const UPLOAD_TYPES: Record<string, string> = {
   txt: "text/plain",
 };
 
-export const fileExtension = (fileName: string) => fileName.split(".").pop()?.toLowerCase() ?? "";
+export const fileExtension = (fileName: string) => (fileName.includes(".") ? fileName.split(".").pop()!.toLowerCase() : "");
 
 /** Content type from the extension, never from the browser. null when the type is not accepted. */
 export const uploadContentType = (fileName: string): string | null => UPLOAD_TYPES[fileExtension(fileName)] ?? null;

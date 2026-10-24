@@ -1,9 +1,9 @@
 /**
  * DRAFT legal texts. Not reviewed by a lawyer: everything here must be
  * validated before launch. Bracketed items ([...]) are PLACEHOLDERS for
- * company data Exactra still has to provide.
+ * data Exactra still has to provide.
  */
-import { contact } from "./site";
+import { company as exactra, contact } from "./site";
 
 export type LegalSection = { title: string; paragraphs?: string[]; items?: string[] };
 export type LegalDoc = { title: string; updatedAt: string; intro: string; sections: LegalSection[] };
@@ -14,11 +14,11 @@ export const legalCopy = {
   otherDoc: { privacy: { href: "/termos", label: "Ler os termos de uso" }, terms: { href: "/privacidade", label: "Ler a política de privacidade" } },
 };
 
-const company = "[Razão social da Exactra], CNPJ [00.000.000/0001-00], com sede em [endereço completo]"; // PLACEHOLDER
+const company = `${exactra.legalName}, CNPJ ${exactra.cnpj}, com sede na ${contact.address}`;
 
 export const privacyPolicy: LegalDoc = {
   title: "Política de privacidade",
-  updatedAt: "23/10/2026",
+  updatedAt: "24/10/2026",
   intro: `Esta política explica quais dados pessoais a Exactra Contabilidade (${company}) coleta no site, para que usa e quais são os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).`,
   sections: [
     {
@@ -87,7 +87,7 @@ export const privacyPolicy: LegalDoc = {
     {
       title: "Contato",
       paragraphs: [
-        `Para exercer seus direitos ou tirar dúvidas, escreva para ${contact.email}. Encarregado pelo tratamento de dados: [nome do encarregado].`, // PLACEHOLDER
+        `Para exercer seus direitos ou tirar dúvidas, escreva para ${contact.email}. Encarregado pelo tratamento de dados: Yann Farias, sócio da Exactra.`,
       ],
     },
   ],
@@ -95,7 +95,7 @@ export const privacyPolicy: LegalDoc = {
 
 export const termsOfUse: LegalDoc = {
   title: "Termos de uso",
-  updatedAt: "23/10/2026",
+  updatedAt: "24/10/2026",
   intro: `Estes termos valem para o uso do site e para a contratação online dos serviços da Exactra Contabilidade (${company}). Ao contratar, você declara que leu e concorda com eles.`,
   sections: [
     {
@@ -108,7 +108,7 @@ export const termsOfUse: LegalDoc = {
       title: "Planos e preços",
       paragraphs: [
         "Os serviços incluídos no plano e o preço são os informados no site no momento da contratação e valem durante todo o contrato, mesmo que o seu faturamento aumente. Mudanças de plano ou de preço só valem para novas contratações e renovações.",
-        "A Exactra cuida da contabilidade de empresas que já têm CNPJ. A abertura de empresas não faz parte do plano.",
+        "O plano inclui a abertura da empresa para quem ainda não tem CNPJ e a declaração do Imposto de Renda da pessoa física. As taxas cobradas por órgãos públicos na abertura (Junta Comercial, prefeitura e outros) são pagas por quem contrata e não fazem parte do preço do plano."
       ],
     },
     {
@@ -139,7 +139,16 @@ export const termsOfUse: LegalDoc = {
     {
       title: "Responsabilidades da Exactra",
       paragraphs: [
-        "A Exactra presta os serviços contábeis descritos no plano contratado, seguindo as normas da profissão. [Limites de responsabilidade a definir.]", // PLACEHOLDER
+        "A Exactra presta os serviços contábeis descritos no plano contratado, seguindo as normas da profissão, e entrega as guias e declarações dentro dos prazos legais quando recebe as informações e os documentos a tempo.",
+        "Se uma multa ou juros forem cobrados por erro ou atraso da Exactra, a Exactra paga esse valor. Os impostos em si são sempre devidos pela sua empresa, mesmo quando a guia é calculada pela Exactra.",
+        "A Exactra não responde por:",
+      ],
+      items: [
+        "multas, juros ou cobranças causados por informações erradas, incompletas ou enviadas fora do prazo combinado;",
+        "guias que a Exactra entregou no prazo e que não foram pagas até o vencimento;",
+        "decisões de órgãos públicos, mudanças na lei e falhas ou atrasos em sistemas do governo, como a Receita Federal, a Junta Comercial e a prefeitura;",
+        "fatos anteriores ao início do contrato, como declarações e pagamentos de períodos em que outro contador cuidava da empresa, salvo se a correção fizer parte do serviço contratado;",
+        "decisões de negócio que você tomar com base nas informações contábeis, inclusive na estimativa do simulador.",
       ],
     },
     {
@@ -148,7 +157,7 @@ export const termsOfUse: LegalDoc = {
     },
     {
       title: "Foro",
-      paragraphs: ["Fica eleito o foro da comarca de [cidade/UF] para resolver qualquer questão sobre estes termos."], // PLACEHOLDER
+      paragraphs: [`Fica eleito o foro da comarca de ${exactra.forum} para resolver qualquer questão sobre estes termos.`],
     },
   ],
 };

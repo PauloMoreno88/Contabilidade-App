@@ -15,9 +15,6 @@ const realClient = createAuthClient({
 
 export const AUTH_IS_MOCK = USE_MOCK;
 
-/** Where each role lands after signing in. */
-export const homeFor = (role?: string | null) => (role === "admin" ? "/admin/mes" : "/app");
-
 // ---- Mock (NEXT_PUBLIC_USE_MOCK=true), password exactra123, 2FA code 123456 ----
 // admin@exactra.com.br (team) and cliente@exactra.com.br (customer area).
 // 2FA starts off; turn it on in the security page to exercise the second step of the login.

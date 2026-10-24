@@ -32,6 +32,7 @@ import {
   daysUntil,
   documentsDueDate,
   guideStatus,
+  normalizeTaxId,
   parseBarcodeLine,
   rejectDocumentSchema,
   todayInSaoPaulo,
@@ -277,7 +278,7 @@ export class AdminPortalController {
   @Post('customers')
   @HttpCode(201)
   async createCustomer(@Body(new ZodPipe(createManualCustomerSchema)) input: z.output<typeof createManualCustomerSchema>) {
-    const document = input.document.replace(/\D/g, '');
+    const document = normalizeTaxId(input.document);
     const duplicate = await prisma.customer.findFirst({ where: { document, contracts: { some: { status: { in: ['ACTIVE', 'PAST_DUE'] } } } } });
     if (duplicate) throw new ConflictException('Já existe um cliente ativo com este CPF/CNPJ.');
     const customer = await prisma.customer.create({

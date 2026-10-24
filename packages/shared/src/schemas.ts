@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS, STORED_PLAN_IDS } from "./enums";
 import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
+import { isValidTaxId } from "./tax-id";
 
 export const utmSchema = z
   .object({
@@ -37,7 +38,7 @@ export const createCheckoutSchema = z.object({
     name: z.string().min(2).max(120),
     email: z.string().email(),
     phone: z.string().min(10).max(20),
-    document: z.string().min(11).max(18), // CPF or CNPJ
+    document: z.string().min(11).max(18).refine(isValidTaxId), // CPF or CNPJ
   }),
   leadId: z.string().optional(),
   consent: z.literal(true),

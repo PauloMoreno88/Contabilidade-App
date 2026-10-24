@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, STORED_PLAN_IDS } from "./enums";
 import { paginated } from "./admin";
+import { isValidTaxId } from "./tax-id";
 import {
   ACCESS_LEVELS,
   checklistAppliesToSchema,
@@ -156,7 +157,7 @@ export const createManualCustomerSchema = z
     name: z.string().trim().min(2).max(120),
     email: z.string().trim().toLowerCase().email(),
     phone: z.string().min(10).max(20),
-    document: z.string().min(11).max(18),
+    document: z.string().min(11).max(18).refine(isValidTaxId, "CPF ou CNPJ inválido"),
     startsAt: dateOnlySchema,
     endsAt: dateOnlySchema,
     /** What the customer pays outside the site (for the records). 0 when unknown. */

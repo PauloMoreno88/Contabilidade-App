@@ -113,8 +113,9 @@ export function formatBarcodeLine(input: string): string {
 /** Every valid line in a block of text (e.g. extracted from a PDF). */
 export function findBarcodeLines(text: string): BarcodeInfo[] {
   const found = new Map<string, BarcodeInfo>();
-  // Digit runs joined by spaces, dots or dashes, long enough to hold a whole line.
-  for (const m of text.matchAll(/\d[\d .\-\n]{45,80}\d/g)) {
+  // Digit runs joined by spaces, dots or dashes, long enough to hold a whole line
+  // (up to a few lines printed one after the other).
+  for (const m of text.matchAll(/\d[\d .\-\n]{45,250}\d/g)) {
     const digits = onlyDigits(m[0]);
     for (const len of [48, 47]) {
       for (let i = 0; i + len <= digits.length; i++) {

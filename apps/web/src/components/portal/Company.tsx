@@ -40,6 +40,8 @@ function SaveButton({ state, disabled }: { state: Save; disabled?: boolean }) {
 function CompanyView({ c }: { c: PortalCompany }) {
   const { me, writable } = usePortal();
   const [phone, setPhone] = useState(c.phone);
+  // Last phone saved, so typing the previous one back after a save can be saved too.
+  const [savedPhone, setSavedPhone] = useState(c.phone);
   const [profile, setProfile] = useState<CompanyProfile>(c.profile ?? emptyProfile);
   const [phoneState, setPhoneState] = useState<Save>("idle");
   const [profileState, setProfileState] = useState<Save>("idle");
@@ -51,8 +53,10 @@ function CompanyView({ c }: { c: PortalCompany }) {
     try {
       await api.updateCompany(input);
       set("saved");
+      return true;
     } catch {
       set("error");
+      return false;
     }
   }
 
@@ -63,7 +67,7 @@ function CompanyView({ c }: { c: PortalCompany }) {
           className="px-5 py-5"
           onSubmit={(e) => {
             e.preventDefault();
-            save({ phone }, setPhoneState);
+            save({ phone }, setPhoneState).then((ok) => ok && setSavedPhone(phone));
           }}
         >
           <dl className="grid gap-4 text-[0.92rem] sm:grid-cols-2">
@@ -84,7 +88,7 @@ function CompanyView({ c }: { c: PortalCompany }) {
           <label htmlFor="phone" className="mb-1.5 mt-5 block text-[0.86rem] text-muted">{copy.phone}</label>
           <div className="flex flex-wrap items-center gap-3">
             <input id="phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} minLength={10} maxLength={20} disabled={!writable} className="field-input max-w-[260px] bg-surface" />
-            {writable && <SaveButton state={phoneState} disabled={phone === c.phone} />}
+            {writable && <SaveButton state={phoneState} disabled={phone === savedPhone} />}
           </div>
         </form>
       </Panel>

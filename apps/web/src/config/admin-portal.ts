@@ -59,6 +59,7 @@ export const adminPortalCopy = {
     sendInvite: "Enviar agora o e-mail para o cliente criar a senha",
     submit: "Cadastrar",
     error: "Não foi possível cadastrar. Confira os dados.",
+    invalidDocument: "CPF ou CNPJ inválido. Confira os números.",
     back: "Voltar para clientes",
   },
   file: {

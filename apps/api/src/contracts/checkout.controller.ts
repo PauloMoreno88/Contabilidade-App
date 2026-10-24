@@ -15,6 +15,7 @@ import { randomBytes } from 'node:crypto';
 import {
   allowedPeriods,
   createCheckoutSchema,
+  normalizeTaxId,
   totalPriceCents,
   type CheckoutResponse,
   type ContractStatusResponse,
@@ -43,7 +44,7 @@ export class CheckoutController {
 
     const lead = input.leadId ? await prisma.lead.findUnique({ where: { id: input.leadId } }) : null;
     const { customer } = input;
-    const document = customer.document.replace(/\D/g, '');
+    const document = normalizeTaxId(customer.document);
     // A returning customer (same CPF/CNPJ and e-mail, already with a login) keeps the same company,
     // so the new contract shows up in the customer area they already use.
     const returning = await prisma.customer.findFirst({

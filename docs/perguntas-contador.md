@@ -26,14 +26,14 @@ Enquanto não houver resposta, o desenvolvimento segue com valores fictícios e 
 
 ## C. Operação e onboarding
 
-16. Quais documentos pedimos ao cliente após a contratação, por perfil (abertura de CNPJ, migração de contador, PF)?
-17. Qual o prazo para o primeiro contato e para a contabilidade começar?
+16. Quais documentos pedimos ao cliente após a contratação, por perfil (abertura de CNPJ, migração de contador, PF)? **Respondido em 24/10/2026: cinco grupos, em `onboarding.docGroups`.**
+17. Qual o prazo para o primeiro contato e para a contabilidade começar? **Respondido em 24/10/2026: primeiro contato em até 1 dia útil; a contabilidade começa junto.**
 18. Qual WhatsApp e quais e-mails devem receber os avisos de nova contratação e a notificação interna?
-19. Qual o horário de atendimento a exibir no site?
+19. Qual o horário de atendimento a exibir no site? **Respondido em 24/10/2026: 8h às 18h (exibido como seg a sex).**
 
 ## D. Dados jurídicos e institucionais
 
-20. Dados oficiais da empresa para o rodapé e para o contrato: razão social, CNPJ, CRC, endereço.
+20. Dados oficiais da empresa para o rodapé e para o contrato: razão social, CNPJ, CRC, endereço. **Respondido em 24/10/2026 (`company` e `contact` em `content.ts`; foro Rio de Janeiro/RJ).**
 21. Existe contrato de prestação de serviços padrão? Pode enviar para colocarmos na página de checkout?
 22. Política de privacidade e termos de uso: já existem, ou precisamos de rascunho para revisão jurídica?
 23. Quem é o responsável legal pela conta de pagamentos (Stripe) e pelo domínio?

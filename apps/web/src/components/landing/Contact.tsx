@@ -1,5 +1,5 @@
 import { MessageCircle } from "lucide-react";
-import { contact, contactSection as copy, images, whatsappLink } from "@/config/site";
+import { contact, contactSection as copy, images, phoneLink, whatsappLink } from "@/config/site";
 
 /** Dark contact band over an office photo. No form: WhatsApp, phone and e-mail. */
 export function Contact() {
@@ -12,7 +12,9 @@ export function Contact() {
         <div>
           <h2 className="font-serif text-[clamp(2rem,3.6vw,2.8rem)] leading-[1.1] font-semibold">{copy.title}</h2>
           <p className="mt-3 max-w-[48ch] text-on-navy">{copy.text}</p>
-          <p className="mt-2.5 font-serif text-[clamp(2rem,3.4vw,2.6rem)] font-semibold tabular-nums">{contact.phone}</p>
+          <p className="mt-2.5 font-serif text-[clamp(2rem,3.4vw,2.6rem)] font-semibold tabular-nums">
+            <a href={phoneLink()} className="hover:text-on-navy">{contact.phone}</a>
+          </p>
           <a href={whatsappLink()} target="_blank" rel="noopener" className="btn mt-[22px] bg-wa text-[#05210f] hover:bg-wa-dark">
             <MessageCircle size={20} aria-hidden="true" />
             {copy.whatsapp}
@@ -22,7 +24,9 @@ export function Contact() {
           <dl className="grid gap-5">
             <div>
               <dt className="text-[0.88rem] font-semibold text-on-navy-faint">{copy.emailLabel}</dt>
-              <dd className="mt-1 break-all text-[1.1rem]">{contact.email}</dd>
+              <dd className="mt-1 break-all text-[1.1rem]">
+                <a href={`mailto:${contact.email}`} className="underline-offset-4 hover:underline">{contact.email}</a>
+              </dd>
             </div>
             <div>
               <dt className="text-[0.88rem] font-semibold text-on-navy-faint">{copy.hoursLabel}</dt>
