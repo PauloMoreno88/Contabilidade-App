@@ -328,7 +328,6 @@
         '<b>Guia vencida:</b> aparece como "Vencida", com o botão para pedir uma nova pelo WhatsApp; a equipe vê o cliente no filtro "Guia vencida".',
         '<b>Remover guia</b> na ficha: o cliente deixa de ver o PDF e o código.',
         '<b>Item só deste cliente:</b> na aba Checklist da ficha, crie um item só para ele ou desligue um modelo.',
-        '<b>A Exactra também envia arquivos</b> para o cliente; eles aparecem como "A Exactra enviou".',
         '<b>Cliente remove um arquivo</b> enviado por engano ("Remover"): o item volta para "Falta enviar" se ficar sem arquivo.',
         '<b>Mês anterior:</b> em Documentos, o seletor "Mês" mostra os meses passados para consulta.',
         '<b>Avisos ao publicar guia:</b> publique uma guia escolhendo o cliente errado (aviso "O CPF/CNPJ da guia não é o deste cliente"), uma guia sem linha digitável ("será publicada só com o PDF") e um PDF escaneado ("O PDF não tem texto"). Digitar um valor diferente do da linha bloqueia a publicação.',
@@ -393,7 +392,7 @@
         {a:'cliente', short:'Vê o plano', what:'Lê o card do Plano Exactra e as dúvidas frequentes.', where:'Página inicial, Plano e Dúvidas', expect:'Preço, contrato anual e o que está incluído. Nenhuma foto de pessoas na página.'},
         {a:'cliente', short:'Lê o blog', what:'Abre o Blog, filtra por um assunto e abre um artigo.', where:'/blog e /blog/artigo', expect:'O filtro mostra só os artigos do assunto. O artigo tem foto, data, texto revisado e um convite para simular.'},
         {a:'cliente', short:'Do artigo ao simulador', what:'Clica no convite do artigo para simular.', where:'Artigo', expect:'Leva ao simulador da página inicial.'},
-        {a:'cliente', short:'Fala com a Exactra', what:'Usa os botões de WhatsApp (flutuante, bloco do WhatsApp e Contato) e os links de telefone e e-mail.', where:'Página inicial, Contato', expect:'O WhatsApp abre com a mensagem pronta; telefone e e-mail abrem o app do celular. Não há formulário de contato.'},
+        {a:'cliente', short:'Fala com a Exactra', what:'Usa os botões de WhatsApp (flutuante, bloco do WhatsApp e Contato) e toca no telefone e no e-mail.', where:'Página inicial, Contato', expect:'O WhatsApp abre com a mensagem pronta; o telefone abre a ligação e o e-mail abre o programa de e-mail. Não há formulário de contato.'},
         {a:'cliente', short:'Lê termos e privacidade', what:'Abre a política de privacidade e os termos pelo rodapé.', where:'/privacidade e /termos', expect:'As duas páginas abrem. Ainda são rascunho, sem revisão jurídica.'},
         {a:'cliente', short:'Acessa a plataforma', what:'Clica em "Acessar plataforma" no topo e no rodapé.', where:'Topo e rodapé', expect:'Os dois levam para a entrada única, /entrar.'}
       ]
@@ -412,8 +411,7 @@
         {a:'equipe', short:'Abre um contrato', what:'Abre o detalhe de um contrato que veio do simulador.', where:'/admin/contrato', expect:'Dados do cliente, período, valor, histórico de pagamentos e o bloco "Veio do simulador" com o faturamento informado.'},
         {a:'equipe', short:'Exporta o CSV', what:'Clica em "Exportar CSV" com um filtro aplicado.', where:'/admin', expect:'Baixa contratos-exactra.csv só com os contratos filtrados, abrindo certo no Excel.'},
         {a:'equipe', short:'Confere os leads', what:'Abre Leads e busca um nome.', where:'/admin/leads', expect:'Nome, WhatsApp, faturamento, plano sugerido, origem do anúncio (ou "Direto") e data.'},
-        {a:'equipe', short:'Lembretes do cliente', what:'Na ficha do cliente, confere os dados e o perfil e desliga e religa os lembretes automáticos.', where:'/admin/cliente, aba Acesso e dados', expect:'Com os lembretes desligados, o cliente vê "Lembretes por e-mail desligados pela equipe da Exactra" em Empresa e acesso.'},
-        {a:'equipe', short:'Envia um arquivo', what:'Na aba Documentos da ficha, envia um arquivo para o cliente.', where:'/admin/cliente', expect:'O cliente vê o arquivo como "A Exactra enviou".'}
+        {a:'equipe', short:'Lembretes do cliente', what:'Na ficha do cliente, confere os dados e o perfil e desliga e religa os lembretes automáticos.', where:'/admin/cliente, aba Acesso e dados', expect:'Com os lembretes desligados, o cliente vê "Lembretes por e-mail desligados pela equipe da Exactra" em Empresa e acesso.'}
       ]
     },
     {
