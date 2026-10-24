@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AlertCircle, ArrowLeft, Check, Upload } from "lucide-react";
 import {
+  addMonthsToCompetence,
   competenceLabel,
+  currentDocumentsCompetence,
   GUIDE_TYPE_LABELS,
   planInfo,
   REJECTION_REASONS,
@@ -21,6 +23,7 @@ import { api, ApiError } from "@/lib/api";
 import { formatBRLExact, formatDate, formatDay, formatDocument } from "@/lib/format";
 import { FileList, openSigned } from "@/components/portal/files";
 import { useLoad } from "../useLoad";
+import { StartPicker, startsLater } from "./ChecklistTemplates";
 
 const copy = adminPortalCopy.file;
 const TABS = ["documents", "guides", "access", "checklist"] as const;
@@ -57,7 +60,7 @@ export function CustomerFile() {
           {copy.publish}
         </Link>
       </div>
-      <div role="tablist" className="mb-5 flex gap-1 overflow-x-auto border-b border-line">
+      <div role="tablist" className="mb-5 flex flex-wrap gap-x-1 border-b border-line">
         {TABS.map((t) => (
           <button
             key={t}
@@ -289,6 +292,7 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
 function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => void }) {
   const [title, setTitle] = useState("");
   const [required, setRequired] = useState(true);
+  const [start, setStart] = useState(() => addMonthsToCompetence(currentDocumentsCompetence(), 1));
   const toggle = async (itemId: string, off: boolean) => {
     const ids = off ? [...c.disabledItemIds, itemId] : c.disabledItemIds.filter((x) => x !== itemId);
     await api.adminUpdateCustomer(c.id, { disabledItemIds: ids }).catch(() => undefined);
@@ -300,7 +304,10 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
       <ul className="overflow-hidden rounded-[14px] border border-line bg-surface">
         {c.checklist.map((i) => (
           <li key={i.id} className={`flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 py-3 text-[0.88rem] last:border-b-0 ${!i.applies || i.disabled ? "text-faint" : ""}`}>
-            <span className="min-w-[200px] flex-1 font-medium">{i.title}</span>
+            <span className="min-w-[200px] flex-1 font-medium">
+              {i.title}
+              {startsLater(i) && <span className="block text-[0.78rem] font-normal text-faint">{startsLater(i)}</span>}
+            </span>
             <span className="text-[0.8rem]">{i.required ? portalCopy.documents.required : portalCopy.documents.optional}</span>
             <span className="text-[0.8rem]">{i.customerId ? copy.own : i.disabled ? copy.disabled : i.applies ? copy.applies : copy.notApplies}</span>
             {i.customerId ? (
@@ -325,7 +332,7 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
         onSubmit={async (e) => {
           e.preventDefault();
           if (title.trim().length < 2) return;
-          await api.adminCreateChecklistItem({ title: title.trim(), required, appliesTo: {}, customerId: c.id }).catch(() => undefined);
+          await api.adminCreateChecklistItem({ title: title.trim(), required, appliesTo: {}, customerId: c.id, startsCompetence: start }).catch(() => undefined);
           setTitle("");
           onChange();
         }}
@@ -339,6 +346,9 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
           {copy.itemRequired}
         </label>
         <button type="submit" className="btn btn-navy px-4 py-2.5 text-[0.88rem]">{copy.add}</button>
+        <div className="basis-full">
+          <StartPicker value={start} onChange={setStart} />
+        </div>
       </form>
     </>
   );

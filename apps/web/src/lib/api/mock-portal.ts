@@ -9,6 +9,7 @@ import {
   guideStatus,
   addMonthsToCompetence,
   itemApplies,
+  itemStarted,
   retentionDeletionDate,
   todayInSaoPaulo,
   uploadContentType,
@@ -54,18 +55,18 @@ type MockCustomer = {
 };
 type State = { customers: MockCustomer[]; items: ChecklistItem[]; requests: MockRequest[]; files: MockFile[]; guides: MockGuide[] };
 
-const KEY = "mock-portal-v1";
+const KEY = "mock-portal-v2";
 export const MOCK_CUSTOMER_ID = "cus_marina";
 
 function seed(): State {
   const comp = currentDocumentsCompetence();
   const prev = addMonthsToCompetence(comp, -1);
   const items: ChecklistItem[] = [
-    { id: "tpl_extratos", title: "Extratos bancários", description: "Extrato do mês inteiro de cada conta da empresa, em PDF ou OFX.", required: true, appliesTo: {}, active: true, sortOrder: 10, customerId: null },
-    { id: "tpl_notas_servico", title: "Notas fiscais de serviço emitidas", description: "Se emitiu nota fora do sistema da prefeitura que acompanhamos, envie o PDF ou o XML.", required: false, appliesTo: { activities: ["servicos", "ambos"] }, active: true, sortOrder: 20, customerId: null },
-    { id: "tpl_notas_compra", title: "Notas fiscais de compra", description: "XML ou PDF das notas de mercadorias e insumos comprados no mês.", required: true, appliesTo: { activities: ["comercio", "ambos"] }, active: true, sortOrder: 30, customerId: null },
-    { id: "tpl_folha", title: "Ponto e ocorrências dos funcionários", description: "Folha de ponto, faltas, horas extras, férias, admissões e desligamentos do mês.", required: true, appliesTo: { hasEmployees: true }, active: true, sortOrder: 40, customerId: null },
-    { id: "tpl_despesas", title: "Comprovantes de despesas", description: "Aluguel, contas e outras despesas pagas pela empresa. Ajuda a fechar o mês com mais precisão.", required: false, appliesTo: {}, active: true, sortOrder: 50, customerId: null },
+    { id: "tpl_extratos", title: "Extratos bancários", description: "Extrato do mês inteiro de cada conta da empresa, em PDF ou OFX.", required: true, appliesTo: {}, active: true, sortOrder: 10, customerId: null, startsCompetence: null },
+    { id: "tpl_notas_servico", title: "Notas fiscais de serviço emitidas", description: "Se emitiu nota fora do sistema da prefeitura que acompanhamos, envie o PDF ou o XML.", required: false, appliesTo: { activities: ["servicos", "ambos"] }, active: true, sortOrder: 20, customerId: null, startsCompetence: null },
+    { id: "tpl_notas_compra", title: "Notas fiscais de compra", description: "XML ou PDF das notas de mercadorias e insumos comprados no mês.", required: true, appliesTo: { activities: ["comercio", "ambos"] }, active: true, sortOrder: 30, customerId: null, startsCompetence: null },
+    { id: "tpl_folha", title: "Ponto e ocorrências dos funcionários", description: "Folha de ponto, faltas, horas extras, férias, admissões e desligamentos do mês.", required: true, appliesTo: { hasEmployees: true }, active: true, sortOrder: 40, customerId: null, startsCompetence: null },
+    { id: "tpl_despesas", title: "Comprovantes de despesas", description: "Aluguel, contas e outras despesas pagas pela empresa. Ajuda a fechar o mês com mais precisão.", required: false, appliesTo: {}, active: true, sortOrder: 50, customerId: null, startsCompetence: null },
   ];
   const names = ["Estúdio Marina Costa", "Padaria Sol Nascente", "Rocha Engenharia", "Clínica Prado", "Nunes Tecnologia", "Ateliê Reis"];
   const customers: MockCustomer[] = names.map((name, i) => ({
@@ -114,7 +115,7 @@ function seed(): State {
 
 function ensure(s: State, c: MockCustomer, competence: string) {
   for (const item of s.items) {
-    if (!item.active || (item.customerId && item.customerId !== c.id) || c.disabledItemIds.includes(item.id)) continue;
+    if (!item.active || !itemStarted(item.startsCompetence, competence) || (item.customerId && item.customerId !== c.id) || c.disabledItemIds.includes(item.id)) continue;
     if (!item.customerId && !itemApplies(checklistAppliesToSchema.parse(item.appliesTo), c.profile)) continue;
     if (s.requests.some((r) => r.customerId === c.id && r.competence === competence && r.itemId === item.id)) continue;
     s.requests.push({
@@ -122,6 +123,12 @@ function ensure(s: State, c: MockCustomer, competence: string) {
       required: item.required, dueDate: documentsDueDate(competence), status: "PENDING", rejection: null,
     });
   }
+}
+
+/** "Agora": items started in the open competence reach the companies whose month already exists. */
+function addToOpenMonth(s: State) {
+  const comp = currentDocumentsCompetence();
+  for (const c of s.customers) if (s.requests.some((r) => r.customerId === c.id && r.competence === comp)) ensure(s, c, comp);
 }
 
 let cache: State | null = null;
@@ -534,8 +541,10 @@ export const mockPortalApi: PortalApi = {
     const item: ChecklistItem = {
       id: uid("itm"), title: input.title, description: input.description ?? null, required: input.required ?? true, appliesTo: input.appliesTo ?? {},
       active: input.active ?? true, sortOrder: input.sortOrder ?? 100, customerId: input.customerId ?? null,
+      startsCompetence: input.startsCompetence ?? addMonthsToCompetence(currentDocumentsCompetence(), 1),
     };
     state().items.push(item);
+    addToOpenMonth(state());
     save();
     return item;
   },
@@ -544,6 +553,7 @@ export const mockPortalApi: PortalApi = {
     const item = state().items.find((i) => i.id === id);
     if (!item) throw new ApiError(404, "Not Found");
     Object.assign(item, Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)));
+    if (input.startsCompetence) addToOpenMonth(state());
     save();
     return item;
   },

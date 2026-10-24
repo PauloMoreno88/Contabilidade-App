@@ -299,19 +299,21 @@ model StoredFile {
 
 /// Checklist template (customerId null) or an extra item of one company.
 model ChecklistItem {
-  id          String            @id @default(cuid())
-  customerId  String?
-  customer    Customer?         @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  required    Boolean           @default(true)
+  id               String            @id @default(cuid())
+  customerId       String?
+  customer         Customer?         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  required         Boolean           @default(true)
   /// ChecklistAppliesTo from @exactra/shared.
-  appliesTo   Json              @default("{}")
-  active      Boolean           @default(true)
-  sortOrder   Int               @default(100)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  requests    DocumentRequest[]
+  appliesTo        Json              @default("{}")
+  active           Boolean           @default(true)
+  sortOrder        Int               @default(100)
+  /// First competence (YYYY-MM) that asks for it. null = every month.
+  startsCompetence String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  requests         DocumentRequest[]
 
   @@index([customerId])
 }

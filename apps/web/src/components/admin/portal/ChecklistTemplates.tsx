@@ -2,10 +2,21 @@
 
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
-import { ACTIVITIES, type ChecklistItem, type UpsertChecklistItemInput } from "@exactra/shared";
+import {
+  ACTIVITIES,
+  addMonthsToCompetence,
+  competenceLabel,
+  currentDocumentsCompetence,
+  daysUntil,
+  documentsDueDate,
+  itemStarted,
+  type ChecklistItem,
+  type UpsertChecklistItemInput,
+} from "@exactra/shared";
 import { adminCopy } from "@/config/admin";
 import { adminPortalCopy } from "@/config/admin-portal";
 import { api } from "@/lib/api";
+import { formatDay } from "@/lib/format";
 import { useLoad } from "../useLoad";
 
 const copy = adminPortalCopy.checklist;
@@ -18,7 +29,38 @@ const appliesText = (i: ChecklistItem) => {
   return parts.length ? parts.join(", ") : copy.appliesAll;
 };
 
-/** Monthly checklist templates. Changes apply to the next checklist generated (requests keep their text). */
+/** Item that only starts in a later competence: "A partir de março de 2027". */
+export const startsLater = (i: ChecklistItem) =>
+  itemStarted(i.startsCompetence, currentDocumentsCompetence()) ? null : copy.startsFrom(competenceLabel(i.startsCompetence!));
+
+/** "Vale a partir de": the open competence ("Agora") or one of the next six. Never a past one. */
+export function StartPicker({ value, onChange }: { value: string; onChange: (competence: string) => void }) {
+  const current = currentDocumentsCompetence();
+  const options = Array.from({ length: 7 }, (_, n) => addMonthsToCompetence(current, n));
+  const due = documentsDueDate(current);
+  return (
+    <div className="text-[0.88rem]">
+      <label className="flex flex-wrap items-center gap-2">
+        <span className="text-[0.82rem] text-muted">{copy.startsAt}</span>
+        <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded-lg border border-line bg-surface px-2 py-1">
+          {options.map((c, n) => (
+            <option key={c} value={c}>
+              {n === 0 ? copy.startsNow(competenceLabel(c)) : n === 1 ? copy.startsNext(competenceLabel(c)) : competenceLabel(c)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {value === current && (
+        <p className="mt-1.5 text-[0.8rem] text-muted">
+          {copy.nowNote}
+          {daysUntil(due) < 0 && ` ${copy.lateNote(formatDay(due))}`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Monthly checklist templates. New items start now or in a chosen month; text changes apply to the next checklist (requests keep their text). */
 export function ChecklistTemplates() {
   const items = useLoad(() => api.adminChecklistItems(), []);
   const [editing, setEditing] = useState<ChecklistItem | "new" | null>(null);
@@ -49,7 +91,10 @@ export function ChecklistTemplates() {
                 <span className="min-w-[240px] flex-1">
                   <span className="font-semibold">{i.title}</span>
                   {i.description && <span className="block text-[0.82rem] text-muted">{i.description}</span>}
-                  <span className="mt-1 block text-[0.78rem] text-faint">{copy.appliesTo}: {appliesText(i)}</span>
+                  <span className="mt-1 block text-[0.78rem] text-faint">
+                    {copy.appliesTo}: {appliesText(i)}
+                    {startsLater(i) && `. ${startsLater(i)}`}
+                  </span>
                 </span>
                 <span className="text-[0.82rem]">{i.required ? copy.required : copy.optional}</span>
                 <span className="text-[0.82rem]">{i.active ? copy.active : copy.inactive}</span>
@@ -75,6 +120,9 @@ export function ChecklistTemplates() {
 
 function ItemForm({ item, onDone }: { item?: ChecklistItem; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
+  // Items already in effect keep their start; new or not yet started ones can choose it.
+  const pickStart = !item || !itemStarted(item.startsCompetence, currentDocumentsCompetence());
+  const [start, setStart] = useState(item?.startsCompetence ?? addMonthsToCompetence(currentDocumentsCompetence(), 1));
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -86,6 +134,7 @@ function ItemForm({ item, onDone }: { item?: ChecklistItem; onDone: () => void }
       required: f.get("required") === "on",
       sortOrder: Number(f.get("sortOrder")) || 100,
       appliesTo: { ...(activities.length && activities.length < 3 ? { activities } : {}), ...(emp === "any" ? {} : { hasEmployees: emp === "yes" }) },
+      ...(pickStart ? { startsCompetence: start } : {}),
     };
     setBusy(true);
     await (item ? api.adminUpdateChecklistItem(item.id, input) : api.adminCreateChecklistItem(input)).catch(() => undefined);
@@ -122,6 +171,11 @@ function ItemForm({ item, onDone }: { item?: ChecklistItem; onDone: () => void }
           {copy.required}
         </label>
       </fieldset>
+      {pickStart && (
+        <div className="sm:col-span-2">
+          <StartPicker value={start} onChange={setStart} />
+        </div>
+      )}
       <div className="flex gap-2 sm:col-span-2">
         <button type="submit" disabled={busy} className="btn btn-navy px-4 py-2 text-[0.88rem]">{copy.save}</button>
         <button type="button" onClick={onDone} className="btn btn-ghost px-4 py-2 text-[0.88rem]">{copy.cancel}</button>

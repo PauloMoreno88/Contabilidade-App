@@ -12,6 +12,7 @@ import {
   documentsDueDate,
   guideStatus,
   itemApplies,
+  itemStarted,
   retentionDeletionDate,
   uploadContentType,
 } from "./portal";
@@ -165,5 +166,12 @@ describe("guides and documents", () => {
     expect(itemApplies({ activities: ["servicos"] }, servicos)).toBe(true);
     expect(itemApplies({ hasEmployees: true }, null)).toBe(false);
     expect(itemApplies({}, null)).toBe(true);
+  });
+
+  it("starts an item from its first competence", () => {
+    expect(itemStarted(null, "2026-09")).toBe(true);
+    expect(itemStarted("2026-09", "2026-09")).toBe(true);
+    expect(itemStarted("2026-10", "2026-09")).toBe(false);
+    expect(itemStarted("2026-10", "2027-01")).toBe(true);
   });
 });
