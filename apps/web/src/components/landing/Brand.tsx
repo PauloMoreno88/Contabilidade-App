@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-export function Brand() {
+export function Brand({ href = "/" }: { href?: string }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
+    <Link href={href} className="flex items-center gap-2.5">
       <span className="grid size-10 place-items-center rounded-[10px] bg-navy p-[7px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/trace.svg" alt="" className="h-auto w-full" />

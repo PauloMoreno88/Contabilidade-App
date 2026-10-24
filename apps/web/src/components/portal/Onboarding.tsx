@@ -50,7 +50,7 @@ export function Onboarding() {
   return (
     <div className="min-h-dvh bg-bg">
       <header className="mx-auto flex max-w-[640px] items-center justify-between px-4 py-5 sm:px-6">
-        <Brand />
+        <Brand href="/app" />
         <p className="text-[0.84rem] text-faint">{copy.step(step + 1, copy.steps.length)}</p>
       </header>
       <main className="mx-auto max-w-[640px] px-4 pb-16 sm:px-6">
