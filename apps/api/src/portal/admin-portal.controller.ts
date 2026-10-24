@@ -17,6 +17,7 @@ import { renderDocumentRejectedEmail, renderGuidePublishedEmail } from '@exactra
 import { randomBytes } from 'node:crypto';
 import type { z } from 'zod';
 import {
+  addMonthsToCompetence,
   adminCustomersQuerySchema,
   adminMonthQuerySchema,
   checklistAppliesToSchema,
@@ -54,7 +55,7 @@ import { prisma } from '../db.js';
 import { Prisma, type ChecklistItem } from '../generated/prisma/client.js';
 import { StorageProvider } from '../storage/storage-provider.js';
 import { ZodPipe } from '../zod.pipe.js';
-import { checklistFor, documentsMonth, ensureRequests, profileOf } from './documents.js';
+import { addItemToOpenMonth, checklistFor, documentsMonth, ensureRequests, profileOf } from './documents.js';
 import { extractPdfText, parseGuideText } from './guide-parser.js';
 import { isActivated, sendInvite } from './invites.js';
 import { portalLink, sendToCompany } from './notify.js';
@@ -87,6 +88,7 @@ const toItem = (i: ChecklistItem): ChecklistItemDto => ({
   active: i.active,
   sortOrder: i.sortOrder,
   customerId: i.customerId,
+  startsCompetence: i.startsCompetence,
 });
 
 const lastSeen = (members: { lastSeenAt: Date | null }[]) => {
@@ -470,15 +472,27 @@ export class AdminPortalController {
   @HttpCode(201)
   async createItem(@Body(new ZodPipe(upsertChecklistItemSchema)) input: UpsertItem): Promise<ChecklistItemDto> {
     if (input.customerId && !(await prisma.customer.count({ where: { id: input.customerId } }))) throw new NotFoundException('Cliente não encontrado.');
-    return toItem(await prisma.checklistItem.create({ data: { ...input, description: input.description ?? null, customerId: input.customerId ?? null } }));
+    const current = currentDocumentsCompetence();
+    const startsCompetence = input.startsCompetence ?? addMonthsToCompetence(current, 1);
+    if (startsCompetence < current) throw new BadRequestException('O item não pode começar num mês que já passou.');
+    const item = await prisma.checklistItem.create({ data: { ...input, description: input.description ?? null, customerId: input.customerId ?? null, startsCompetence } });
+    await addItemToOpenMonth(item);
+    return toItem(item);
   }
 
-  /** Changes apply from the next month's checklist; requests already created keep their text. */
+  /**
+   * Text changes apply from the next month's checklist; requests already created keep their text.
+   * Moving the start to the open competence adds the item to it now.
+   */
   @Patch('checklist-items/:id')
   async updateItem(@Param('id') id: string, @Body(new ZodPipe(patchItemSchema)) input: Partial<UpsertItem>): Promise<ChecklistItemDto> {
     const { customerId: _ignored, ...data } = input;
-    const exists = await prisma.checklistItem.count({ where: { id } });
-    if (!exists) throw new NotFoundException();
-    return toItem(await prisma.checklistItem.update({ where: { id }, data }));
+    const before = await prisma.checklistItem.findUnique({ where: { id } });
+    if (!before) throw new NotFoundException();
+    const moved = data.startsCompetence !== undefined && data.startsCompetence !== before.startsCompetence;
+    if (moved && data.startsCompetence! < currentDocumentsCompetence()) throw new BadRequestException('O item não pode começar num mês que já passou.');
+    const item = await prisma.checklistItem.update({ where: { id }, data });
+    if (moved) await addItemToOpenMonth(item);
+    return toItem(item);
   }
 }

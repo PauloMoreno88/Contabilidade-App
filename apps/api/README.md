@@ -134,7 +134,7 @@ Admin da área do cliente (`src/portal/admin-portal.controller.ts`, papel `admin
 | `POST /admin/guides/parse { fileId }` | lê o PDF e sugere tipo, competência, vencimento, valor e linha digitável. **Não publica** |
 | `POST /admin/guides` / `DELETE /admin/guides/:id` | publica (e-mail ao cliente) / remove guia publicada por engano |
 | `GET /admin/customers/:id/guides` | guias do cliente |
-| `GET|POST /admin/checklist-items`, `PATCH /admin/checklist-items/:id` | modelos do checklist (`customerId` = item só daquela empresa) |
+| `GET|POST /admin/checklist-items`, `PATCH /admin/checklist-items/:id` | modelos do checklist (`customerId` = item só daquela empresa; `startsCompetence` = primeira competência, a aberta entra na hora, nunca uma passada) |
 
 Travas da guia (decisão 25): a linha só é aceita se **todos** os dígitos verificadores baterem (`parseBarcodeLine`, arrecadação mod 10/11 e boleto); com linha, o valor digitado tem de ser o da linha (**400**); o leitor avisa quando o valor da linha não aparece no PDF e quando o CPF/CNPJ do PDF não é o do cliente; quem publica é sempre uma pessoa.
 

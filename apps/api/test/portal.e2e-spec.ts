@@ -1,6 +1,7 @@
 import request from 'supertest';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import {
+  addMonthsToCompetence,
   adminCustomerDetailSchema,
   adminMonthPageSchema,
   currentDocumentsCompetence,
@@ -290,6 +291,25 @@ describe('customer area (e2e)', () => {
     expect(patched.remindersEnabled).toBe(false);
     expect(patched.checklist.find((i) => i.id === despesas.id)!.disabled).toBe(true);
     await as(adminCookie).patch(`/admin/customers/${customerId}`, { remindersEnabled: true }).expect(200);
+  });
+
+  it('checklist items start now, in a later month, or never in the past', async () => {
+    const current = currentDocumentsCompetence();
+    const titles = async () => documentsMonthSchema.parse((await as(customerCookie).get('/app/documents').expect(200)).body).requests.map((r) => r.title);
+    const post = (title: string, startsCompetence?: string) =>
+      as(adminCookie).post('/admin/checklist-items', { title, required: false, appliesTo: {}, customerId, ...(startsCompetence ? { startsCompetence } : {}) });
+
+    await post('Item de mês que passou', addMonthsToCompetence(current, -1)).expect(400);
+    const later = (await post('Item do próximo mês').expect(201)).body;
+    expect(later.startsCompetence).toBe(addMonthsToCompetence(current, 1));
+    await post('Item de agora', current).expect(201);
+    expect(await titles()).toContain('Item de agora');
+    expect(await titles()).not.toContain('Item do próximo mês');
+
+    // Moving a later item to the open month adds it right away.
+    await as(adminCookie).patch(`/admin/checklist-items/${later.id}`, { startsCompetence: current }).expect(200);
+    expect(await titles()).toContain('Item do próximo mês');
+    await as(adminCookie).patch(`/admin/checklist-items/${later.id}`, { startsCompetence: addMonthsToCompetence(current, -2) }).expect(400);
   });
 
   it('manual customers get a login and an invite; resending refuses an activated account', async () => {

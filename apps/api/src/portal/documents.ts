@@ -4,6 +4,7 @@ import {
   currentDocumentsCompetence,
   documentsDueDate,
   itemApplies,
+  itemStarted,
   retentionDeletionDate,
   type CompanyProfile,
   type DocumentsMonth,
@@ -17,18 +18,52 @@ export const profileOf = (c: Pick<Customer, 'profile'>): CompanyProfile | null =
   return parsed.success ? parsed.data : null;
 };
 
-/** Templates (minus the ones turned off) that fit the profile, plus the company's own items. */
-export async function checklistFor(customer: Pick<Customer, 'id' | 'profile' | 'disabledItemIds'>): Promise<{ item: ChecklistItem; applies: boolean; disabled: boolean }[]> {
+type ChecklistCustomer = Pick<Customer, 'id' | 'profile' | 'disabledItemIds'>;
+
+const itemFits = (item: ChecklistItem, customer: ChecklistCustomer) =>
+  item.customerId !== null || itemApplies(checklistAppliesToSchema.parse(item.appliesTo), profileOf(customer));
+
+/**
+ * Templates (minus the ones turned off) that fit the profile, plus the company's own items.
+ * With a competence, only the items already started in it.
+ */
+export async function checklistFor(customer: ChecklistCustomer, competence?: string): Promise<{ item: ChecklistItem; applies: boolean; disabled: boolean }[]> {
   const items = await prisma.checklistItem.findMany({
     where: { active: true, OR: [{ customerId: null }, { customerId: customer.id }] },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
   });
-  const profile = profileOf(customer);
-  return items.map((item) => ({
-    item,
-    applies: item.customerId !== null || itemApplies(checklistAppliesToSchema.parse(item.appliesTo), profile),
-    disabled: customer.disabledItemIds.includes(item.id),
-  }));
+  return items
+    .filter((item) => !competence || itemStarted(item.startsCompetence, competence))
+    .map((item) => ({ item, applies: itemFits(item, customer), disabled: customer.disabledItemIds.includes(item.id) }));
+}
+
+/**
+ * "Agora": adds one item to the open competence of the companies whose month already exists
+ * (the others get it when their month is created). No e-mail: the month's notice already went out.
+ */
+export async function addItemToOpenMonth(item: ChecklistItem): Promise<number> {
+  const competence = currentDocumentsCompetence();
+  if (!item.active || !itemStarted(item.startsCompetence, competence)) return 0;
+  const customers = await prisma.customer.findMany({
+    where: { ...(item.customerId ? { id: item.customerId } : {}), documentRequests: { some: { competence } } },
+    select: { id: true, profile: true, disabledItemIds: true },
+  });
+  const targets = customers.filter((c) => itemFits(item, c) && !c.disabledItemIds.includes(item.id));
+  if (!targets.length) return 0;
+  const due = fromDateOnly(documentsDueDate(competence));
+  const { count } = await prisma.documentRequest.createMany({
+    data: targets.map((c) => ({
+      customerId: c.id,
+      itemId: item.id,
+      competence,
+      title: item.title,
+      description: item.description,
+      required: item.required,
+      dueDate: due,
+    })),
+    skipDuplicates: true,
+  });
+  return count;
 }
 
 /**
@@ -36,14 +71,14 @@ export async function checklistFor(customer: Pick<Customer, 'id' | 'profile' | '
  * the daily job and the first page view can both call it. Items already created are not changed.
  */
 export async function ensureRequests(
-  customer: Pick<Customer, 'id' | 'profile' | 'disabledItemIds'>,
+  customer: ChecklistCustomer,
   competence: string,
   opts: { force?: boolean } = {},
 ): Promise<number> {
   // Page views call this too: once the month exists, one cheap check and done (force = re-check after a profile change).
   if (!opts.force && (await prisma.documentRequest.count({ where: { customerId: customer.id, competence } }))) return 0;
   const due = fromDateOnly(documentsDueDate(competence));
-  const items = (await checklistFor(customer)).filter((i) => i.applies && !i.disabled).map((i) => i.item);
+  const items = (await checklistFor(customer, competence)).filter((i) => i.applies && !i.disabled).map((i) => i.item);
   if (!items.length) return 0;
   const { count } = await prisma.documentRequest.createMany({
     data: items.map((item) => ({

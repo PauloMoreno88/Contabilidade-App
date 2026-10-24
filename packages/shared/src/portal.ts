@@ -239,6 +239,9 @@ export function itemApplies(appliesTo: ChecklistAppliesTo, profile: CompanyProfi
   return true;
 }
 
+/** Whether an item is already asked for in a competence (it starts in that month or before; null = always). */
+export const itemStarted = (startsCompetence: string | null, competence: string) => !startsCompetence || startsCompetence <= competence;
+
 // ---------- Customer area responses (/app/*) ----------
 
 export const portalFileSchema = z.object({

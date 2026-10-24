@@ -112,6 +112,8 @@ export const checklistItemSchema = z.object({
   sortOrder: z.number().int(),
   /** null = template for every company; set = extra item of one company. */
   customerId: z.string().nullable(),
+  /** First competence that asks for it. null = every month (items created before this field). */
+  startsCompetence: competenceSchema.nullable(),
 });
 export type ChecklistItem = z.infer<typeof checklistItemSchema>;
 
@@ -194,6 +196,11 @@ export const upsertChecklistItemSchema = z.object({
   sortOrder: z.number().int().min(0).max(1000).default(100),
   /** Set to create an extra item for one company. */
   customerId: z.string().nullable().optional(),
+  /**
+   * First competence that asks for it: the open one ("agora", added to the companies whose month already exists)
+   * or a later one. Never a past competence. Omitted on create = the next competence.
+   */
+  startsCompetence: competenceSchema.optional(),
 });
 export type UpsertChecklistItemInput = z.input<typeof upsertChecklistItemSchema>;
 export const checklistItemsSchema = z.array(checklistItemSchema);
