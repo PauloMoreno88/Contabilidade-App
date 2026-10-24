@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluxos da plataforma — Exactra Contabilidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#071420;
+    --surface:#0A1B2A;
+    --surface-2:#0F253A;
+    --surface-3:#112C45;
+    --border:#1F3B57;
+    --text:#EAF1F8;
+    --text-muted:#7E96AC;
+    --text-faint:#4F6A82;
+    --red:#C82333;
+    --red-dark:#A61B29;
+    --amber:#ffb703;
+    --green:#25D366;
+    --a-cliente:#5AB0FF;
+    --a-equipe:#ffb703;
+    --a-sistema:#9FB3C8;
+    --a-stripe:#9A94FF;
+    --a-email:#25D366;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Geist', Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .mono{font-family:'Geist Mono','Courier New',monospace;font-variant-numeric:tabular-nums;}
+  a{color:inherit;}
+  code{font-family:'Geist Mono','Courier New',monospace;font-size:0.84em;background:var(--surface-3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;}
+
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 80px;}
+
+  header.doc-head{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:20px;
+    padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:36px;
+  }
+  .brand-name{font-weight:600;font-size:1rem;}
+  .stamp{border:1px solid var(--border);border-radius:4px;padding:8px 12px;text-align:right;background:var(--surface);}
+  .stamp .label{font-size:0.68rem;color:var(--text-faint);}
+  .stamp .value{font-size:0.82rem;margin-top:2px;color:var(--red);font-weight:600;}
+
+  h1{font-size:2rem;font-weight:600;letter-spacing:-0.01em;margin:0 0 10px;}
+  .lede{font-size:1.02rem;color:var(--text-muted);max-width:680px;margin:0;}
+
+  /* toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:28px 0 20px;}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .seg button{background:transparent;color:var(--text-muted);border:none;font:inherit;font-size:0.86rem;padding:9px 14px;cursor:pointer;}
+  .seg button[aria-pressed="true"]{background:var(--surface-3);color:var(--text);font-weight:600;}
+  .btn{background:var(--surface);color:var(--text);border:1px solid var(--border);font:inherit;font-size:0.84rem;padding:9px 14px;border-radius:8px;cursor:pointer;}
+  .btn:hover{background:var(--surface-2);}
+  .btn.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:600;}
+  .btn.primary:hover{background:var(--red-dark);}
+  .spacer{flex:1;}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--text-muted);margin-bottom:28px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  /* index */
+  .index{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:44px;}
+  .index a{
+    display:block;text-decoration:none;border:1px solid var(--border);border-radius:10px;
+    background:var(--surface);padding:16px 18px;transition:border-color 0.15s ease;
+  }
+  .index a:hover{border-color:var(--text-faint);}
+  .index .n{font-size:0.74rem;color:var(--text-faint);}
+  .index .t{font-weight:600;margin:2px 0 6px;}
+  .index .d{font-size:0.82rem;color:var(--text-muted);}
+  .meter{height:5px;border-radius:3px;background:var(--surface-3);margin-top:12px;overflow:hidden;display:flex;}
+  .meter i{display:block;height:100%;}
+  .meter .ok{background:var(--green);}
+  .meter .ko{background:var(--red);}
+  .index .count{font-size:0.74rem;color:var(--text-faint);margin-top:6px;}
+
+  /* flow */
+  .flow{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:28px;margin-bottom:26px;scroll-margin-top:16px;}
+  .flow-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;}
+  .flow-head .n{font-size:0.78rem;color:var(--text-faint);}
+  .flow-head h2{font-size:1.35rem;font-weight:600;margin:2px 0 0;}
+  .flow-meta{font-size:0.78rem;color:var(--text-muted);text-align:right;white-space:nowrap;}
+  .flow-desc{color:var(--text-muted);font-size:0.94rem;margin:10px 0 18px;max-width:680px;}
+
+  .pre{border:1px dashed var(--border);border-radius:8px;padding:12px 14px;font-size:0.84rem;color:var(--text-muted);margin-bottom:20px;}
+  .pre b{color:var(--text);font-weight:600;}
+  .pre ul{margin:6px 0 0;padding-left:18px;}
+
+  /* trail diagram */
+  .trail{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin-bottom:22px;}
+  .node{
+    display:flex;flex-direction:column;gap:4px;min-width:118px;max-width:150px;flex:1 1 118px;
+    border:1px solid var(--border);border-top:3px solid var(--c);border-radius:8px;
+    background:var(--surface-2);padding:8px 10px;font-size:0.78rem;cursor:pointer;text-align:left;color:var(--text);font-family:inherit;
+  }
+  .node:hover{background:var(--surface-3);}
+  .node .who{font-size:0.66rem;color:var(--c);font-weight:600;}
+  .node .num{font-size:0.66rem;color:var(--text-faint);}
+  .node.ok{box-shadow:inset 0 0 0 1px rgba(37,211,102,0.5);}
+  .node.ko{box-shadow:inset 0 0 0 1px rgba(200,35,51,0.7);}
+  .arrow{align-self:center;color:var(--text-faint);font-size:0.9rem;}
+
+  /* steps */
+  .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .step{
+    display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;
+    background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--c);border-radius:8px;padding:12px 14px;
+  }
+  .step.flash{outline:2px solid var(--text-faint);}
+  .step .i{font-size:0.8rem;color:var(--text-faint);padding-top:2px;}
+  .step .who{font-size:0.7rem;font-weight:600;color:var(--c);}
+  .step .what{font-size:0.92rem;margin:1px 0 0;}
+  .step .where{font-size:0.78rem;color:var(--text-muted);margin-top:4px;}
+  .step .expect{font-size:0.82rem;color:var(--text-muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+  .step .expect b{color:var(--text);font-weight:600;}
+  .res{
+    font:inherit;font-size:0.74rem;padding:4px 10px;border-radius:20px;border:1px solid var(--border);
+    background:transparent;color:var(--text-muted);cursor:pointer;white-space:nowrap;
+  }
+  .res.ok{color:var(--green);border-color:rgba(37,211,102,0.45);background:rgba(37,211,102,0.08);}
+  .res.ko{color:var(--red);border-color:rgba(200,35,51,0.5);background:rgba(200,35,51,0.08);}
+
+  .variants{margin-top:18px;}
+  .variants h3,.notes h3{font-size:0.86rem;font-weight:600;margin:0 0 8px;color:var(--text);}
+  .variants ul{margin:0;padding-left:18px;font-size:0.86rem;color:var(--text-muted);}
+  .variants li{margin-bottom:4px;}
+  .notes{margin-top:18px;}
+  .notes textarea{
+    width:100%;min-height:70px;resize:vertical;background:var(--surface-2);color:var(--text);
+    border:1px solid var(--border);border-radius:8px;padding:10px 12px;font:inherit;font-size:0.86rem;
+  }
+
+  .callout{border:1px solid rgba(255,183,3,0.45);background:rgba(255,183,3,0.06);border-radius:8px;padding:12px 14px;font-size:0.84rem;color:var(--text-muted);margin-top:16px;}
+  .callout b{color:var(--amber);}
+
+  .data{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:24px 28px;margin-bottom:26px;}
+  .data h2{font-size:1.1rem;margin:0 0 12px;}
+  .data table{width:100%;border-collapse:collapse;font-size:0.86rem;}
+  .data td{padding:8px 0;border-top:1px solid var(--border);vertical-align:top;}
+  .data td:first-child{color:var(--text-muted);width:34%;padding-right:12px;}
+
+  footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);font-size:0.82rem;color:var(--text-faint);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+
+  /* presentation mode: hide test-only content */
+  body.present .test-only{display:none !important;}
+  body.present .step{grid-template-columns:34px 1fr;}
+  body.present .node{cursor:default;}
+
+  @media (max-width:640px){
+    .wrap{padding:32px 16px 60px;}
+    header.doc-head{flex-direction:column;}
+    .stamp{text-align:left;}
+    h1{font-size:1.55rem;}
+    .flow{padding:20px 16px;}
+    .flow-head{flex-direction:column;}
+    .flow-meta{text-align:left;white-space:normal;}
+    .step{grid-template-columns:26px 1fr;}
+    .step .res{grid-column:2;justify-self:start;}
+    .arrow{display:none;}
+    .node{max-width:none;}
+    .data{padding:20px 16px;}
+    .data td:first-child{width:40%;}
+  }
+  @media print{
+    body{background:#fff;color:#000;}
+    .toolbar,.index,.notes{display:none;}
+  }
+  :focus-visible{outline:2px solid var(--red);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <span class="brand-name">Exactra Contabilidade</span>
+    <div class="stamp">
+      <div class="label">Atualizado em</div>
+      <div class="value mono">24/10/2026</div>
+    </div>
+  </header>
+
+  <h1>Fluxos da plataforma</h1>
+  <p class="lede">Os caminhos completos de quem usa a plataforma, do anúncio ao dia a dia do cliente. No modo <b>Teste</b>, cada passo tem o resultado esperado e um botão para marcar se passou. No modo <b>Apresentação</b>, aparecem só os passos, para mostrar ao cliente.</p>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Modo">
+      <button type="button" data-mode="test" aria-pressed="true">Teste</button>
+      <button type="button" data-mode="present" aria-pressed="false">Apresentação</button>
+    </div>
+    <span class="spacer"></span>
+    <button type="button" class="btn test-only" id="reset-btn">Limpar resultados</button>
+    <button type="button" class="btn primary test-only" id="export-btn">Baixar relatório do teste</button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <nav class="index" id="index" aria-label="Fluxos"></nav>
+
+  <section class="data test-only" id="dados">
+    <h2>Dados para o teste</h2>
+    <table>
+      <tr><td>Ambiente de testes</td><td><a href="https://teste.exactracontabilidade.com.br" target="_blank" rel="noopener">teste.exactracontabilidade.com.br</a> (Stripe em modo teste: nada é cobrado de verdade)</td></tr>
+      <tr><td>Cartão aprovado</td><td><code>4242 4242 4242 4242</code>, validade futura e CVC quaisquer</td></tr>
+      <tr><td>Cartão recusado</td><td><code>4000 0000 0000 0002</code></td></tr>
+      <tr><td>Pix e boleto</td><td>Na página da Stripe, use as opções de simulação do modo teste. O boleto fica aguardando até a compensação simulada.</td></tr>
+      <tr><td>E-mail do cliente de teste</td><td>Use uma caixa que você consiga abrir (ex.: <code>seunome+teste1@gmail.com</code>). Cada teste de compra com um e-mail novo cria um cliente novo.</td></tr>
+      <tr><td>Arquivos de teste</td><td>Pasta <code>docs/test-files</code>: guias <code>guia-das-teste.pdf</code>, <code>guia-darf-teste.pdf</code>, <code>guia-fgts-teste.pdf</code>; documentos de extrato, notas de compra, notas de serviço e ponto; um ZIP com vários arquivos. Todos marcados "TESTE - NÃO PAGAR".</td></tr>
+      <tr><td>Painel da equipe</td><td>Login de administrador da Exactra em <code>/entrar</code> (o mesmo de sempre).</td></tr>
+      <tr><td>Só o site, sem API (no computador)</td><td><code>NEXT_PUBLIC_USE_MOCK=true pnpm --filter web dev</code>: cliente <code>cliente@exactra.com.br</code> ou equipe <code>admin@exactra.com.br</code>, senha <code>exactra123</code>, código <code>123456</code>.</td></tr>
+    </table>
+  </section>
+
+  <section class="data" id="automatico">
+    <h2>O que roda sozinho (não dá para testar à mão)</h2>
+    <table>
+      <tr><td>Todo dia, 7h</td><td>Abre os documentos do mês e avisa o cliente; lembretes de documentos (5 e 1 dia antes do prazo e no dia) e de guias (3 dias antes e no dia); aviso 30 dias antes de apagar arquivos com mais de 1 ano, e a exclusão deles.</td></tr>
+      <tr><td>Todo dia, 9h</td><td>Aviso de vencimento do contrato 7 dias antes do fim e marcação dos contratos vencidos.</td></tr>
+      <tr><td>Todo dia, 3h</td><td>Apaga os leads do simulador com mais de 30 dias que não viraram cliente (LGPD).</td></tr>
+      <tr><td>A cada pagamento</td><td>A Stripe avisa o sistema; o mesmo aviso repetido não duplica o contrato. Isso já tem teste automático.</td></tr>
+      <tr><td>Assinaturas mensais antigas</td><td>Atraso e cancelamento continuam tratados, mas não dá para criar uma assinatura nova pelo site.</td></tr>
+    </table>
+  </section>
+
+  <div id="flows"></div>
+
+  <footer>
+    <span class="brand-name">Exactra Contabilidade</span>
+    <span>Fluxos para teste manual e apresentação · os resultados marcados ficam salvos neste navegador</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var ACTORS = {
+    cliente: {label:'Cliente', color:'var(--a-cliente)'},
+    equipe:  {label:'Equipe Exactra', color:'var(--a-equipe)'},
+    sistema: {label:'Sistema', color:'var(--a-sistema)'},
+    stripe:  {label:'Stripe', color:'var(--a-stripe)'},
+    email:   {label:'E-mail', color:'var(--a-email)'}
+  };
+
+  // short = label in the diagram; what = the action; where = screen; expect = what the tester must see.
+  var FLOWS = [
+    {
+      id:'compra',
+      title:'Da simulação ao primeiro acesso',
+      desc:'O caminho de quem chega pelo anúncio ou pelo Google: simula o imposto, contrata o plano, paga, cria a senha e entra na área do cliente. Termina com a Exactra vendo o lead e a contratação no painel.',
+      time:'15 a 20 min', who:'Cliente novo e equipe',
+      pre:['Ambiente de testes no ar, com o checkout online ligado.','Um e-mail de teste que ainda não foi usado.','Painel da equipe aberto em outra janela (ou no fim).'],
+      steps:[
+        {a:'cliente', short:'Abre o site', what:'Abre o site pelo endereço do anúncio, ou lê um artigo do blog e clica para simular.', where:'Página inicial ou /blog', expect:'O simulador aparece logo no topo. No celular, a barra fixa com o botão de contratar fica embaixo da tela.'},
+        {a:'cliente', short:'Simula o imposto', what:'Responde as 5 perguntas: perfil, faturamento (barra deslizante), CNPJ, funcionários e regime atual.', where:'Simulador', expect:'O progresso mostra "Passo X de 5"; "Voltar" mantém as respostas.'},
+        {a:'cliente', short:'Deixa o contato', what:'Na tela "Sua estimativa está pronta", informa nome e WhatsApp e aceita a política de privacidade.', where:'Simulador, cadastro', expect:'Os valores aparecem borrados até enviar. Sem o consentimento ou com WhatsApp sem DDD, aparece o erro e não avança.'},
+        {a:'sistema', short:'Mostra o resultado', what:'Grava o lead e mostra o comparativo de regimes.', where:'Simulador, resultado', expect:'Aparecem o regime "melhor opção", o imposto estimado, quanto sobra por mês já pagando a Exactra e o aviso de que é uma estimativa.'},
+        {a:'cliente', short:'Vai para o checkout', what:'Clica em "Contratar o Plano Exactra", escolhe a forma de pagamento e preenche nome, e-mail, WhatsApp e CPF ou CNPJ.', where:'/checkout', expect:'O resumo mostra contrato anual e o total. CPF/CNPJ inválido é recusado. Sem aceitar os termos, não avança.'},
+        {a:'stripe', short:'Paga', what:'Clica em "Ir para o pagamento" e paga na página da Stripe (cartão 4242, Pix ou boleto simulado).', where:'Página da Stripe', expect:'A página é da Stripe; o site da Exactra não pede dados de cartão.'},
+        {a:'cliente', short:'Vê a confirmação', what:'Volta para o site depois de pagar.', where:'/checkout/status', expect:'Primeiro "Processando" ou "Aguardando o Pix", depois "Pagamento confirmado", sem precisar recarregar. O status só muda quando a Stripe confirma.'},
+        {a:'email', short:'Boas-vindas', what:'O cliente recebe "Boas-vindas à Exactra, Nome", com o botão para ativar o acesso. A Exactra recebe "Nova contratação: cliente (plano)".', where:'Caixa de e-mail', expect:'Os dois e-mails chegam em até 1 minuto. O link de ativação vale por 7 dias.'},
+        {a:'cliente', short:'Cria a senha', what:'Clica no botão do e-mail e cria a senha.', where:'/entrar/ativar', expect:'O e-mail já vem preenchido. Senha com menos de 8 caracteres é recusada. Depois de salvar, entra direto na área do cliente.'},
+        {a:'cliente', short:'Primeiro acesso', what:'Passa pelos 3 passos: confirma os dados e aceita os termos, conta sobre a empresa (atividade, funcionários, bancos) e vê a lista do primeiro mês.', where:'/app/boas-vindas', expect:'"Passo 1 de 3"; o passo 2 pode ser pulado. A lista do passo 3 muda conforme o perfil (ex.: folha de ponto só com funcionários, um extrato por banco).'},
+        {a:'cliente', short:'Chega ao Início', what:'Termina e vai para o Início.', where:'/app', expect:'Saudação com o nome, tarefas em ordem de urgência e o resumo de documentos e guias.'},
+        {a:'equipe', short:'Vê no painel', what:'A equipe confere a venda no painel.', where:'/admin, Leads, Contratos, Clientes, Visão do mês', expect:'O lead está em Leads; o contrato está Ativo, com o pagamento no detalhe; os números do início do painel contam a venda; o CSV baixa; o cliente aparece com acesso ativado.'}
+      ],
+      variants:[
+        '<b>Desistiu na Stripe:</b> clicar em voltar na página da Stripe leva a "Pagamento não concluído", nada é cobrado e dá para tentar de novo.',
+        '<b>Cartão recusado</b> (4000 0000 0000 0002): a Stripe mostra o erro e o contrato não ativa.',
+        '<b>Boleto:</b> a página mostra "Boleto gerado"; o contrato fica "Aguardando pagamento" e os e-mails de boas-vindas só saem quando a compensação é simulada.',
+        '<b>Checkout desligado</b> (padrão até o contador validar o preço): o botão leva ao WhatsApp com a mensagem pronta.',
+        '<b>Link de ativação usado ou vencido:</b> aparece "Este link expirou ou já foi usado" com o caminho para pedir outro.',
+        '<b>Simulador, "Vou abrir meu CNPJ":</b> confira se o resultado e os textos fazem sentido para quem ainda não tem empresa (a Exactra não oferece abertura de CNPJ).',
+        '<b>Simulador, faturamento alto</b> (acima de R$ 6.750 por mês): o MEI aparece como "não se aplica". No máximo da barra, o texto mostra "R$ 100 mil ou mais".',
+        '<b>Simulador, botões do resultado:</b> "Revisar com um contador" abre o WhatsApp com a mensagem pronta; "Refazer simulação" volta ao passo 1.'
+      ]
+    },
+    {
+      id:'manual',
+      title:'Cliente que já é da Exactra',
+      desc:'Para quem já é cliente e não passou pelo site: a equipe cadastra a empresa, o cliente recebe o convite, cria a senha e faz o primeiro acesso.',
+      time:'10 min', who:'Equipe e cliente antigo',
+      pre:['Login da equipe.','Um e-mail de teste novo para o cliente.'],
+      steps:[
+        {a:'equipe', short:'Cadastra o cliente', what:'Em Clientes, clica em "Cadastrar cliente" e informa nome, e-mail, WhatsApp, CPF/CNPJ, início e fim do contrato e, se quiser, o valor.', where:'/admin/clientes/novo', expect:'Com "Enviar agora o e-mail" marcado, o convite sai na hora. O contrato fica como Manual, sem pagamento online.'},
+        {a:'email', short:'Convite', what:'O cliente recebe "Ative seu acesso à área do cliente da Exactra".', where:'Caixa de e-mail', expect:'O e-mail tem um botão só, que leva para criar a senha.'},
+        {a:'equipe', short:'Acompanha o convite', what:'Abre a ficha do cliente na aba "Acesso e dados".', where:'/admin/cliente', expect:'Mostra "Ainda não criou a senha" e até quando o convite vale. "Reenviar convite" manda um novo.'},
+        {a:'cliente', short:'Cria a senha', what:'Clica no convite e cria a senha.', where:'/entrar/ativar', expect:'Entra direto na área do cliente.'},
+        {a:'cliente', short:'Primeiro acesso', what:'Passa pelos 3 passos do primeiro acesso.', where:'/app/boas-vindas', expect:'Igual ao fluxo de compra. Em "Meu plano" aparece "Contrato combinado direto com a Exactra".'},
+        {a:'equipe', short:'Confere a ativação', what:'Volta à ficha e à Visão do mês.', where:'/admin/cliente e /admin/mes', expect:'O login aparece como "Ativado", com a data do último acesso, e o perfil da empresa preenchido.'}
+      ],
+      variants:[
+        '<b>Cadastro sem enviar o e-mail:</b> o cliente fica "Sem login" até a equipe clicar em "Enviar convite" na ficha.',
+        '<b>Filtro "Sem acesso ativado"</b> na Visão do mês lista quem ainda não criou a senha.'
+      ]
+    },
+    {
+      id:'mes',
+      title:'Rotina do mês: documentos e guias',
+      desc:'O dia a dia depois da contratação. O cliente envia os documentos do mês; a Exactra confere, recusa o que precisa refazer, publica as guias de impostos, e o cliente paga e avisa.',
+      time:'20 a 25 min', who:'Cliente ativo e equipe',
+      pre:['Um cliente com acesso ativado e primeiro acesso feito (fluxo 1 ou 2).','Os arquivos de <code>docs/test-files</code> no computador e, se possível, o celular com a área do cliente aberta.'],
+      steps:[
+        {a:'equipe', short:'Ajusta o checklist', what:'Confere os modelos de documentos pedidos todo mês. Para testar, cria um item com "Vale a partir de: Agora".', where:'/admin/checklist', expect:'O item novo aparece na hora na lista de documentos do cliente, sem e-mail novo. Se o prazo do mês já passou, aparece atrasado.'},
+        {a:'email', short:'Mês aberto', what:'No início do mês, o cliente recebe "Documentos de mês: já pode enviar".', where:'Caixa de e-mail (rotina diária, 7h)', expect:'Este e-mail depende da data; no teste manual, confira a lista direto na área do cliente.'},
+        {a:'cliente', short:'Envia documentos', what:'Em Documentos, envia um arquivo em cada item: pelo computador (arrastar e soltar) e pelo celular ("Tirar foto"). Manda também algo em "Outros documentos".', where:'/app/documentos', expect:'Cada item passa para "Enviado". Arquivo acima de 25 MB ou de tipo não aceito mostra o erro. Com tudo enviado: "Tudo enviado. Obrigado!".'},
+        {a:'equipe', short:'Confere o mês', what:'Abre a Visão do mês e a ficha do cliente, aba Documentos.', where:'/admin/mes e /admin/cliente', expect:'O cliente aparece "Em dia" ou com quantos faltam. Os arquivos abrem pelo botão de cada item.'},
+        {a:'equipe', short:'Recusa um arquivo', what:'Clica em "Recusar" em um documento, escolhe o motivo e escreve uma observação.', where:'/admin/cliente, aba Documentos', expect:'O item volta para pendente e o cliente aparece no filtro "Com recusa".'},
+        {a:'email', short:'Pedido de reenvio', what:'O cliente recebe "Precisamos de um novo envio: documento".', where:'Caixa de e-mail', expect:'O e-mail traz o motivo e a observação.'},
+        {a:'cliente', short:'Envia de novo', what:'Vê a tarefa "Envie de novo" no Início e manda o arquivo certo.', where:'/app e /app/documentos', expect:'Aparece "A Exactra pediu um novo envio" com o motivo; depois do envio, o item volta a "Enviado".'},
+        {a:'equipe', short:'Publica a guia', what:'Em "Publicar guia", escolhe o cliente e envia o PDF (ex.: guia-das-teste.pdf).', where:'/admin/guias/nova', expect:'Os campos (tipo, competência, valor, vencimento e linha digitável) vêm preenchidos pela leitura do PDF. Linha com dígito errado é recusada. Só publica depois de marcar "Conferi o valor, o vencimento e o cliente".'},
+        {a:'email', short:'Guia nova', what:'O cliente recebe "Nova guia: tipo, vence em data".', where:'Caixa de e-mail', expect:'O e-mail chega logo depois da publicação.'},
+        {a:'cliente', short:'Paga a guia', what:'Em Guias, copia a linha digitável, cola no app do banco e abre o PDF.', where:'/app/guias', expect:'"Código copiado" ao copiar; a linha cola certa no app do banco (no teste, não pague: o PDF diz "NÃO PAGAR").'},
+        {a:'cliente', short:'Avisa que pagou', what:'Clica em "Já paguei" e anexa um comprovante (qualquer PDF ou foto).', where:'/app/guias', expect:'A guia vai para a aba "Pagas", com a data. "Desfazer" devolve para "A pagar".'},
+        {a:'equipe', short:'Vê o pagamento', what:'Confere a guia na ficha do cliente.', where:'/admin/cliente, aba Guias', expect:'A guia aparece como paga e o comprovante abre.'},
+        {a:'cliente', short:'Baixa o mês', what:'Clica em "Baixar tudo deste mês (ZIP)".', where:'/app/documentos', expect:'O ZIP baixa com todos os arquivos do mês.'}
+      ],
+      variants:[
+        '<b>Guia sem linha digitável:</b> o cliente vê "Pague pelo PDF".',
+        '<b>Guia vencida:</b> aparece como "Vencida", com o botão para pedir uma nova pelo WhatsApp; a equipe vê o cliente no filtro "Guia vencida".',
+        '<b>Remover guia</b> na ficha: o cliente deixa de ver o PDF e o código.',
+        '<b>Item só deste cliente:</b> na aba Checklist da ficha, crie um item só para ele ou desligue um modelo.',
+        '<b>A Exactra também envia arquivos</b> para o cliente; eles aparecem como "A Exactra enviou".',
+        '<b>Cliente remove um arquivo</b> enviado por engano ("Remover"): o item volta para "Falta enviar" se ficar sem arquivo.',
+        '<b>Mês anterior:</b> em Documentos, o seletor "Mês" mostra os meses passados para consulta.',
+        '<b>Avisos ao publicar guia:</b> publique uma guia escolhendo o cliente errado (aviso "O CPF/CNPJ da guia não é o deste cliente"), uma guia sem linha digitável ("será publicada só com o PDF") e um PDF escaneado ("O PDF não tem texto"). Digitar um valor diferente do da linha bloqueia a publicação.',
+        '<b>Checklist:</b> edite o texto de um modelo, desative outro e crie um item "A partir de" um mês futuro; as mudanças só valem a partir do mês escolhido ou do próximo.'
+      ],
+      note:'Os lembretes automáticos (documentos 5 e 1 dia antes do prazo e no dia; guias 3 dias antes e no dia) dependem da data e saem na rotina diária. No teste manual, confira só que a equipe consegue ligar e desligar os lembretes na ficha do cliente.'
+    },
+    {
+      id:'renovacao',
+      title:'Renovação e fim do contrato',
+      desc:'O contrato é anual e não renova sozinho. O cliente é avisado, renova pela área do cliente sem perder nenhum dia, ou passa a só consultar e depois perde o acesso.',
+      time:'10 min (renovação) · o fim do contrato depende de datas', who:'Cliente e equipe',
+      pre:['Um cliente cujo contrato termina em até 60 dias. Para testar já, cadastre um cliente manual (fluxo 2) com o fim do contrato daqui a 30 dias.'],
+      steps:[
+        {a:'email', short:'Aviso de vencimento', what:'7 dias antes do fim, o cliente recebe "Seu plano na Exactra vence em data".', where:'Caixa de e-mail (rotina diária, 9h)', expect:'Quem já renovou não recebe.'},
+        {a:'cliente', short:'Vê o aviso', what:'Entra na área do cliente.', where:'/app', expect:'A tarefa "Seu plano está perto do fim" aparece no Início.'},
+        {a:'cliente', short:'Renova', what:'Em "Meu plano", escolhe a forma de pagamento e clica em "Ir para o pagamento".', where:'/app/plano', expect:'"Renovar por mais 12 meses" só aparece nos últimos 60 dias; antes disso, mostra a data em que abre.'},
+        {a:'stripe', short:'Paga', what:'Paga na página da Stripe com o cartão 4242.', where:'Página da Stripe', expect:'Volta para "Meu plano".'},
+        {a:'email', short:'Renovação confirmada', what:'O cliente recebe "Renovação confirmada, Nome" e a Exactra recebe "Renovação confirmada: cliente (plano)".', where:'Caixa de e-mail', expect:'Não chegam de novo as boas-vindas nem o aviso de nova contratação.'},
+        {a:'cliente', short:'Vê o próximo contrato', what:'Confere "Meu plano".', where:'/app/plano', expect:'Aparece "Próximo contrato (já pago)", começando no dia seguinte ao fim do atual.'},
+        {a:'sistema', short:'Sem renovação: consulta', what:'Se o cliente não renovar, o contrato vence.', where:'Área do cliente', expect:'Por 90 dias, o cliente só consulta e baixa arquivos ("Seu plano terminou…"), sem enviar documentos.'},
+        {a:'sistema', short:'Depois: sem acesso', what:'Passados os 90 dias, o acesso é suspenso.', where:'Área do cliente', expect:'Mensagem "Seu acesso está suspenso…" com o botão "Renovar plano".'}
+      ],
+      variants:[
+        '<b>Desistiu do pagamento da renovação:</b> "Você desistiu do pagamento. Quando quiser, é só tentar de novo."',
+        '<b>Renovação com Pix ou boleto:</b> o próximo contrato só aparece depois da confirmação do pagamento simulado.',
+        '<b>Desistência em até 7 dias</b> (reembolso integral, previsto nos termos): hoje é feita à mão pela Exactra, no painel da Stripe; o sistema não tem um botão para isso.',
+        '<b>Arquivos com mais de 1 ano:</b> 30 dias antes de apagar, o cliente recebe "Arquivos de mês serão apagados em breve" e vê a tarefa "Baixar" no Início.'
+      ],
+      note:'As etapas de vencimento, só consulta e suspensão dependem da passagem do tempo. Para apresentar, use o passo a passo; para testar de verdade, é preciso um contrato com datas ajustadas no banco de testes.'
+    },
+    {
+      id:'acesso',
+      title:'Entrar, recuperar a senha e segurança',
+      desc:'Uma entrada só para clientes e equipe. Cada um cai na sua área e não consegue abrir a do outro. Inclui senha esquecida, link por e-mail e verificação em duas etapas.',
+      time:'10 a 15 min', who:'Cliente e equipe',
+      pre:['Um cliente ativado e o login da equipe.','Um app autenticador no celular (Google Authenticator, Microsoft Authenticator ou similar).'],
+      steps:[
+        {a:'cliente', short:'Entra com senha', what:'Entra com e-mail e senha.', where:'/entrar', expect:'O cliente vai para /app. Senha errada mostra "E-mail ou senha incorretos."'},
+        {a:'cliente', short:'Entra por link', what:'Sai, escolhe "Link por e-mail" e informa o e-mail.', where:'/entrar', expect:'Chega "Seu link para entrar na Exactra"; o link vale 15 minutos, entra sem senha e não funciona de novo.'},
+        {a:'cliente', short:'Esquece a senha', what:'Usa "Esqueci minha senha" e cria uma nova pelo link do e-mail.', where:'/entrar/esqueci-senha e /entrar/redefinir-senha', expect:'Chega "Redefinir sua senha da Exactra"; depois de salvar, entra com a senha nova.'},
+        {a:'cliente', short:'Liga o 2FA (opcional)', what:'Em "Empresa e acesso", abre "Segurança da conta" e ativa a verificação em duas etapas.', where:'/app/empresa/seguranca', expect:'Mostra o QR Code e os códigos de recuperação. No próximo login, pede o código de 6 dígitos; o link por e-mail deixa de valer para essa conta.'},
+        {a:'cliente', short:'Tenta abrir o painel', what:'Logado como cliente, abre /admin.', where:'/admin', expect:'Não entra no painel da equipe.'},
+        {a:'equipe', short:'Entra com 2FA', what:'Entra com o login da equipe e o código do app.', where:'/entrar', expect:'Vai para /admin. Também funcionam o código por e-mail ("…é o seu código de acesso da Exactra") e um código de recuperação. "Confiar neste dispositivo" pula o código por 30 dias.'},
+        {a:'equipe', short:'Tenta abrir a área do cliente', what:'Logado como equipe, abre /app.', where:'/app', expect:'Não entra na área do cliente.'},
+        {a:'cliente', short:'Arquivo de outra empresa', what:'Com o link de download de um arquivo de outro cliente, tenta abrir logado como cliente.', where:'Link de arquivo', expect:'Responde "não encontrado". Cada cliente só vê os arquivos da própria empresa.'}
+      ],
+      variants:[
+        '<b>Sem acesso ainda:</b> a tela de entrada explica que o link para criar a senha chega por e-mail quando a contratação é confirmada, e tem o botão de ajuda pelo WhatsApp.',
+        '<b>Login sem empresa ligada:</b> mostra "Nenhuma empresa ligada a este login" e o caminho para falar com a Exactra.',
+        '<b>Endereço antigo</b> <code>/admin/login</code> (ainda usado no rodapé): leva para <code>/entrar</code>.'
+      ]
+    },
+    {
+      id:'site',
+      title:'Site e conteúdo',
+      desc:'Quem chega e ainda não quer simular: entende o que a Exactra faz, lê o blog, vê o plano e fala com a equipe. Todos os caminhos levam ao simulador ou ao WhatsApp.',
+      time:'10 min', who:'Visitante',
+      pre:['Testar no computador e no celular.'],
+      steps:[
+        {a:'cliente', short:'Navega pelo menu', what:'Usa o menu: Simulador, Sobre nós, Serviços, Plano, Blog e Contato.', where:'Página inicial', expect:'Cada item rola até a seção certa. No celular, o menu abre e fecha e a barra fixa fica embaixo.'},
+        {a:'cliente', short:'Vê o plano', what:'Lê o card do Plano Exactra e as dúvidas frequentes.', where:'Página inicial, Plano e Dúvidas', expect:'Preço, contrato anual e o que está incluído. Nenhuma foto de pessoas na página.'},
+        {a:'cliente', short:'Lê o blog', what:'Abre o Blog, filtra por um assunto e abre um artigo.', where:'/blog e /blog/artigo', expect:'O filtro mostra só os artigos do assunto. O artigo tem foto, data, texto revisado e um convite para simular.'},
+        {a:'cliente', short:'Do artigo ao simulador', what:'Clica no convite do artigo para simular.', where:'Artigo', expect:'Leva ao simulador da página inicial.'},
+        {a:'cliente', short:'Fala com a Exactra', what:'Usa os botões de WhatsApp (flutuante, bloco do WhatsApp e Contato) e os links de telefone e e-mail.', where:'Página inicial, Contato', expect:'O WhatsApp abre com a mensagem pronta; telefone e e-mail abrem o app do celular. Não há formulário de contato.'},
+        {a:'cliente', short:'Lê termos e privacidade', what:'Abre a política de privacidade e os termos pelo rodapé.', where:'/privacidade e /termos', expect:'As duas páginas abrem. Ainda são rascunho, sem revisão jurídica.'},
+        {a:'cliente', short:'Acessa a plataforma', what:'Clica em "Acessar plataforma" no topo e no rodapé.', where:'Topo e rodapé', expect:'Os dois levam para a entrada única, /entrar.'}
+      ]
+    },
+    {
+      id:'painel',
+      title:'Gestão pelo painel da equipe',
+      desc:'O trabalho da equipe da Exactra no painel: segurança da conta, números das vendas, contratos, leads e o cadastro de cada cliente.',
+      time:'15 min', who:'Equipe Exactra',
+      pre:['Login da equipe sem a verificação em duas etapas ligada (para testar a ativação).','Alguns contratos e leads de teste (fluxos 1 e 2).'],
+      steps:[
+        {a:'equipe', short:'Ativa o 2FA', what:'Clica em "Ativar agora" no aviso do topo, confirma a senha, escaneia o QR Code, guarda os códigos de recuperação e confirma com o código do app.', where:'/admin/seguranca', expect:'"Pronto. A partir do próximo login, vamos pedir o código do app." O aviso do topo some.'},
+        {a:'equipe', short:'Redefine a senha', what:'Sai, usa "Esqueci minha senha" e cria uma nova.', where:'/entrar/esqueci-senha', expect:'Chega o e-mail de redefinição; a senha nova funciona e o login continua pedindo o código.'},
+        {a:'equipe', short:'Vê os números', what:'Abre Contratos.', where:'/admin', expect:'Cards de clientes ativos, novos nos últimos 30 dias, receita contratada, aguardando pagamento e vencem em 30 dias; ativos por plano e por forma de pagamento.'},
+        {a:'equipe', short:'Filtra contratos', what:'Busca por nome, e-mail ou documento e filtra por status, plano e forma de pagamento.', where:'/admin', expect:'A lista e a paginação respeitam os filtros. Sem resultado, aparece a mensagem de lista vazia.'},
+        {a:'equipe', short:'Abre um contrato', what:'Abre o detalhe de um contrato que veio do simulador.', where:'/admin/contrato', expect:'Dados do cliente, período, valor, histórico de pagamentos e o bloco "Veio do simulador" com o faturamento informado.'},
+        {a:'equipe', short:'Exporta o CSV', what:'Clica em "Exportar CSV" com um filtro aplicado.', where:'/admin', expect:'Baixa contratos-exactra.csv só com os contratos filtrados, abrindo certo no Excel.'},
+        {a:'equipe', short:'Confere os leads', what:'Abre Leads e busca um nome.', where:'/admin/leads', expect:'Nome, WhatsApp, faturamento, plano sugerido, origem do anúncio (ou "Direto") e data.'},
+        {a:'equipe', short:'Lembretes do cliente', what:'Na ficha do cliente, confere os dados e o perfil e desliga e religa os lembretes automáticos.', where:'/admin/cliente, aba Acesso e dados', expect:'Com os lembretes desligados, o cliente vê "Lembretes por e-mail desligados pela equipe da Exactra" em Empresa e acesso.'},
+        {a:'equipe', short:'Envia um arquivo', what:'Na aba Documentos da ficha, envia um arquivo para o cliente.', where:'/admin/cliente', expect:'O cliente vê o arquivo como "A Exactra enviou".'}
+      ]
+    },
+    {
+      id:'empresa',
+      title:'Dados da empresa pelo cliente',
+      desc:'O cliente mantém os próprios dados em dia. O perfil da empresa decide quais documentos são pedidos a cada mês.',
+      time:'5 min', who:'Cliente ativo',
+      pre:['Um cliente com primeiro acesso feito.'],
+      steps:[
+        {a:'cliente', short:'Abre Empresa e acesso', what:'Abre "Empresa e acesso" (no celular, pelo menu da conta).', where:'/app/empresa', expect:'Mostra dados da empresa, perfil, quem acessa e segurança. Nome, CPF/CNPJ e e-mail aparecem travados ("só mudam pela equipe da Exactra").'},
+        {a:'cliente', short:'Muda o telefone', what:'Altera o telefone e salva.', where:'/app/empresa', expect:'"Salvo". A equipe vê o telefone novo na ficha.'},
+        {a:'cliente', short:'Muda o perfil', what:'Altera o perfil: passa a ter funcionários ou inclui um banco novo.', where:'/app/empresa, Sobre a empresa', expect:'Os itens novos (folha de ponto, extrato do banco novo) entram na lista de documentos.'},
+        {a:'cliente', short:'Vê quem acessa', what:'Confere a lista "Quem acessa".', where:'/app/empresa', expect:'O próprio login aparece marcado como "você". Para dar acesso a outra pessoa, o botão leva ao WhatsApp da Exactra.'}
+      ]
+    }
+  ];
+
+  var STORE = 'exactra-fluxos-v1';
+  var state = {};
+  try{ state = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; }catch(e){ state = {}; }
+  function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
+
+  var RES = ['', 'ok', 'ko'];
+  var RES_LABEL = {'':'Não testado', ok:'Passou', ko:'Falhou'};
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function renderLegend(){
+    document.getElementById('legend').innerHTML = Object.keys(ACTORS).map(function(k){
+      return '<span><span class="sw" style="background:'+ACTORS[k].color+'"></span>'+ACTORS[k].label+'</span>';
+    }).join('');
+  }
+
+  function renderFlows(){
+    document.getElementById('flows').innerHTML = FLOWS.map(function(f, fi){
+      var trail = f.steps.map(function(s, si){
+        var r = state[f.id+'-'+si] || '';
+        return (si ? '<span class="arrow" aria-hidden="true">→</span>' : '') +
+          '<button type="button" class="node '+r+'" style="--c:'+ACTORS[s.a].color+'" data-jump="'+f.id+'-'+si+'">'+
+          '<span class="num mono">'+(si+1)+'</span><span class="who">'+ACTORS[s.a].label+'</span><span>'+esc(s.short)+'</span></button>';
+      }).join('');
+      var steps = f.steps.map(function(s, si){
+        var key = f.id+'-'+si, r = state[key] || '';
+        return '<li class="step" id="step-'+key+'" style="--c:'+ACTORS[s.a].color+'">'+
+          '<span class="i mono">'+(si+1)+'</span>'+
+          '<div><span class="who">'+ACTORS[s.a].label+'</span><p class="what">'+esc(s.what)+'</p>'+
+          '<div class="where mono">'+esc(s.where)+'</div>'+
+          '<div class="expect test-only"><b>Esperado:</b> '+esc(s.expect)+'</div></div>'+
+          '<button type="button" class="res test-only '+r+'" data-key="'+key+'">'+RES_LABEL[r]+'</button></li>';
+      }).join('');
+      return '<section class="flow" id="'+f.id+'">'+
+        '<div class="flow-head"><div><div class="n mono">FLUXO '+(fi+1)+'</div><h2>'+esc(f.title)+'</h2></div>'+
+        '<div class="flow-meta mono">'+esc(f.who)+'<br>'+esc(f.time)+'</div></div>'+
+        '<p class="flow-desc">'+esc(f.desc)+'</p>'+
+        '<div class="pre test-only"><b>Antes de começar</b><ul>'+f.pre.map(function(p){return '<li>'+p+'</li>';}).join('')+'</ul></div>'+
+        '<div class="trail">'+trail+'</div>'+
+        '<ol class="steps">'+steps+'</ol>'+
+        (f.variants && f.variants.length ? '<div class="variants"><h3>Variações para testar</h3><ul>'+f.variants.map(function(v){return '<li>'+v+'</li>';}).join('')+'</ul></div>' : '')+
+        (f.note ? '<div class="callout test-only"><b>Atenção:</b> '+esc(f.note)+'</div>' : '')+
+        '<div class="notes test-only"><h3>Anotações do teste</h3><textarea data-notes="'+f.id+'" placeholder="O que deu errado, prints, dúvidas...">'+esc(state['notes-'+f.id] || '')+'</textarea></div>'+
+        '</section>';
+    }).join('');
+  }
+
+  function renderIndex(){
+    document.getElementById('index').innerHTML = FLOWS.map(function(f, fi){
+      var ok = 0, ko = 0, n = f.steps.length;
+      f.steps.forEach(function(s, si){ var r = state[f.id+'-'+si]; if(r === 'ok') ok++; if(r === 'ko') ko++; });
+      return '<a href="#'+f.id+'"><div class="n mono">FLUXO '+(fi+1)+' · '+n+' passos</div><div class="t">'+esc(f.title)+'</div>'+
+        '<div class="d">'+esc(f.who)+' · '+esc(f.time)+'</div>'+
+        '<div class="test-only"><div class="meter"><i class="ok" style="width:'+(ok/n*100)+'%"></i><i class="ko" style="width:'+(ko/n*100)+'%"></i></div>'+
+        '<div class="count mono">'+ok+' passaram · '+ko+' falharam · '+(n-ok-ko)+' não testados</div></div></a>';
+    }).join('');
+  }
+
+  function render(){ renderFlows(); renderIndex(); }
+
+  function setMode(mode){
+    document.body.classList.toggle('present', mode === 'present');
+    document.querySelectorAll('[data-mode]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-mode') === mode)); });
+    try{ localStorage.setItem(STORE+'-mode', mode); }catch(e){}
+  }
+
+  document.addEventListener('click', function(e){
+    var res = e.target.closest('.res[data-key]');
+    if(res){
+      var k = res.getAttribute('data-key');
+      state[k] = RES[(RES.indexOf(state[k] || '') + 1) % RES.length];
+      save(); render(); return;
+    }
+    var node = e.target.closest('[data-jump]');
+    if(node && !document.body.classList.contains('present')){
+      var li = document.getElementById('step-'+node.getAttribute('data-jump'));
+      if(li){ li.scrollIntoView({behavior:'smooth', block:'center'}); li.classList.add('flash'); setTimeout(function(){ li.classList.remove('flash'); }, 1200); }
+      return;
+    }
+    var m = e.target.closest('[data-mode]');
+    if(m){ setMode(m.getAttribute('data-mode')); }
+  });
+
+  document.addEventListener('input', function(e){
+    var id = e.target.getAttribute && e.target.getAttribute('data-notes');
+    if(id){ state['notes-'+id] = e.target.value; save(); }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function(){
+    if(!confirm('Apagar todos os resultados e anotações deste navegador?')) return;
+    state = {}; save(); render();
+  });
+
+  document.getElementById('export-btn').addEventListener('click', function(){
+    var d = new Date();
+    var date = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    var lines = ['# Relatório de teste dos fluxos — Exactra', '', 'Data: '+date, ''];
+    FLOWS.forEach(function(f, fi){
+      lines.push('## Fluxo '+(fi+1)+': '+f.title, '');
+      f.steps.forEach(function(s, si){
+        var r = state[f.id+'-'+si] || '';
+        lines.push('- ['+(r === 'ok' ? 'x' : ' ')+'] '+(si+1)+'. '+s.short+' — '+RES_LABEL[r]);
+      });
+      if(state['notes-'+f.id]) lines.push('', 'Anotações: '+state['notes-'+f.id]);
+      lines.push('');
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/markdown'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'teste-fluxos-'+d.toISOString().slice(0,10)+'.md';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  renderLegend();
+  render();
+  var saved = 'test';
+  try{ saved = localStorage.getItem(STORE+'-mode') || 'test'; }catch(e){}
+  setMode(saved);
+  // Flows are rendered by JS, so a #fluxo link needs a scroll after rendering.
+  if(location.hash){ var target = document.getElementById(location.hash.slice(1)); if(target){ target.scrollIntoView(); } }
+})();
+</script>
+</body>
+</html>
