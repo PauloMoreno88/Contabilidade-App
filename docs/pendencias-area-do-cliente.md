@@ -8,7 +8,7 @@ Trabalho feito em 23/10/2026 (decisões 24–30 do `docs/plano.md`). O código e
   - Criar um token de API com permissão **Object Read & Write só nesse bucket** e anotar: Account ID, Access Key ID e Secret Access Key.
   - Em *Settings → CORS policy* do bucket, liberar o site:
     ```json
-    [{ "AllowedOrigins": ["https://<site-staging>.onrender.com"], "AllowedMethods": ["PUT", "GET", "HEAD"], "AllowedHeaders": ["Content-Type"], "MaxAgeSeconds": 3600 }]
+    [{ "AllowedOrigins": ["https://teste.exactracontabilidade.com.br"], "AllowedMethods": ["PUT", "GET", "HEAD"], "AllowedHeaders": ["Content-Type"], "MaxAgeSeconds": 3600 }]
     ```
   - No Render (serviço da API), preencher `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` e `R2_BUCKET` (já estão no `render.yaml`). Sem elas, a área funciona, mas envio e download de arquivos respondem "indisponível".
   - Produção: outro bucket, com o domínio `https://www.exactracontabilidade.com.br` no CORS.
