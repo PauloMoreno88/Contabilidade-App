@@ -1,6 +1,6 @@
 import { Section } from "@react-email/components";
 import { PERIOD_MONTHS, planInfo } from "@exactra/shared";
-import { methodLabel, newContractCopy as copy, periodLabel, isRecurring } from "../copy";
+import { methodLabel, newContractCopy, renewalNoticeCopy, periodLabel, isRecurring } from "../copy";
 import { formatBRL, formatDate, safeUrl } from "../format";
 import { H1, H2, Layout, Ledger, Mono, P, PrimaryButton, WhatsAppButton } from "../ui";
 import type { ContractSummary } from "./welcome";
@@ -8,13 +8,15 @@ import type { ContractSummary } from "./welcome";
 export type NewContractNoticeProps = {
   customer: { name: string; email: string; phone: string; document: string };
   contract: ContractSummary & { id: string };
+  renewal?: boolean;
   /** Where the customer came from, e.g. "Simulador (google / lancamento)". Omit when there is no lead. */
   source?: string | null;
   /** Link to the contract in the admin panel, e.g. https://www.../admin/contrato?id=... */
   adminUrl?: string;
 };
 
-export function NewContractNotice({ customer, contract: c, source, adminUrl }: NewContractNoticeProps) {
+export function NewContractNotice({ customer, contract: c, source, adminUrl, renewal }: NewContractNoticeProps) {
+  const copy = renewal ? renewalNoticeCopy : newContractCopy;
   const card = isRecurring(c);
   const digits = customer.phone.replace(/\D/g, "");
   return (
@@ -29,7 +31,7 @@ export function NewContractNotice({ customer, contract: c, source, adminUrl }: N
           [copy.email, customer.email],
           [copy.phone, <Mono key="p">{customer.phone}</Mono>],
           [copy.document, <Mono key="d">{customer.document}</Mono>],
-          [copy.source, source || copy.noSource],
+          ...(!renewal ? [[copy.source, source || copy.noSource] as [string, string]] : []),
         ]}
       />
 

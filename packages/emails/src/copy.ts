@@ -56,6 +56,17 @@ export const welcomeCopy = {
   whatsappMessage: (plan: string) => `Olá! Acabei de contratar o ${plan} da Exactra.`,
 };
 
+export const renewalCopy = {
+  ...welcomeCopy,
+  subject: (firstName: string) => `Renovação confirmada, ${firstName}`,
+  preview: "Seu pagamento foi confirmado. Confira o novo período do seu plano.",
+  title: (firstName: string) => `${firstName}, sua renovação foi confirmada.`,
+  lede: "O pagamento da renovação foi confirmado. Seu atendimento com a Exactra continua pelo novo período indicado abaixo.",
+  summaryTitle: "Resumo da renovação",
+  whatsappText: "Precisa de ajuda com a renovação? Fale com a gente pelo WhatsApp.",
+  whatsappMessage: (plan: string) => `Olá! Renovei o ${plan} da Exactra e tenho uma dúvida.`,
+};
+
 export const newContractCopy = {
   subject: (customer: string, plan: string) => `Nova contratação: ${customer} (${plan})`,
   preview: (customer: string) => `${customer} acabou de ativar um contrato.`,
@@ -71,6 +82,14 @@ export const newContractCopy = {
   noSource: "Direto (sem simulador)",
   adminCta: "Abrir no painel",
   whatsappCta: "Chamar no WhatsApp",
+};
+
+export const renewalNoticeCopy = {
+  ...newContractCopy,
+  subject: (customer: string, plan: string) => `Renovação confirmada: ${customer} (${plan})`,
+  preview: (customer: string) => `${customer} renovou o contrato.`,
+  title: "Renovação confirmada",
+  lede: "O pagamento da renovação foi confirmado pelo Stripe. Confira o novo período do contrato no painel.",
 };
 
 export const passwordResetCopy = {

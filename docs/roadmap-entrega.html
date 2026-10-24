@@ -101,15 +101,15 @@
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
     margin:0 -24px;
-    padding:0 24px;
+    padding:22px 24px 12px;
   }
   .ledger-track{
     position:relative;
-    min-width:680px;
+    min-width:1050px;
   }
   .ruler{
     display:grid;
-    grid-template-columns:repeat(20, 1fr);
+    grid-template-columns:repeat(31, minmax(0, 1fr));
     gap:2px;
   }
   .ruler .day{
@@ -132,7 +132,7 @@
     position:absolute;
     top:-20px;
     left:0;
-    width:5%;
+    width:calc(100% / 31);
     text-align:center;
     font-size:0.62rem;
     color:var(--red);
@@ -142,12 +142,15 @@
 
   .phase-bars{
     display:grid;
-    grid-template-columns:repeat(20, 1fr);
-    gap:2px;
+    grid-template-columns:repeat(31, minmax(0, 1fr));
+    grid-auto-rows:22px;
+    gap:3px 2px;
     margin-top:6px;
   }
   .phase-bars .bar{
     height:22px;
+    white-space:nowrap;
+    overflow:hidden;
     border-radius:3px;
     display:flex;
     align-items:center;
@@ -169,6 +172,39 @@
   }
   @media (prefers-reduced-motion: reduce){
     .phase-bars .bar{animation:none;}
+  }
+
+  /* ---------- summary ---------- */
+
+  .summary{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+    margin:28px 0 32px;
+  }
+  .summary .cell{
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface);
+    padding:14px 16px;
+  }
+  .summary .n{font-size:1.6rem;font-weight:600;display:block;line-height:1.1;}
+  .summary .t{font-size:0.78rem;color:var(--text-muted);}
+  .summary .cell.concluido .n{color:var(--green);}
+  .summary .cell.andamento .n{color:var(--amber);}
+  .summary .cell.pendente .n{color:var(--text-muted);}
+
+  .tag-extra{
+    display:inline-block;
+    font-size:0.68rem;
+    font-weight:600;
+    color:var(--red);
+    border:1px solid rgba(200,35,51,0.45);
+    background:rgba(200,35,51,0.08);
+    border-radius:4px;
+    padding:1px 6px;
+    margin-left:8px;
+    vertical-align:middle;
   }
 
   /* ---------- legend / hint / actions ---------- */
@@ -343,10 +379,13 @@
     header.doc-head{flex-direction:column;}
     .stamp{text-align:left;}
     h1{font-size:1.55rem;}
-    .ledger-scroll{margin:0 -16px;padding:0 16px;}
+    .ledger-scroll{margin:0 -16px;padding:22px 16px 12px;}
     .phase-head{flex-direction:column;}
     .phase-dates{text-align:left;}
     .tasks li{flex-direction:column;align-items:flex-start;gap:6px;}
+    .summary{gap:6px;}
+    .summary .cell{padding:10px 12px;}
+    .summary .n{font-size:1.3rem;}
   }
 
   :focus-visible{outline:2px solid var(--red);outline-offset:2px;}
@@ -362,20 +401,26 @@
     </div>
     <div class="stamp">
       <div class="label">Atualizado em</div>
-      <div class="value mono" id="stamp-date">08/10/2026</div>
-      <div class="label" style="margin-top:6px;">Dia</div>
-      <div class="value mono" id="stamp-day">8 de 20</div>
+      <div class="value mono" id="stamp-date">24/10/2026</div>
+      <div class="label" style="margin-top:6px;">Dia do projeto</div>
+      <div class="value mono" id="stamp-day">24</div>
     </div>
   </header>
 
   <h1>Roadmap de entrega do novo site</h1>
-  <p class="lede">Do protótipo visual ao lançamento: 20 dias corridos, divididos em 5 fases. A marcação "hoje" na régua abaixo segue a data real; os status de cada etapa são atualizados manualmente conforme o progresso.</p>
+  <p class="lede">O plano original previa 20 dias corridos em 5 fases. O site, o simulador, o checkout e o painel ficaram prontos, e o projeto foi além: entraram um blog para atrair visitas pelo Google e uma área do cliente completa (documentos, guias e plano). O lançamento com cobrança real depende agora de itens da Exactra e do contador, listados nas fases abaixo.</p>
+
+  <section class="summary" aria-label="Resumo das tarefas">
+    <div class="cell concluido"><span class="n mono" id="sum-concluido">0</span><span class="t">tarefas concluídas</span></div>
+    <div class="cell andamento"><span class="n mono" id="sum-andamento">0</span><span class="t">em andamento</span></div>
+    <div class="cell pendente"><span class="n mono" id="sum-pendente">0</span><span class="t">pendentes</span></div>
+  </section>
 
   <section class="ledger">
-    <div class="ledger-title">Linha do tempo — 01/10 a 20/10</div>
+    <div class="ledger-title">Linha do tempo — 01/10 a 31/10 (o plano original ia até 20/10)</div>
     <div class="ledger-scroll">
       <div class="ledger-track">
-        <span class="today-flag" style="left: 35%;">hoje</span>
+        <span class="today-flag" style="left: calc(100% / 31 * 23);">hoje</span>
         <div class="ruler">
           <div class="day"><span class="n">1</span>01/10</div>
           <div class="day"><span class="n">2</span>02/10</div>
@@ -384,7 +429,7 @@
           <div class="day"><span class="n">5</span>05/10</div>
           <div class="day"><span class="n">6</span>06/10</div>
           <div class="day"><span class="n">7</span>07/10</div>
-          <div class="day today"><span class="n">8</span>08/10</div>
+          <div class="day"><span class="n">8</span>08/10</div>
           <div class="day"><span class="n">9</span>09/10</div>
           <div class="day"><span class="n">10</span>10/10</div>
           <div class="day"><span class="n">11</span>11/10</div>
@@ -397,13 +442,25 @@
           <div class="day"><span class="n">18</span>18/10</div>
           <div class="day"><span class="n">19</span>19/10</div>
           <div class="day"><span class="n">20</span>20/10</div>
+          <div class="day"><span class="n">21</span>21/10</div>
+          <div class="day"><span class="n">22</span>22/10</div>
+          <div class="day"><span class="n">23</span>23/10</div>
+          <div class="day today"><span class="n">24</span>24/10</div>
+          <div class="day"><span class="n">25</span>25/10</div>
+          <div class="day"><span class="n">26</span>26/10</div>
+          <div class="day"><span class="n">27</span>27/10</div>
+          <div class="day"><span class="n">28</span>28/10</div>
+          <div class="day"><span class="n">29</span>29/10</div>
+          <div class="day"><span class="n">30</span>30/10</div>
+          <div class="day"><span class="n">31</span>31/10</div>
         </div>
         <div class="phase-bars">
-          <div class="bar status-andamento" data-key="p1" style="grid-column:1/3;animation-delay:0s;">Fase 1</div>
-          <div class="bar status-andamento" data-key="p2" style="grid-column:3/7;animation-delay:0.05s;">Fase 2</div>
-          <div class="bar status-andamento" data-key="p3" style="grid-column:7/14;animation-delay:0.1s;">Fase 3</div>
-          <div class="bar status-andamento" data-key="p4" style="grid-column:14/19;animation-delay:0.15s;">Fase 4</div>
-          <div class="bar status-pendente" data-key="p5" style="grid-column:19/21;animation-delay:0.2s;">Fase 5</div>
+          <div class="bar status-concluido" data-key="p1" style="grid-row:1;grid-column:1/3;animation-delay:0s;">Fase 1</div>
+          <div class="bar status-concluido" data-key="p2" style="grid-row:2;grid-column:2/23;animation-delay:0.05s;">Fase 2 · protótipos A–G, aprovação em 22/10</div>
+          <div class="bar status-concluido" data-key="p3" style="grid-row:3;grid-column:6/23;animation-delay:0.1s;">Fase 3 · front-end real</div>
+          <div class="bar status-andamento" data-key="p4" style="grid-row:4;grid-column:4/25;animation-delay:0.15s;">Fase 4 · backend e pagamentos</div>
+          <div class="bar status-andamento" data-key="px" style="grid-row:5;grid-column:22/26;animation-delay:0.2s;">Extra</div>
+          <div class="bar status-pendente" data-key="p5" style="grid-row:6;grid-column:25/32;animation-delay:0.25s;">Fase 5 · data a definir</div>
         </div>
       </div>
     </div>
@@ -413,6 +470,7 @@
     <span><span class="dot pendente"></span>Pendente</span>
     <span><span class="dot andamento"></span>Em andamento</span>
     <span><span class="dot concluido"></span>Concluído</span>
+    <span><span class="tag-extra" style="margin-left:0;">a mais</span>Fora do escopo original</span>
   </div>
   <p class="hint">Clique em qualquer status (acima nas fases, ou dentro de cada tarefa) para alternar entre Pendente, Em andamento e Concluído. Quando terminar de atualizar, baixe o novo arquivo e envie para o cliente.</p>
   <div class="actions">
@@ -428,13 +486,13 @@
       </div>
       <div class="phase-dates mono">01/10 – 02/10 · dias 1–2</div>
     </div>
-    <button class="badge andamento" type="button" data-key="p1"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
+    <button class="badge concluido" type="button" data-key="p1"><span class="dot concluido"></span><span class="label">Concluído</span></button>
     <p class="phase-desc">Entender o que já existe antes de redesenhar — paleta, conteúdo e estrutura atuais da Exactra, e alinhamento sobre este roadmap.</p>
     <ul class="tasks">
       <li><span class="name">Analisar repositório e site atual</span><button class="badge concluido" type="button" data-key="p1-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Extrair paleta, tipografia e logo da marca</span><button class="badge concluido" type="button" data-key="p1-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Montar este roadmap de entrega</span><button class="badge concluido" type="button" data-key="p1-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">Alinhar prioridades e aprovar roadmap com o cliente</span><button class="badge andamento" type="button" data-key="p1-t4"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+      <li><span class="name">Alinhar prioridades e aprovar roadmap com o cliente</span><button class="badge concluido" type="button" data-key="p1-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
     </ul>
   </section>
 
@@ -445,37 +503,39 @@
         <div class="num mono">FASE 2</div>
         <h2>Protótipo visual interativo</h2>
       </div>
-      <div class="phase-dates mono">02/10 – 06/10 · dias 2–6</div>
+      <div class="phase-dates mono">02/10 – 22/10 · previsto até 06/10</div>
     </div>
-    <button class="badge andamento" type="button" data-key="p2"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
-    <p class="phase-desc">Um HTML único, navegável, simulando a experiência completa — da home ao checkout — para validar a direção visual e o funil antes de qualquer linha de código de produção.</p>
+    <button class="badge concluido" type="button" data-key="p2"><span class="dot concluido"></span><span class="label">Concluído</span></button>
+    <p class="phase-desc">Um HTML navegável simulando a experiência completa — da home ao checkout — para validar a direção visual e o funil. Foram feitas sete variantes (A a G) e uma comparação com concorrentes; a variante G foi aprovada em 22/10, com a exigência de não usar fotos de pessoas.</p>
     <ul class="tasks">
       <li><span class="name">Home: header, hero, benefícios e serviços</span><button class="badge concluido" type="button" data-key="p2-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Mini-diagnóstico interativo (simulador em etapas)</span><button class="badge concluido" type="button" data-key="p2-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Seção de planos e checkout simulado</span><button class="badge concluido" type="button" data-key="p2-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Onboarding e próximos passos (fictício)</span><button class="badge concluido" type="button" data-key="p2-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">Apresentação e aprovação do cliente</span><button class="badge pendente" type="button" data-key="p2-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+      <li><span class="name">Variantes extras (E, F e G) e comparação com concorrentes<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="p2-t6"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Apresentação e aprovação do cliente (variante G, 22/10)</span><button class="badge concluido" type="button" data-key="p2-t5"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
     </ul>
   </section>
 
   <!-- FASE 3 -->
-  <section class="phase current">
+  <section class="phase">
     <div class="phase-head">
       <div>
         <div class="num mono">FASE 3</div>
         <h2>Front-end real</h2>
       </div>
-      <div class="phase-dates mono">06/10 – 13/10 · dias 6–13</div>
+      <div class="phase-dates mono">06/10 – 22/10 · previsto até 13/10</div>
     </div>
-    <button class="badge andamento" type="button" data-key="p3"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
-    <p class="phase-desc">O protótipo aprovado ganha vida no projeto de produção (Next.js / Tailwind), com o simulador funcional — ainda sem regras fiscais reais nem pagamento.</p>
+    <button class="badge concluido" type="button" data-key="p3"><span class="dot concluido"></span><span class="label">Concluído</span></button>
+    <p class="phase-desc">O protótipo aprovado no projeto de produção (Next.js / Tailwind), com o simulador funcionando. A landing foi refeita sobre a variante G depois da aprovação. Preços e regras do simulador continuam fictícios até o contador validar.</p>
     <ul class="tasks">
-      <li><span class="name">Implementação das seções no Next.js</span><button class="badge concluido" type="button" data-key="p3-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">Simulador funcional (cálculo simulado)</span><button class="badge concluido" type="button" data-key="p3-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">Seção de planos no layout final</span><button class="badge concluido" type="button" data-key="p3-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
-      <li><span class="name">Responsividade mobile / tablet / desktop</span><button class="badge andamento" type="button" data-key="p3-t4"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
-      <li><span class="name">Revisão de copy e microinterações</span><button class="badge andamento" type="button" data-key="p3-t5"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
-      <li><span class="name">Painel administrativo (login, 2FA e dashboard de clientes)</span><button class="badge concluido" type="button" data-key="p3-t6"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Implementação das seções no Next.js (refeita na variante G)</span><button class="badge concluido" type="button" data-key="p3-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Simulador funcional, com comparativo de regimes tributários (cálculo simulado)</span><button class="badge concluido" type="button" data-key="p3-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Plano único (Plano Exactra) no layout final, no lugar de três planos</span><button class="badge concluido" type="button" data-key="p3-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Responsividade mobile / tablet / desktop e barra fixa no celular</span><button class="badge concluido" type="button" data-key="p3-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Revisão de copy (respostas da Exactra aplicadas) e microinterações</span><button class="badge concluido" type="button" data-key="p3-t5"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Painel administrativo (login, 2FA por app, e-mail ou código de recuperação, reset de senha, contratos, leads e CSV)</span><button class="badge concluido" type="button" data-key="p3-t6"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Páginas de privacidade e termos (rascunho, falta revisão jurídica)<span class="tag-extra">a mais</span></span><button class="badge andamento" type="button" data-key="p3-t7"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
     </ul>
   </section>
 
@@ -486,14 +546,16 @@
         <div class="num mono">FASE 4</div>
         <h2>Backend &amp; pagamentos</h2>
       </div>
-      <div class="phase-dates mono">13/10 – 18/10 · dias 13–18</div>
+      <div class="phase-dates mono">04/10 – em andamento · previsto 13/10 – 18/10</div>
     </div>
     <button class="badge andamento" type="button" data-key="p4"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
-    <p class="phase-desc">A fase de maior risco do cronograma — depende de uma decisão de gateway e de informações que só o contador pode fornecer.</p>
+    <p class="phase-desc">Pagamentos, contratos e e-mails prontos e rodando em modo de teste. O que falta depende de validação do contador e da conta da Exactra.</p>
     <ul class="tasks">
-      <li><span class="name">Assinatura recorrente + webhooks de pagamento</span><button class="badge andamento" type="button" data-key="p4-t1"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
+      <li><span class="name">Contrato anual pago na contratação (cartão à vista ou parcelado, Pix ou boleto) + webhooks de pagamento</span><button class="badge concluido" type="button" data-key="p4-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Teste completo de Pix, boleto e parcelamento no ambiente de testes</span><button class="badge pendente" type="button" data-key="p4-t6"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
       <li><span class="name">Persistência de cliente e contratação</span><button class="badge concluido" type="button" data-key="p4-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">E-mails automáticos (boas-vindas e aviso interno)</span><button class="badge concluido" type="button" data-key="p4-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Rotina diária: aviso de vencimento do contrato e limpeza de leads após 30 dias (LGPD)<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="p4-t7"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Domínio próprio, HTTPS e e-mail com domínio verificado (staging)</span><button class="badge concluido" type="button" data-key="p4-t5"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
       <li><span class="name">Ambiente de testes publicado (staging) para validação</span><button class="badge concluido" type="button" data-key="p4-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
     </ul>
@@ -501,15 +563,55 @@
     <div class="callout decision">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
       <div>
-        <span class="title">Decisão tomada — gateway de pagamento</span>
-        Stripe escolhido, com a conta da Exactra em modo de teste. Cartão (assinatura mensal) validado de ponta a ponta no ambiente de testes publicado; Pix e boleto (pagamento antecipado de 3/6/12 meses) ainda precisam de teste completo. A ativação da conta para cobranças reais fica para depois da validação dos preços.</div>
+        <span class="title">Decisões tomadas — plano e forma de pagamento</span>
+        Stripe escolhido, com a conta da Exactra em modo de teste. Desde 22/10 há um plano só, o Plano Exactra, vendido como contrato anual pago na contratação: cartão (à vista ou em até 12x), Pix ou boleto, sem desconto, sem taxa de adesão e sem limite de funcionários. O contrato não renova sozinho: o sistema avisa antes do vencimento e o cliente renova pela área do cliente. O parcelamento no cartão fica desligado até ser testado no Stripe.</div>
     </div>
 
     <div class="callout blocker">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8h5M8 5.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <div>
         <span class="title">Bloqueios externos — contador e conta da Exactra</span>
-        Valores dos planos e regras tributárias dependem de validação do contador (perguntas já preparadas). O domínio, o HTTPS e o e-mail de envio já estão configurados no ambiente de testes. Para publicar com cobrança real faltam essa validação, a ativação da conta Stripe para cobranças reais e o domínio definitivo (www e api). Enquanto isso, tudo roda em modo de teste, com preços e regras fictícios.</div>
+        O preço do plano e as regras do simulador ainda são fictícios até o contador validar (perguntas já enviadas). Para publicar com cobrança real faltam essa validação, a ativação da conta Stripe para cobranças reais, o domínio definitivo (www e api) e a revisão jurídica dos termos. Enquanto isso, tudo roda em modo de teste.</div>
+    </div>
+  </section>
+
+  <!-- EXTRA -->
+  <section class="phase current">
+    <div class="phase-head">
+      <div>
+        <div class="num mono">ALÉM DO ESCOPO</div>
+        <h2>Blog e área do cliente</h2>
+      </div>
+      <div class="phase-dates mono">22/10 – 24/10 · não previsto no plano</div>
+    </div>
+    <button class="badge andamento" type="button" data-key="px"><span class="dot andamento"></span><span class="label">Em andamento</span></button>
+    <p class="phase-desc">Entregas que não estavam no roadmap original. O blog traz visitas pelo Google sem custo de anúncio. A área do cliente substitui o "onboarding fictício": depois de contratar, o cliente entra no site, envia os documentos do mês, recebe as guias para pagar e acompanha o plano, e a Exactra acompanha tudo pelo painel.</p>
+    <ul class="tasks">
+      <li><span class="name">Blog com 10 artigos revisados pelo contador, filtro por assunto e otimizado para o Google<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t1"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Login único em "Entrar" para equipe e clientes, com link mágico por e-mail e convite de acesso<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t2"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Primeiro acesso do cliente em 3 passos e tela "Início" com as tarefas por urgência<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Documentos do mês: checklist por empresa e envio pelo celular (inclusive foto), com recusa e motivo<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t4"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Guias: leitura automática do PDF, conferência da linha digitável e "Já paguei"<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t5"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Plano: vigência, pagamentos e renovação pelo próprio cliente<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t6"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Painel da equipe: visão do mês, clientes, ficha do cliente, publicar guia e modelos de checklist<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t7"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">E-mails automáticos: guia nova, guia vencendo, documentos do mês, lembretes e recusa<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t8"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Armazenamento seguro dos arquivos (1 ano, com "Baixar tudo") no ambiente de testes<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t9"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Item novo do checklist com "Vale a partir de" (agora ou um mês seguinte)<span class="tag-extra">a mais</span></span><button class="badge concluido" type="button" data-key="px-t10"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Teste completo da área do cliente no ambiente de testes (contratar → ativar acesso → enviar documento → guia real)</span><button class="badge pendente" type="button" data-key="px-t11"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
+    </ul>
+
+    <div class="callout blocker">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8h5M8 5.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div>
+        <span class="title">Depende da Exactra e do contador</span>
+        A lista real de documentos por tipo de empresa, o prazo de envio (hoje dia 10), os motivos de recusa, quais guias serão publicadas e a revisão dos textos da área do cliente e dos e-mails. Hoje há exemplos no lugar, editáveis pelo painel.</div>
+    </div>
+
+    <div class="callout decision">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="currentColor"/></svg>
+      <div>
+        <span class="title">Combinado para uma próxima versão</span>
+        Envio de guias em lote, importação de clientes por planilha, avisos automáticos pelo WhatsApp, guarda de certificado digital e senhas, e escolha de empresa para quem tem mais de um CNPJ.</div>
     </div>
   </section>
 
@@ -520,21 +622,22 @@
         <div class="num mono">FASE 5</div>
         <h2>Lançamento &amp; onboarding</h2>
       </div>
-      <div class="phase-dates mono">18/10 – 20/10 · dias 18–20</div>
+      <div class="phase-dates mono">data a definir · previsto 18/10 – 20/10</div>
     </div>
     <button class="badge pendente" type="button" data-key="p5"><span class="dot pendente"></span><span class="label">Pendente</span></button>
-    <p class="phase-desc">Testes finais, publicação e o fluxo que recebe o cliente depois da contratação.</p>
+    <p class="phase-desc">Testes finais, publicação e o fluxo que recebe o cliente depois da contratação. A data depende dos bloqueios da Fase 4.</p>
     <ul class="tasks">
+      <li><span class="name">Fluxo de onboarding pós-venda e documentos (entregue como área do cliente)</span><button class="badge concluido" type="button" data-key="p5-t3"><span class="dot concluido"></span><span class="label">Concluído</span></button></li>
+      <li><span class="name">Ambiente de produção: domínio definitivo, armazenamento de arquivos e Stripe para cobranças reais</span><button class="badge pendente" type="button" data-key="p5-t5"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
       <li><span class="name">Testes finais (fluxo completo, pagamentos reais)</span><button class="badge pendente" type="button" data-key="p5-t1"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
       <li><span class="name">Deploy em produção</span><button class="badge pendente" type="button" data-key="p5-t2"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
-      <li><span class="name">Fluxo de onboarding pós-venda e documentos</span><button class="badge andamento" type="button" data-key="p5-t3"><span class="dot andamento"></span><span class="label">Em andamento</span></button></li>
       <li><span class="name">Handoff final para a Exactra</span><button class="badge pendente" type="button" data-key="p5-t4"><span class="dot pendente"></span><span class="label">Pendente</span></button></li>
     </ul>
   </section>
 
   <footer>
     <span class="brand-name">Exactra Contabilidade</span>
-    <span>Roadmap interno de acompanhamento de projeto · próxima atualização em ~3 dias</span>
+    <span>Roadmap interno de acompanhamento de projeto · próxima atualização após as respostas do contador</span>
   </footer>
 
 </div>
@@ -543,8 +646,9 @@
 (function(){
   var STATUS = ['pendente','andamento','concluido'];
   var LABEL = {pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído'};
-  var STORE_KEY = 'exactra-roadmap-status-v1';
+  var STORE_KEY = 'exactra-roadmap-status-v2';
   var START = new Date(2026,9,1); // 01/10/2026
+  var TOTAL_DAYS = 31;
 
   function currentStatus(badge){
     for(var i=0;i<STATUS.length;i++){ if(badge.classList.contains(STATUS[i])) return STATUS[i]; }
@@ -595,11 +699,23 @@
     }catch(e){}
   }
 
+  function updateSummary(){
+    var count = {pendente:0, andamento:0, concluido:0};
+    document.querySelectorAll('.tasks button.badge[data-key]').forEach(function(el){
+      count[currentStatus(el)]++;
+    });
+    STATUS.forEach(function(s){
+      var el = document.getElementById('sum-'+s);
+      if(el){ el.textContent = count[s]; }
+    });
+  }
+
   function initClicks(){
     document.querySelectorAll('button.badge[data-key]').forEach(function(badge){
       badge.addEventListener('click', function(){
         applyStatus(badge, nextStatus(currentStatus(badge)));
         saveState();
+        updateSummary();
       });
     });
   }
@@ -608,7 +724,7 @@
     var now = new Date();
     var diff = Math.floor((now - START) / 86400000) + 1;
     if(diff < 1) diff = 1;
-    if(diff > 20) diff = 20;
+    if(diff > TOTAL_DAYS) diff = TOTAL_DAYS;
     return diff;
   }
 
@@ -619,7 +735,7 @@
       else { cell.classList.remove('today'); }
     });
     var flag = document.querySelector('.today-flag');
-    if(flag){ flag.style.left = ((idx - 1) * 5) + '%'; }
+    if(flag){ flag.style.left = ((idx - 1) * 100 / TOTAL_DAYS) + '%'; }
   }
 
   function stampNow(){
@@ -630,7 +746,7 @@
     var dateEl = document.getElementById('stamp-date');
     if(dateEl){ dateEl.textContent = dd+'/'+mm+'/'+yyyy; }
     var dayEl = document.getElementById('stamp-day');
-    if(dayEl){ dayEl.textContent = dayIndexToday()+' de 20'; }
+    if(dayEl){ dayEl.textContent = String(Math.floor((now - START) / 86400000) + 1); }
   }
 
   function exportHtml(){
@@ -652,6 +768,7 @@
   document.addEventListener('DOMContentLoaded', function(){
     restoreState();
     updateLedgerToday();
+    updateSummary();
     initClicks();
     var exportBtn = document.getElementById('export-btn');
     if(exportBtn){ exportBtn.addEventListener('click', exportHtml); }

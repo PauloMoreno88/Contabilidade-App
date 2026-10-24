@@ -5,6 +5,8 @@ import {
   expiryCopy,
   methodLabel,
   newContractCopy,
+  renewalCopy,
+  renewalNoticeCopy,
   passwordResetCopy,
   periodLabel,
   twoFactorCopy,
@@ -25,8 +27,8 @@ const rows = (pairs: [string, string][]) => pairs.map(([k, v]) => `${k}: ${v}`).
 
 const billing = (c: ContractSummary) => (isRecurring(c) ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`);
 
-export function welcomeText({ customerName, contract: c, activation }: WelcomeEmailProps) {
-  const copy = welcomeCopy;
+export function welcomeText({ customerName, contract: c, activation, renewal }: WelcomeEmailProps) {
+  const copy = renewal ? renewalCopy : welcomeCopy;
   const card = isRecurring(c);
   const plan = planInfo(c.plan).name;
   return join(
@@ -41,18 +43,18 @@ export function welcomeText({ customerName, contract: c, activation }: WelcomeEm
       [copy.startsAt, formatDate(c.startsAt)],
       ...(c.endsAt ? [[card ? copy.nextCharge : copy.endsAt, formatDate(c.endsAt)] as [string, string]] : []),
     ])}\n${card ? copy.cardNote : copy.prepaidNote}`,
-    `${copy.stepsTitle.toUpperCase()}\n${onboarding.steps
+    !renewal && `${copy.stepsTitle.toUpperCase()}\n${onboarding.steps
       .map((s, i) => `${i + 1}. ${s.title}${i === 0 ? ` (${copy.done.toLowerCase()})` : ""}\n   ${s.text}`)
       .join("\n")}`,
-    `${copy.docsTitle.toUpperCase()}\n${onboarding.docs.map((d) => `- ${d}`).join("\n")}\n${onboarding.docsNote}`,
+    !renewal && `${copy.docsTitle.toUpperCase()}\n${onboarding.docs.map((d) => `- ${d}`).join("\n")}\n${onboarding.docsNote}`,
     `${copy.whatsappText}\n${whatsappLink(copy.whatsappMessage(plan))}`,
     brand.signature,
     footer,
   );
 }
 
-export function newContractText({ customer, contract: c, source, adminUrl }: NewContractNoticeProps) {
-  const copy = newContractCopy;
+export function newContractText({ customer, contract: c, source, adminUrl, renewal }: NewContractNoticeProps) {
+  const copy = renewal ? renewalNoticeCopy : newContractCopy;
   return join(
     copy.title,
     copy.lede,
@@ -61,7 +63,7 @@ export function newContractText({ customer, contract: c, source, adminUrl }: New
       [copy.email, customer.email],
       [copy.phone, customer.phone],
       [copy.document, customer.document],
-      [copy.source, source || copy.noSource],
+      ...(!renewal ? [[copy.source, source || copy.noSource] as [string, string]] : []),
     ])}`,
     `${copy.contractTitle.toUpperCase()}\n${rows([
       ["Plano", planInfo(c.plan).name],

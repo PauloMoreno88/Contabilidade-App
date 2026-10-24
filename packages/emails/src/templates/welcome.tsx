@@ -1,7 +1,7 @@
 import { Column, Row, Section, Text } from "@react-email/components";
 import type { ReactNode } from "react";
 import { onboarding, PERIOD_MONTHS, planInfo, whatsappLink, type BillingPeriod, type PaymentMethod, type StoredPlanId } from "@exactra/shared";
-import { methodLabel, periodLabel, portalCopy, welcomeCopy as copy, isRecurring } from "../copy";
+import { methodLabel, periodLabel, portalCopy, renewalCopy, welcomeCopy, isRecurring } from "../copy";
 import { firstName, formatBRL, formatDate, safeUrl, type DateInput } from "../format";
 import { color, H1, H2, Layout, Ledger, Mono, P, Panel, PrimaryButton, Signature, WhatsAppButton, mono } from "../ui";
 
@@ -19,11 +19,13 @@ export type ContractSummary = {
 export type WelcomeEmailProps = {
   customerName: string;
   contract: ContractSummary;
+  renewal?: boolean;
   /** Link to create the customer area password (sent with the welcome so the customer gets one e-mail). */
   activation?: { url: string; expiresInDays: number };
 };
 
-export function WelcomeEmail({ customerName, contract: c, activation }: WelcomeEmailProps) {
+export function WelcomeEmail({ customerName, contract: c, activation, renewal }: WelcomeEmailProps) {
+  const copy = renewal ? renewalCopy : welcomeCopy;
   const name = firstName(customerName);
   const plan = planInfo(c.plan);
   const card = isRecurring(c);
@@ -54,6 +56,7 @@ export function WelcomeEmail({ customerName, contract: c, activation }: WelcomeE
       />
       <P small style={{ margin: "10px 0 0" }}>{card ? copy.cardNote : copy.prepaidNote}</P>
 
+      {!renewal && <>
       <H2>{copy.stepsTitle}</H2>
       <Section>
         {onboarding.steps.map((s, i) => {
@@ -101,6 +104,7 @@ export function WelcomeEmail({ customerName, contract: c, activation }: WelcomeE
         ))}
         <Text className="x-faint" style={{ margin: "10px 0 0", fontSize: 12, lineHeight: "18px", color: color.faint }}>{onboarding.docsNote}</Text>
       </Panel>
+      </>}
 
       <P style={{ margin: "28px 0 14px" }}>{copy.whatsappText}</P>
       <WhatsAppButton href={whatsappLink(copy.whatsappMessage(plan.name))}>{copy.whatsappCta}</WhatsAppButton>

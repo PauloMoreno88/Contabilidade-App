@@ -49,7 +49,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 sm:gap-6 sm:px-6">
           <span className="hidden sm:block">
-            <Brand />
+            <Brand href="/admin/mes" />
           </span>
           <nav className="flex gap-1 overflow-x-auto">
             {adminCopy.nav.map((n) => (
