@@ -46,7 +46,7 @@ export function welcomeText({ customerName, contract: c, activation, renewal }: 
     !renewal && `${copy.stepsTitle.toUpperCase()}\n${onboarding.steps
       .map((s, i) => `${i + 1}. ${s.title}${i === 0 ? ` (${copy.done.toLowerCase()})` : ""}\n   ${s.text}`)
       .join("\n")}`,
-    !renewal && `${copy.docsTitle.toUpperCase()}\n${onboarding.docs.map((d) => `- ${d}`).join("\n")}\n${onboarding.docsNote}`,
+    !renewal && `${copy.docsTitle.toUpperCase()}\n${onboarding.docGroups.map((g) => `${g.title}:\n${g.items.map((d) => `- ${d}`).join("\n")}`).join("\n\n")}\n${onboarding.docsNote}`,
     `${copy.whatsappText}\n${whatsappLink(copy.whatsappMessage(plan))}`,
     brand.signature,
     footer,

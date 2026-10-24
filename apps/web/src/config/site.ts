@@ -21,7 +21,7 @@ type Item = { title: string; text: string };
 type IconItem = Item & { icon: LucideIcon };
 
 // Contact data and the onboarding timeline are shared with the e-mails (packages/emails).
-export { contact, onboarding, phoneLink, whatsappLink } from "@exactra/shared";
+export { company, contact, onboarding, phoneLink, whatsappLink } from "@exactra/shared";
 
 export const seo = {
   title: "Exactra Contabilidade | A contabilidade que mostra quanto sobra para você",
@@ -52,7 +52,7 @@ export const images = {
 };
 
 export const hero = {
-  badge: "Contabilidade online para todo o Brasil", // PLACEHOLDER: confirm nationwide service
+  badge: "Contabilidade online para todo o Brasil",
   title: "A contabilidade que mostra quanto sobra para você.",
   lede: "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Antes de contratar, você simula grátis e vê quanto pagaria em cada regime.",
   primaryCta: { href: "#simulador", label: "Fazer a simulação" },
@@ -175,7 +175,6 @@ export const footer = {
     },
   ],
   contactTitle: "Contato",
-  crc: "CRC: a confirmar", // PLACEHOLDER: registration number of the responsible accountant
   copyright: `© ${new Date().getFullYear()} Exactra Contabilidade`,
   links: [
     { href: "/privacidade", label: "Política de privacidade" },

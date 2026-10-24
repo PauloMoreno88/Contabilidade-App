@@ -34,6 +34,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
       "Balanço e relatórios do ano",
       "Lembretes de vencimento",
       "Troca de contador sem custo",
+      "Abertura de empresa, se você ainda não tem CNPJ",
+      "Declaração do Imposto de Renda (pessoa física)",
       "Plataforma online",
       "Atendimento por WhatsApp, e-mail, telefone e vídeo",
     ],

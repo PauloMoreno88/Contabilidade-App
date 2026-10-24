@@ -39,8 +39,9 @@ describe("e-mails", () => {
       expect(s).toContain("Profissional");
       expect(s).toContain("04/11/2026");
       expect(s).toContain("Envie seus documentos");
-      expect(s).toContain("Comprovante de endereço");
-      expect(s).toContain("https://wa.me/");
+      expect(s).toContain("Se você está trocando de contador");
+      expect(s).toContain("Comprovante de residência");
+      expect(s).toContain("https://wa.me/5521992635721");
     }
     expect(e.text).toContain("Próxima cobrança: 04/11/2026");
   });

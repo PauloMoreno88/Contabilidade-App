@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { contact, footer, phoneLink } from "@/config/site";
+import { company, contact, footer, phoneLink } from "@/config/site";
 import { Brand } from "./Brand";
 
 export function Footer() {
@@ -31,7 +31,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-10 flex flex-wrap justify-between gap-3 border-t border-line pt-5 text-[0.84rem]">
-          <span>{footer.copyright}. {footer.crc}.</span>
+          <span>{footer.copyright}. {company.legalName}, CNPJ {company.cnpj}. Contador responsável: {company.crc}.</span>
           <span className="flex gap-4">
             {footer.links.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-ink">{l.label}</Link>

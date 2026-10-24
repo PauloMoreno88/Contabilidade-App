@@ -97,10 +97,15 @@ export function WelcomeEmail({ customerName, contract: c, activation, renewal }:
 
       <H2>{copy.docsTitle}</H2>
       <Panel>
-        {onboarding.docs.map((d) => (
-          <Text key={d} className="x-text" style={{ margin: "0 0 6px", fontSize: 14, lineHeight: "21px", color: color.text }}>
-            <span style={{ color: color.red }}>■</span>&nbsp;&nbsp;{d}
-          </Text>
+        {onboarding.docGroups.map((g, gi) => (
+          <Section key={g.title}>
+            <Text className="x-text" style={{ margin: gi === 0 ? "0 0 6px" : "14px 0 6px", fontSize: 14, lineHeight: "21px", fontWeight: 700, color: color.text }}>{g.title}</Text>
+            {g.items.map((d) => (
+              <Text key={d} className="x-text" style={{ margin: "0 0 6px", fontSize: 14, lineHeight: "21px", color: color.text }}>
+                <span style={{ color: color.red }}>■</span>&nbsp;&nbsp;{d}
+              </Text>
+            ))}
+          </Section>
         ))}
         <Text className="x-faint" style={{ margin: "10px 0 0", fontSize: 12, lineHeight: "18px", color: color.faint }}>{onboarding.docsNote}</Text>
       </Panel>
