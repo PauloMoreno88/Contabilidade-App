@@ -98,6 +98,31 @@ describe('e-mails and expiry job (e2e)', () => {
     expect(notice.html).toContain(`/admin/contrato?id=${body.contractId}`);
   });
 
+  it('renewal: confirms the new period to the customer and the team without onboarding copy', async () => {
+    const previous = await contract({ method: 'PIX', endsAt: new Date(Date.now() + 20 * DAY) });
+    const renewed = await prisma.contract.create({
+      data: {
+        customerId: previous.customerId,
+        plan: 'exactra', period: 'ANNUAL', method: 'PIX', amountCents: 358800,
+        status: 'ACTIVE', statusToken: `tok_${++n}`,
+        startsAt: previous.endsAt,
+        endsAt: new Date(previous.endsAt!.getTime() + 365 * DAY),
+      },
+    });
+
+    await notifyActivation(renewed.id);
+
+    const [customer, team] = mails();
+    expect(mails().map((e) => e.to)).toEqual([`ana${n - 1}@ex.com`, 'equipe@exactra.test']);
+    expect(customer.subject).toContain('Renovação confirmada');
+    expect(customer.text).toContain('RESUMO DA RENOVAÇÃO');
+    expect(customer.text).not.toContain('Contratei. E agora?');
+    expect(team.subject).toContain('Renovação confirmada');
+    expect(team.text).not.toContain('Nova contratação');
+    expect(team.text).not.toContain('Origem:');
+    expect(team.html).toContain(`/admin/contrato?id=${renewed.id}`);
+  });
+
   it('activation: a failure sending the welcome e-mail does not block the internal notice', async () => {
     const c = await contract({ method: 'PIX', endsAt: new Date(Date.now() + 30 * DAY) });
     sent.mockRejectedValueOnce(new Error('Resend: recipient not allowed in test mode'));

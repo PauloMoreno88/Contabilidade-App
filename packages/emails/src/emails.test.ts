@@ -60,6 +60,23 @@ describe("e-mails", () => {
     expect(e.text).toContain("não renova sozinho");
   });
 
+  it("renewal confirms the new period without first-contract instructions", async () => {
+    const customer = await renderWelcomeEmail({ customerName: "Ana", contract: prepaid, renewal: true });
+    const team = await renderNewContractNotice({
+      customer: { name: "Ana", email: "ana@ex.com", phone: "21999990000", document: "12345678909" },
+      contract: { ...prepaid, id: "c2" },
+      renewal: true,
+      adminUrl: "https://www.exactracontabilidade.com.br/admin/contrato?id=c2",
+    });
+    expect(customer.subject).toBe("Renovação confirmada, Ana");
+    expect(customer.text).toContain("RESUMO DA RENOVAÇÃO");
+    expect(customer.text).toContain("Válido até: 04/10/2027");
+    for (const body of [customer.html, customer.text]) expect(body).not.toContain("Contratei. E agora?");
+    expect(team.subject).toBe("Renovação confirmada: Ana (Essencial (antigo))");
+    expect(team.text).not.toContain("Nova contratação");
+    expect(team.text).not.toContain("Origem:");
+  });
+
   it("internal notice escapes every customer field", async () => {
     const e = await renderNewContractNotice({
       customer: { name: evil, email: `x@y.com${evil}`, phone: "21999990000", document: evil },

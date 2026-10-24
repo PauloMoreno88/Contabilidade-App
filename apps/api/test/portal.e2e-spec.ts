@@ -354,6 +354,9 @@ describe('customer area (e2e)', () => {
     expect(renewed.startsAt!.getTime()).toBe(endsAt.getTime());
     // Same login, no new invite.
     expect(mails().some((m) => m.text.includes('/entrar/ativar'))).toBe(false);
+    expect(mails().map((m) => m.subject)).toEqual(expect.arrayContaining([
+      expect.stringContaining('Renovação confirmada'),
+    ]));
   });
 
   it('read-only after the end: history stays, writing is refused', async () => {

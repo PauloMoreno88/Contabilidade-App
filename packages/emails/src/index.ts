@@ -1,7 +1,7 @@
 import { render } from "@react-email/render";
 import { createElement, type ReactElement } from "react";
 import { planInfo } from "@exactra/shared";
-import { expiryCopy, newContractCopy, passwordResetCopy, twoFactorCopy, welcomeCopy } from "./copy";
+import { expiryCopy, newContractCopy, renewalCopy, renewalNoticeCopy, passwordResetCopy, twoFactorCopy, welcomeCopy } from "./copy";
 import { firstName, formatDate, oneLine } from "./format";
 import { PasswordResetEmail, TwoFactorCodeEmail, type PasswordResetEmailProps, type TwoFactorCodeEmailProps } from "./templates/auth";
 import { ExpiryReminderEmail, type ExpiryReminderEmailProps } from "./templates/expiry";
@@ -46,11 +46,11 @@ async function build(subject: string, element: ReactElement, text: string): Prom
 
 /** To the customer, when the contract becomes ACTIVE. */
 export const renderWelcomeEmail = (props: WelcomeEmailProps) =>
-  build(welcomeCopy.subject(firstName(props.customerName)), createElement(WelcomeEmail, props), welcomeText(props));
+  build((props.renewal ? renewalCopy : welcomeCopy).subject(firstName(props.customerName)), createElement(WelcomeEmail, props), welcomeText(props));
 
 /** Internal notice to ADMIN_NOTIFY_EMAIL, when a contract becomes ACTIVE. */
 export const renderNewContractNotice = (props: NewContractNoticeProps) =>
-  build(newContractCopy.subject(props.customer.name, planInfo(props.contract.plan).name), createElement(NewContractNotice, props), newContractText(props));
+  build((props.renewal ? renewalNoticeCopy : newContractCopy).subject(props.customer.name, planInfo(props.contract.plan).name), createElement(NewContractNotice, props), newContractText(props));
 
 /** Better Auth emailAndPassword.sendResetPassword. */
 export const renderPasswordResetEmail = (props: PasswordResetEmailProps) => build(passwordResetCopy.subject, createElement(PasswordResetEmail, props), passwordResetText(props));

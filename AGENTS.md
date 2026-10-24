@@ -24,6 +24,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - **Blog em 22/10/2026**: `/blog` (lista com filtro por assunto) e `/blog/[slug]`, gerados no build a partir de `apps/web/src/content/blog/*.md` (formato em `src/lib/blog.ts`; textos fixos em `src/config/blog.ts`). 10 artigos iniciais, revisados pelo contador em 23/10/2026 (`reviewed: sim`). Fotos dos artigos em `public/img/blog` (Unsplash, sem pessoas). Link "Blog" no menu e no rodapé; artigos no sitemap.
 - `packages/shared` agora tem os schemas das respostas do admin (`src/admin.ts`) e de `POST /leads`.
 - **Área do cliente em 23/10/2026** (branch `feat/acesso-cliente`, decisões 24–30 do `docs/plano.md`): login único em `/entrar` (papel `admin` → `/admin`, `customer` → `/app`), link mágico para clientes, convite por e-mail. `/app`: Início, Documentos (checklist mensal + upload direto ao R2), Guias (leitura do PDF com conferência dos dígitos verificadores, "Já paguei"), Plano (renovação), Empresa e primeiro acesso. Admin: `/admin/mes`, `/admin/clientes`, `/admin/cliente`, `/admin/guias/nova`, `/admin/checklist`. Contrato em `packages/shared/src/portal.ts` e `portal-admin.ts`. Regras PLACEHOLDER em `PORTAL_RULES`. Pendências: `docs/pendencias-area-do-cliente.md`.
+- **E-mails de renovação em 24/10/2026**: ao ativar novo contrato de empresa que já teve contrato iniciado, cliente e Exactra recebem confirmação de renovação com o novo período, sem repetir boas-vindas ou aviso de nova contratação (decisão 32 do `docs/plano.md`).
 
 ## 3. Estrutura alvo (monorepo pnpm)
 
