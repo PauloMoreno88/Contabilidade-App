@@ -26,7 +26,7 @@ export const privacyPolicy: LegalDoc = {
       items: [
         "No simulador: nome, WhatsApp, e-mail (opcional) e as respostas sobre o seu negócio, como perfil, faturamento estimado e número de funcionários.",
         "Na contratação: nome completo, e-mail, telefone e CPF ou CNPJ.",
-        "Dados de pagamento, como número do cartão, são informados direto no ambiente da Stripe. A Exactra não recebe nem guarda esses dados.",
+        "Dados de pagamento, como número do cartão, são informados direto no ambiente da Stripe ou do Mercado Pago. A Exactra não recebe nem guarda esses dados.",
         "Dados de navegação: origem da visita (parâmetros de campanha, como utm_source) e registros técnicos de acesso.",
       ],
     },
@@ -50,6 +50,7 @@ export const privacyPolicy: LegalDoc = {
       paragraphs: ["Compartilhamos dados só com empresas que nos ajudam a operar o serviço, e só o necessário:"],
       items: [
         "Stripe: processamento de pagamentos (cartão, Pix e boleto).",
+        "Mercado Pago: processamento de pagamentos escolhidos nesse ambiente.",
         "Resend: envio de e-mails.",
         "Render e Neon: hospedagem do site e do banco de dados.",
         "Autoridades públicas, quando a lei exigir.",

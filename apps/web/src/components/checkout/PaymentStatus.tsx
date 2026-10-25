@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 import { CURRENT_PLAN, planInfo, type ContractStatusResponse } from "@exactra/shared";
-import { methodLabels, periodLabels, statusCopy as copy } from "@/config/checkout";
+import { methodLabels, periodLabels, providerLabels, statusCopy as copy } from "@/config/checkout";
 import { onboarding, whatsappLink } from "@/config/site";
 import { api } from "@/lib/api";
 
@@ -13,7 +13,7 @@ const POLL_MS = 4000;
 const MAX_POLLS = 30; // ponytail: ~2 min of polling, then the visitor reloads or waits for the e-mail
 
 /**
- * Landing page after Stripe. Shows what the API says (activation only happens
+ * Landing page after hosted checkout. Shows what the API says (activation only happens
  * via verified webhook), never assumes success from the redirect itself.
  */
 export function PaymentStatus() {
@@ -35,7 +35,7 @@ export function PaymentStatus() {
         if (stopped) return;
         setData(res);
         // Boleto takes days; no point polling it.
-        if (res.status === "PENDING_PAYMENT" && res.method !== "BOLETO" && ++polls < MAX_POLLS) {
+        if (res.status === "PENDING_PAYMENT" && (res.provider === "MERCADO_PAGO" || res.method !== "BOLETO") && ++polls < MAX_POLLS) {
           timer = setTimeout(tick, POLL_MS);
         }
       } catch {
@@ -59,7 +59,7 @@ export function PaymentStatus() {
     );
   }
 
-  const summary = copy.summary(planInfo(data.plan).name, periodLabels[data.period], methodLabels[data.method].label);
+  const summary = copy.summary(planInfo(data.plan).name, periodLabels[data.period], data.provider === "MERCADO_PAGO" && data.status === "PENDING_PAYMENT" ? providerLabels.MERCADO_PAGO.label : methodLabels[data.method].label);
 
   if (data.status === "ACTIVE") {
     return (
@@ -81,7 +81,7 @@ export function PaymentStatus() {
   }
 
   if (data.status === "PENDING_PAYMENT") {
-    const p = copy.pending[data.method];
+    const p = data.provider === "MERCADO_PAGO" ? copy.pending.MERCADO_PAGO : copy.pending[data.method];
     return (
       <StatusCard icon={<Clock className="text-brand" />} title={p.title} text={p.text} summary={summary}>
         <a href={whatsappLink()} target="_blank" rel="noopener" className="btn btn-ghost w-full">{copy.whatsapp}</a>

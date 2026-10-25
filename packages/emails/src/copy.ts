@@ -16,6 +16,7 @@ export const methodLabel: Record<PaymentMethod, string> = {
   CARD: "Cartão de crédito",
   PIX: "Pix",
   BOLETO: "Boleto",
+  OTHER: "Saldo ou outro meio",
 };
 
 export const periodLabel: Record<BillingPeriod, string> = {

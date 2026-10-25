@@ -23,7 +23,7 @@ export async function applyPaymentEvent(tx: Prisma.TransactionClient, ev: Paymen
   switch (ev.type) {
     case 'prepaid.paid': {
       const c = await tx.contract.findUnique({ where: { id: ev.contractId } });
-      if (!c || c.status !== 'PENDING_PAYMENT') return null;
+      if (!c || c.status !== 'PENDING_PAYMENT' || c.provider !== ev.provider || c.amountCents !== ev.amountCents) return null;
       // A renewal paid before the current contract ends starts when it ends (no days lost).
       const current = await tx.contract.findFirst({
         where: { customerId: c.customerId, id: { not: c.id }, status: 'ACTIVE', endsAt: { gt: now } },
@@ -34,6 +34,7 @@ export async function applyPaymentEvent(tx: Prisma.TransactionClient, ev: Paymen
         where: { id: c.id },
         data: {
           status: 'ACTIVE',
+          method: ev.method ?? c.method,
           startsAt,
           endsAt: addMonths(startsAt, PERIOD_MONTHS[c.period]),
           customer: ev.customerId ? { update: { stripeCustomerId: ev.customerId } } : undefined,
@@ -41,8 +42,9 @@ export async function applyPaymentEvent(tx: Prisma.TransactionClient, ev: Paymen
             create: {
               amountCents: ev.amountCents,
               status: 'PAID',
-              method: c.method,
+              method: ev.method ?? c.method,
               stripePaymentIntentId: ev.paymentIntentId,
+              mercadoPagoPaymentId: ev.mercadoPagoPaymentId,
               paidAt: now,
             },
           },

@@ -144,7 +144,17 @@ Job diário da área do cliente (07h, `src/portal/portal.job.ts`), cada e-mail u
 
 ## Pagamentos e ciclo do contrato
 
-Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); hoje só existe `StripeProvider`. Os eventos do Stripe viram eventos neutros, e `src/contracts/contract-lifecycle.ts` aplica:
+### Mercado Pago em teste (branch `feat/mercado-pago-checkout`)
+
+O Checkout Pro coexiste com a Stripe. O comprador escolhe o provedor em `/checkout` ou na renovação do plano. No Mercado Pago ele escolhe o meio de pagamento e vê as condições de até 12 parcelas antes de confirmar. Como o Checkout Pro por preferências não permite ocultar saldo em conta, o método registrado é atualizado com o meio efetivo informado na API de pagamentos (`OTHER` para saldo/outros meios). O valor anual continua vindo de `@exactra/shared` e é PLACEHOLDER.
+
+Para habilitar o teste, crie a aplicação da Exactra em **Suas integrações** do Mercado Pago e configure no API: `MERCADO_PAGO_ACCESS_TOKEN` (credencial de teste), `MERCADO_PAGO_WEBHOOK_SECRET` (assinatura secreta de Webhooks) e `MERCADO_PAGO_MODE=test`. Sem os dois segredos ou o modo explícito, a opção Mercado Pago responde 503; a Stripe continua funcionando. Configure a notificação **Pagamentos** para `https://<api>/webhooks/mercado-pago` no painel, nas abas Teste e depois Produção. Não defina `notification_url` na preferência: a URL central do painel fornece o segredo usado para validar `x-signature`. Mantenha `CHECKOUT_ENABLED=false` até validar os preços; `MERCADO_PAGO_MODE=live` só permite cobranças se a flag for `true`. Access tokens de teste e produção podem começar com `APP_USR`, portanto confirme o modo e a credencial no painel antes de habilitar o ambiente real.
+
+O webhook valida assinatura e horário, consulta `/v1/payments/{id}` com o access token, confere referência do contrato e valor, e só ativa pagamentos `approved`. Duplicatas não geram segundo pagamento. Na documentação da integração por preferências, pagamentos feitos com credenciais de teste podem não disparar notificações automaticamente: simule **Pagamentos** no painel com o ID do pagamento de teste e confira a ativação; repita o fluxo real após receber as credenciais. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
+
+Fontes: [preferências e parcelas](https://www.mercadopago.com.br/developers/en/docs/checkout-pro-preferences/additional-settings/payment-methods), [webhooks e simulação](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-preferences/payment-notifications).
+
+Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); `StripeProvider` e `MercadoPagoProvider` coexistem no teste. Os eventos verificados viram eventos neutros, e `src/contracts/contract-lifecycle.ts` aplica:
 
 | Evento Stripe | Efeito |
 |---|---|

@@ -54,6 +54,7 @@ import {
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PaymentProvider } from '../payments/payment-provider.js';
+import { MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
 import { StorageProvider } from '../storage/storage-provider.js';
 import { webOrigin } from '../web-origin.js';
 import { ZodPipe } from '../zod.pipe.js';
@@ -73,6 +74,7 @@ export class PortalController {
   constructor(
     private readonly storage: StorageProvider,
     private readonly payments: PaymentProvider,
+    private readonly mercadoPago: MercadoPagoProvider,
   ) {}
 
   @Get('me')
@@ -337,7 +339,8 @@ export class PortalController {
   async renew(@Session() session: UserSession, @Body(new ZodPipe(renewInputSchema)) input: RenewInput) {
     const ctx = await companyFor(session);
     if (!canRenew(ctx.access)) throw new BadRequestException('A renovação abre perto do fim do contrato.');
-    if (!this.payments.configured || (this.payments.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
+    const provider = input.provider === 'MERCADO_PAGO' ? this.mercadoPago : this.payments;
+    if (!provider.configured || (provider.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
       throw new ServiceUnavailableException('Renovação online indisponível no momento.');
     }
     const c = ctx.customer;
@@ -350,12 +353,13 @@ export class PortalController {
         plan: CURRENT_PLAN.id,
         period: CONTRACT_PERIOD,
         method: input.method,
+        provider: input.provider,
         amountCents: totalPriceCents(CURRENT_PLAN.id),
         statusToken: randomBytes(24).toString('base64url'),
       },
     });
     try {
-      const session = await this.payments.createCheckout({
+      const session = await provider.createCheckout({
         contractId: contract.id,
         plan: contract.plan as typeof CURRENT_PLAN.id,
         period: contract.period,
@@ -365,7 +369,7 @@ export class PortalController {
         successUrl: `${webOrigin()}/checkout/status?contract=${contract.id}&token=${contract.statusToken}`,
         cancelUrl: `${webOrigin()}/app/plano?cancelado=1`,
       });
-      await prisma.contract.update({ where: { id: contract.id }, data: { stripeSessionId: session.sessionId } });
+      await prisma.contract.update({ where: { id: contract.id }, data: input.provider === 'STRIPE' ? { stripeSessionId: session.sessionId } : { mercadoPagoPreferenceId: session.sessionId } });
       await prisma.customer.update({ where: { id: c.id }, data: { consentAt: new Date() } });
       return { checkoutUrl: session.url, contractId: contract.id, statusToken: contract.statusToken };
     } catch (err) {

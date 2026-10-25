@@ -73,6 +73,7 @@ function toPaymentEvent(event: Stripe.Event): PaymentEvent | null {
       return {
         type: 'prepaid.paid',
         contractId,
+        provider: 'STRIPE',
         customerId: id(s.customer),
         paymentIntentId: id(s.payment_intent),
         amountCents: s.amount_total ?? 0,

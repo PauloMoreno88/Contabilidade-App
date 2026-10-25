@@ -56,6 +56,12 @@ services:
         sync: false
       - key: STRIPE_CARD_INSTALLMENTS # true = parcelamento no cartão; só depois de testar no Stripe
         value: "false"
+      - key: MERCADO_PAGO_MODE # test até validar preço e fluxos; live requer CHECKOUT_ENABLED=true
+        value: test
+      - key: MERCADO_PAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADO_PAGO_WEBHOOK_SECRET
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM

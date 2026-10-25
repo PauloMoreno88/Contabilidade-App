@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { totalPriceCents } from '@exactra/shared';
 
 // Minimal Stripe event payloads (only the fields the API reads), signed like Stripe does.
 let seq = 0;
@@ -21,7 +22,7 @@ export const checkoutCompleted = (contractId: string, o: { mode: 'payment' | 'su
     customer: 'cus_test_1',
     subscription: o.mode === 'subscription' ? `sub_${contractId}` : null,
     payment_intent: o.mode === 'payment' ? 'pi_test_1' : null,
-    amount_total: 1000,
+    amount_total: totalPriceCents('exactra'),
   });
 
 export const asyncPayment = (contractId: string, ok: boolean) =>
@@ -33,7 +34,7 @@ export const asyncPayment = (contractId: string, ok: boolean) =>
     metadata: { contractId },
     customer: 'cus_test_1',
     payment_intent: 'pi_test_2',
-    amount_total: 1000,
+    amount_total: totalPriceCents('exactra'),
   });
 
 export const invoice = (type: 'invoice.paid' | 'invoice.payment_failed', subscriptionId: string, periodEnd: Date) =>

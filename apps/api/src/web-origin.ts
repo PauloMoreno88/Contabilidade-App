@@ -1,4 +1,4 @@
-/** Front-end origins from WEB_ORIGIN (comma-separated). The first one builds links (Stripe return URLs). */
+/** Front-end origins from WEB_ORIGIN (comma-separated). The first one builds checkout return URLs. */
 export const webOrigins = (): string[] =>
   (process.env.WEB_ORIGIN ?? 'http://localhost:3000')
     .split(',')

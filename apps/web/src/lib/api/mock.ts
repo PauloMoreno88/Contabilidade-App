@@ -56,7 +56,7 @@ const baseMockApi = {
     c.polls++;
     sessionStorage.setItem(contractKey(contractId), JSON.stringify(c));
     const { plan, period, method } = c.input;
-    return { contractId, status: mockStatus(c), plan, period, method };
+    return { contractId, status: mockStatus(c), plan, period, method, provider: c.input.provider };
   },
 
   async adminMetrics() {

@@ -12,8 +12,13 @@ export type StoredPlanId = (typeof STORED_PLAN_IDS)[number];
 export const BILLING_PERIODS = ["MONTHLY", "QUARTERLY", "SEMIANNUAL", "ANNUAL"] as const;
 export type BillingPeriod = (typeof BILLING_PERIODS)[number];
 
-export const PAYMENT_METHODS = ["CARD", "PIX", "BOLETO"] as const;
+export const CHECKOUT_PAYMENT_METHODS = ["CARD", "PIX", "BOLETO"] as const;
+export type CheckoutPaymentMethod = (typeof CHECKOUT_PAYMENT_METHODS)[number];
+export const PAYMENT_METHODS = [...CHECKOUT_PAYMENT_METHODS, "OTHER"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const PAYMENT_PROVIDERS = ["STRIPE", "MERCADO_PAGO"] as const;
+export type PaymentProviderId = (typeof PAYMENT_PROVIDERS)[number];
 
 export const CONTRACT_STATUSES = [
   "PENDING_PAYMENT",

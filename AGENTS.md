@@ -25,6 +25,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - `packages/shared` agora tem os schemas das respostas do admin (`src/admin.ts`) e de `POST /leads`.
 - **Área do cliente em 23/10/2026** (branch `feat/acesso-cliente`, decisões 24–30 do `docs/plano.md`): login único em `/entrar` (papel `admin` → `/admin`, `customer` → `/app`), link mágico para clientes, convite por e-mail. `/app`: Início, Documentos (checklist mensal + upload direto ao R2), Guias (leitura do PDF com conferência dos dígitos verificadores, "Já paguei"), Plano (renovação), Empresa e primeiro acesso. Admin: `/admin/mes`, `/admin/clientes`, `/admin/cliente`, `/admin/guias/nova`, `/admin/checklist`. Contrato em `packages/shared/src/portal.ts` e `portal-admin.ts`. Regras PLACEHOLDER em `PORTAL_RULES`. Pendências: `docs/pendencias-area-do-cliente.md`.
 - **E-mails de renovação em 24/10/2026**: ao ativar novo contrato de empresa que já teve contrato iniciado, cliente e Exactra recebem confirmação de renovação com o novo período, sem repetir boas-vindas ou aviso de nova contratação (decisão 32 do `docs/plano.md`).
+- **Checkout duplo em 25/10/2026** (branch `feat/mercado-pago-checkout`, decisão 35): visitante e cliente em renovação escolhem Stripe ou Mercado Pago. Stripe segue disponível; Mercado Pago usa Checkout Pro com até 12 parcelas configuradas na preferência. API e webhook do Mercado Pago estão preparados, aguardando access token e segredo do webhook da conta Exactra para teste real. Não há clientes reais a migrar.
 
 ## 3. Estrutura alvo (monorepo pnpm)
 
@@ -43,7 +44,7 @@ docs/           plano.md, perguntas-contador.md, prompt.md, roadmap-entrega.html
 - Gerenciador: **pnpm workspaces** (sem Turborepo por ora).
 - Banco: **Postgres no Neon** via Prisma.
 - Auth do admin: **Better Auth** no `apps/api` (e-mail+senha, sem cadastro público, plugin `admin`, 2FA e reset de senha no v1, cookies compartilhados entre `www.` e `api.`).
-- Pagamentos: **Stripe**. Desde 22/10/2026 (decisão 22): **contrato anual pago na contratação**, no cartão (à vista ou parcelado), Pix ou boleto. Assinaturas mensais antigas continuam tratadas. Tudo atrás de uma interface `PaymentProvider`.
+- Pagamentos: **Stripe e Mercado Pago em teste paralelo** (decisão 35). Desde 22/10/2026 (decisão 22): **contrato anual pago na contratação**, no cartão (à vista ou parcelado), Pix ou boleto. Tudo atrás de uma interface `PaymentProvider`.
 - E-mail: **Resend**.
 - Arquivos da área do cliente: **Cloudflare R2** (S3), atrás de `StorageProvider` (decisão 27).
 - Hospedagem: **Render** (front estático, API como Web Service).
@@ -51,14 +52,14 @@ docs/           plano.md, perguntas-contador.md, prompt.md, roadmap-entrega.html
 
 ## 5. Regras de domínio (importantes)
 
-- **Nunca** armazenar dado de cartão. Stripe Checkout hospedado cuida disso.
+- **Nunca** armazenar dado de cartão. Stripe Checkout e Mercado Pago Checkout Pro hospedados cuidam disso.
 - **Nunca** inventar regra fiscal ou preço real. Tudo que depender do contador é `PLACEHOLDER`, concentrado em `packages/shared` (`plans.config.ts` e regras do simulador). Perguntas pendentes: `docs/perguntas-contador.md`.
 - O simulador sempre mostra: "Esta é uma estimativa. O enquadramento tributário definitivo depende da análise do contador."
-- Contrato só ativa por **webhook verificado** do Stripe. Nunca pela página de sucesso do front. Webhooks são **idempotentes** (tabela `WebhookEvent` com `stripeEventId` único).
+- Contrato só ativa por **webhook verificado** do provedor escolhido. Nunca pela página de sucesso do front. Webhooks são **idempotentes** (tabela `WebhookEvent`; IDs do Mercado Pago usam prefixo `mp:` no campo único atual).
 - Boleto é assíncrono (1–3 dias úteis): contrato nasce `PENDING_PAYMENT`.
 - Status do contrato: `PENDING_PAYMENT → ACTIVE → PAST_DUE | CANCELED | EXPIRED`.
 - Contratos pré-pagos (todos os novos, anuais) não renovam sozinhos: um job diário avisa o vencimento e marca contratos vencidos.
-- A flag `CHECKOUT_ENABLED` controla pagamentos reais. Até o contador validar preços, só Stripe em **modo teste**.
+- A flag `CHECKOUT_ENABLED` controla pagamentos reais. Até o contador validar preços, Stripe e Mercado Pago só em **modo teste**.
 - Área do cliente: cliente nunca acessa `/admin` e equipe nunca acessa `/app` (papel do Better Auth). Toda rota `/app` resolve a empresa do login; arquivo de outra empresa responde 404. Linha digitável só é publicada se todos os dígitos verificadores baterem, e sempre por uma pessoa. Arquivos ficam 1 ano (retenção a partir da competência).
 - LGPD: guardamos nome, e-mail, telefone e CPF/CNPJ. Exige consentimento explícito (simulador e checkout) e acesso restrito ao admin. Leads do simulador que não viram cliente são apagados após 30 dias (job diário).
 - Não copiar o site, os textos nem a paleta da Studio Fiscal (apenas inspiração de estrutura). Preservar a identidade visual da Exactra (paleta extraída do site atual; vermelho `#C82333` é a cor de destaque usada nos materiais do projeto).
@@ -99,7 +100,7 @@ pnpm --filter e2e staging    # fluxos completos no staging (Playwright); e-mails
 - Vitest em `packages/shared` (simulador, linha digitável, CPF/CNPJ, competências), `packages/emails` e `apps/web/src/lib` (formatação, blog, destino após o login).
 - Unitários do API ao lado do código (`src/**/*.test.ts`: leitura de guias, datas de contrato, serialização); `pnpm --filter api test` roda eles e os e2e.
 - e2e do Nest com supertest e banco de teste.
-- Webhooks com fixtures do Stripe e Stripe CLI.
+- Webhooks com fixtures do Stripe e Mercado Pago; Stripe CLI para o teste real da Stripe.
 - Fluxos completos com Playwright em `e2e/` (24/10/2026), contra o staging publicado: os 8 fluxos de `docs/fluxos.html`. Logins de teste em `e2e/.env` (fora do Git). Não leem e-mail: registram os envios esperados para conferência manual. Detalhes em `e2e/README.md`.
 - Ambientes: local (branch de dev no Neon, Stripe em modo teste) e produção.
 - Cada app tem `.env.example`. **Nunca** commitar segredos ou `.env`.

@@ -72,7 +72,7 @@ describe('checkout + Stripe webhooks (e2e)', () => {
     await http().get(`/contracts/${contractId}/status`).expect(404);
     await http().get(`/contracts/${contractId}/status?token=wrong`).expect(404);
     const ok = await http().get(`/contracts/${contractId}/status?token=${statusToken}`).expect(200);
-    expect(ok.body).toEqual({ contractId, status: 'PENDING_PAYMENT', method: 'PIX', plan: 'exactra', period: 'ANNUAL' });
+    expect(ok.body).toEqual({ contractId, status: 'PENDING_PAYMENT', method: 'PIX', provider: 'STRIPE', plan: 'exactra', period: 'ANNUAL' });
   });
 
   it('verifies the signature over the raw body bytes (req.rawBody)', async () => {

@@ -1,4 +1,4 @@
-import type { BillingPeriod, PaymentMethod } from "@exactra/shared";
+import type { BillingPeriod, PaymentMethod, PaymentProviderId } from "@exactra/shared";
 
 /** Online checkout is on only when NEXT_PUBLIC_CHECKOUT_ENABLED=true (see .env.example). */
 export const CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === "true";
@@ -8,6 +8,12 @@ export const methodLabels: Record<PaymentMethod, { label: string; hint: (maxInst
   CARD: { label: "Cartão de crédito", hint: (n) => (n > 1 ? `À vista ou em até ${n}x` : "Pagamento à vista") },
   PIX: { label: "Pix", hint: () => "Valor anual à vista, confirmação na hora" },
   BOLETO: { label: "Boleto", hint: () => "Valor anual à vista. Compensa em 1 a 3 dias úteis" },
+  OTHER: { label: "Saldo ou outro meio", hint: () => "Forma escolhida no Mercado Pago" },
+};
+
+export const providerLabels: Record<PaymentProviderId, { label: string; hint: string }> = {
+  STRIPE: { label: "Stripe", hint: "Escolha cartão, Pix ou boleto aqui." },
+  MERCADO_PAGO: { label: "Mercado Pago", hint: "Escolha a forma de pagamento no Mercado Pago. Cartão em até 12x, conforme as condições exibidas lá." },
 };
 
 export const periodLabels: Record<BillingPeriod, string> = {
@@ -22,13 +28,15 @@ export const checkoutCopy = {
   /** Stripe cancel_url: /checkout?cancelado=1 */
   canceled: {
     title: "Pagamento não concluído",
-    text: "Você saiu antes de terminar e nada foi cobrado. Escolha a forma de pagamento e tente de novo quando quiser.",
+    text: "Escolha onde quer pagar e tente de novo quando quiser.",
   },
   back: "Voltar para o site",
   planTitle: "Plano",
   perYear: "contrato anual",
   contract: "Contrato anual",
   methodTitle: "Forma de pagamento",
+  providerTitle: "Onde quer pagar",
+  mercadoPagoMethod: "A forma de pagamento e o valor das parcelas serão mostrados no Mercado Pago antes de confirmar.",
   customerTitle: "Seus dados",
   fields: {
     name: { label: "Nome completo", placeholder: "Seu nome" },
@@ -46,7 +54,7 @@ export const checkoutCopy = {
   annualNote: "Contrato de 12 meses. Você pode desistir em até 7 dias após a contratação, com reembolso integral.",
   submit: "Ir para o pagamento",
   submitting: "Abrindo pagamento...",
-  secureNote: "O pagamento é feito no ambiente seguro da Stripe. Não guardamos dados de cartão.",
+  secureNote: (provider: PaymentProviderId) => `O pagamento é feito no ambiente seguro ${provider === "STRIPE" ? "da Stripe" : "do Mercado Pago"}. Não guardamos dados de cartão.`,
   placeholderNote: "Valores de exemplo, ainda em validação.", // PLACEHOLDER
   errors: {
     name: "Informe seu nome completo.",
@@ -75,6 +83,10 @@ export const statusCopy = {
     text: "Boas-vindas à Exactra! Recebemos sua contratação e nosso time vai te chamar no WhatsApp para começar.", // PLACEHOLDER: no deadline until confirmed
   },
   pending: {
+    MERCADO_PAGO: {
+      title: "Aguardando confirmação",
+      text: "Assim que o Mercado Pago confirmar o pagamento, sua contratação será ativada. Esta página atualiza sozinha por alguns minutos.",
+    },
     BOLETO: {
       title: "Boleto gerado",
       text: "Assim que o banco confirmar o pagamento (1 a 3 dias úteis), sua contratação é ativada e você recebe um e-mail.",
@@ -86,6 +98,10 @@ export const statusCopy = {
     CARD: {
       title: "Processando o pagamento",
       text: "Estamos aguardando a confirmação do cartão. Esta página atualiza sozinha.",
+    },
+    OTHER: {
+      title: "Aguardando confirmação",
+      text: "Esta página atualiza sozinha por alguns minutos.",
     },
   },
   failed: {
