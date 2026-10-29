@@ -17,27 +17,31 @@ export interface Email {
   subject: string;
   html: string;
   text: string;
+  tags?: { name: string; value: string }[];
 }
 
 /**
  * Sends through Resend. Without RESEND_API_KEY (dev/tests) it only logs, never in production.
  * EMAIL_REPLY_TO (optional) is where customers' replies go: the sending address is not a real mailbox.
  */
-export async function sendEmail(email: Email): Promise<void> {
+export async function sendEmail(email: Email): Promise<string | undefined> {
   if (!resend) {
     if (process.env.NODE_ENV === 'production') throw new Error('RESEND_API_KEY is not set');
     console.log(`[email:dev] to=${email.to} subject="${email.subject}"\n${email.text}`);
     return;
   }
-  const { to, subject, html, text } = email;
+  const { to, subject, html, text, tags } = email;
   const replyTo = process.env.EMAIL_REPLY_TO?.trim();
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to,
     subject,
     html,
     text,
+    ...(tags ? { tags } : {}),
     ...(replyTo ? { replyTo } : {}),
   });
   if (error) throw new Error(`Resend: ${error.message}`);
+  if (!data?.id) throw new Error('Resend did not return an email ID');
+  return data.id;
 }

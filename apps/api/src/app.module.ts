@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { AdminController } from './admin.controller.js';
 import { BulkEmailController } from './bulk-email.controller.js';
+import { EmailWebhookController } from './email-webhook.controller.js';
 import { AppController } from './app.controller.js';
 import { auth } from './auth.js';
 import { CheckoutController } from './contracts/checkout.controller.js';
@@ -27,6 +28,7 @@ import { StorageProvider } from './storage/storage-provider.js';
     AppController,
     AdminController,
     BulkEmailController,
+    EmailWebhookController,
     LeadsController,
     CheckoutController,
     WebhookController,

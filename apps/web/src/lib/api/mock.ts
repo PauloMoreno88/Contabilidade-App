@@ -90,5 +90,7 @@ const baseMockApi = {
 export const mockApi: Api = {
   ...baseMockApi, ...mockPortalApi,
   async adminEmailRecipients() { return [{ id: "demo", name: "Cliente de demonstração", email: "cliente@example.com" }]; },
+  async adminEmailHistory(page = 1) { return { items: [], total: 0, page, pageSize: 20 }; },
+  async adminEmailCampaign() { throw new Error("Envio não encontrado no modo de demonstração."); },
   async adminSendEmail() { throw new Error("Envio de e-mail indisponível no modo de demonstração."); },
 };
