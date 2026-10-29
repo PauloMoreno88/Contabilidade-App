@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { CURRENT_PLAN, planInfo, type ContractStatusResponse } from "@exactra/shared";
 import { methodLabels, periodLabels, statusCopy as copy } from "@/config/checkout";
 import { onboarding, whatsappLink } from "@/config/site";
@@ -55,7 +55,7 @@ export function PaymentStatus() {
 
   if (!data) {
     return (
-      <StatusCard icon={<Loader2 className="animate-spin text-faint motion-reduce:animate-none" />} title={copy.loading} />
+      <StatusCard icon={<span className="loading-spinner" aria-hidden="true" />} title={copy.loading} />
     );
   }
 

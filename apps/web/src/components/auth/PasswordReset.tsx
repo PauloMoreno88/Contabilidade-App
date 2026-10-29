@@ -33,7 +33,7 @@ export function ForgotPasswordForm() {
         <form onSubmit={submit}>
           <p className="mb-5 text-[0.9rem] text-muted">{copy.text}</p>
           <Field id="email" label={authCopy.login.email} type="email" autoComplete="username" required />
-          <button type="submit" className="btn btn-primary w-full" disabled={busy}>{copy.submit}</button>
+          <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{copy.submit}</button>
         </form>
       )}
       <Link href="/entrar" className="mt-4 block text-center text-[0.86rem] text-muted underline hover:text-ink">{copy.back}</Link>
@@ -78,7 +78,7 @@ export function ResetPasswordForm() {
           <Field id="password" label={copy.password} type="password" autoComplete="new-password" minLength={MIN_PASSWORD} hint={copy.hint} required />
           <Field id="confirm" label={copy.confirm} type="password" autoComplete="new-password" required />
           <FormError>{error}</FormError>
-          <button type="submit" className="btn btn-primary w-full" disabled={busy}>{copy.submit}</button>
+          <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{copy.submit}</button>
         </form>
       ) : (
         <>

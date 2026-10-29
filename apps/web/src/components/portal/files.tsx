@@ -1,7 +1,8 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
 import { useRef, useState } from "react";
-import { Camera, FileText, Image as ImageIcon, Loader2, Paperclip, Trash2, X } from "lucide-react";
+import { Camera, FileText, Image as ImageIcon, Paperclip, Trash2, X } from "lucide-react";
 import type { PortalFile } from "@exactra/shared";
 import { portalCopy } from "@/config/portal";
 import { formatBytes, formatDate } from "@/lib/format";
@@ -21,7 +22,7 @@ export async function openSigned(getUrl: () => Promise<{ url: string }>) {
   }
 }
 
-export function FileList({ files, onOpen, onRemove }: { files: PortalFile[]; onOpen: (f: PortalFile) => void; onRemove?: (f: PortalFile) => void }) {
+export function FileList({ files, onOpen, onRemove }: { files: PortalFile[]; onOpen: (f: PortalFile) => Promise<void>; onRemove?: (f: PortalFile) => Promise<void> }) {
   if (!files.length) return null;
   return (
     <ul className="mt-3 flex flex-col gap-1.5">
@@ -30,21 +31,21 @@ export function FileList({ files, onOpen, onRemove }: { files: PortalFile[]; onO
         return (
           <li key={f.id} className="flex items-center gap-3 rounded-xl bg-surface-2/70 px-3 py-2 text-[0.88rem]">
             <Icon size={17} className="shrink-0 text-navy-3" aria-hidden="true" />
-            <button type="button" onClick={() => onOpen(f)} className="min-w-0 flex-1 truncate text-left font-medium underline-offset-2 hover:underline" title={copy.open}>
+            <AsyncButton type="button" onClick={() => onOpen(f)} className="min-w-0 flex-1 truncate text-left font-medium underline-offset-2 hover:underline" title={copy.open}>
               {f.fileName}
-            </button>
+            </AsyncButton>
             <span className="hidden shrink-0 text-[0.78rem] text-faint sm:inline">
               {copy.sentBy[f.uploadedBy]} em {formatDate(f.uploadedAt)}, {formatBytes(f.sizeBytes)}
             </span>
             {onRemove && f.canDelete && (
-              <button
+              <AsyncButton
                 type="button"
-                onClick={() => window.confirm(copy.removeConfirm(f.fileName)) && onRemove(f)}
+                onClick={async () => { if (window.confirm(copy.removeConfirm(f.fileName))) await onRemove(f); }}
                 className="grid size-8 shrink-0 place-items-center rounded-full text-faint hover:bg-surface-3 hover:text-ink"
                 aria-label={`${copy.remove} ${f.fileName}`}
               >
                 <Trash2 size={16} aria-hidden="true" />
-              </button>
+              </AsyncButton>
             )}
           </li>
         );
@@ -68,7 +69,7 @@ export function UploadProgress({ uploads, onDismiss }: { uploads: UploadState[];
         ) : (
           <li key={u.key} className="rounded-xl bg-surface-2/70 px-3 py-2 text-[0.86rem]">
             <span className="flex items-center gap-2">
-              <Loader2 size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              <span className="loading-spinner" aria-hidden="true" />
               <span className="truncate">{copy.uploading(u.name)}</span>
             </span>
             <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-surface-3">

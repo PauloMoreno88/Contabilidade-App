@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { RotateCw } from "lucide-react";
 import { portalCopy } from "@/config/portal";
 
@@ -20,14 +21,7 @@ export function PageHeader({ title, lede, children }: { title: string; lede?: st
 /** Loading and error states for a useLoad() result. */
 export function LoadState({ error, onRetry }: { error?: boolean; onRetry?: () => void }) {
   if (!error) {
-    return (
-      <div aria-busy="true" className="space-y-3">
-        <span className="sr-only">{portalCopy.loading}</span>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-[72px] animate-pulse rounded-2xl bg-surface-2 motion-reduce:animate-none" />
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
   return (
     <div role="alert" className="rounded-2xl border border-line bg-surface p-5 text-[0.92rem] text-muted">

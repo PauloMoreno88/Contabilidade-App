@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -20,6 +22,7 @@ export function Plan() {
   const canceled = useSearchParams().get("cancelado") === "1";
   return (
     <>
+      {plan.data && plan.loading && <Loading compact label={feedbackCopy.updating} />}
       <PageHeader title={copy.title} lede={copy.lede} />
       {canceled && <p className="mb-5 rounded-xl bg-surface-2 px-4 py-3 text-[0.9rem]">{copy.canceled}</p>}
       {!plan.data ? <LoadState error={plan.error} onRetry={plan.reload} /> : <PlanView p={plan.data} />}
@@ -169,7 +172,7 @@ function Renew({ p }: { p: PortalPlan }) {
         </span>
       </label>
       {error && <p role="alert" className="mt-4 text-[0.88rem] text-brand">{copy.renewError}</p>}
-      <button type="button" onClick={renew} disabled={!consent || busy} className="btn btn-primary mt-5">{copy.renewCta}</button>
+      <button type="button" onClick={renew} aria-busy={busy} disabled={!consent || busy} className="btn btn-primary mt-5">{copy.renewCta}</button>
     </section>
   );
 }

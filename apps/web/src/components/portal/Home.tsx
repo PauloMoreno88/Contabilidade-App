@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import Link from "next/link";
 import { AlertCircle, CalendarClock, Check, Download, FileText, ReceiptText, RefreshCw, Sparkles } from "lucide-react";
 import { competenceLabel, daysUntil, GUIDE_TYPE_LABELS, type PortalHome, type PortalTask } from "@exactra/shared";
@@ -22,6 +24,7 @@ export function Home() {
 
   return (
     <>
+      {home.data && home.loading && <Loading compact label={feedbackCopy.updating} />}
       <header className="mb-8">
         <h1 className="font-serif text-[clamp(1.9rem,5vw,2.6rem)] font-semibold leading-[1.08] tracking-[-0.02em]">
           {copy.greeting(dayPeriod(), name)}

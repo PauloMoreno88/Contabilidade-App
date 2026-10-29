@@ -1,5 +1,8 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, FileDown, MessageCircle, Paperclip, Undo2 } from "lucide-react";
@@ -32,6 +35,7 @@ export function Guides() {
   const list = guides.data?.[tab] ?? [];
   return (
     <>
+      {guides.data && guides.loading && <Loading compact label={feedbackCopy.updating} />}
       <PageHeader title={copy.title} lede={copy.lede} />
       <div role="tablist" aria-label={copy.title} className="mb-5 inline-flex rounded-full bg-surface-2 p-1 text-[0.9rem]">
         {(["open", "paid"] as const).map((t) => (
@@ -124,19 +128,19 @@ function GuideSlip({ g, highlighted, onChange }: { g: PortalGuide; highlighted: 
             {g.receipt && (
               <>
                 {". "}
-                <button type="button" className="font-medium text-ink underline" onClick={() => openSigned(() => api.fileUrl(g.receipt!.id, true))}>
+                <AsyncButton type="button" className="font-medium text-ink underline" onClick={() => openSigned(() => api.fileUrl(g.receipt!.id, true))}>
                   {copy.receipt}
-                </button>
+                </AsyncButton>
               </>
             )}
           </p>
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => openSigned(() => api.fileUrl(g.file.id, true))} className="btn btn-ghost px-4 py-2 text-[0.88rem]">
+          <AsyncButton type="button" onClick={() => openSigned(() => api.fileUrl(g.file.id, true))} className="btn btn-ghost px-4 py-2 text-[0.88rem]">
             <FileDown size={16} aria-hidden="true" />
             {copy.pdf}
-          </button>
+          </AsyncButton>
           {!paid && writable && (
             <button type="button" onClick={() => setDialog(true)} className="btn btn-ghost px-4 py-2 text-[0.88rem]">
               <Check size={16} aria-hidden="true" />
@@ -144,7 +148,7 @@ function GuideSlip({ g, highlighted, onChange }: { g: PortalGuide; highlighted: 
             </button>
           )}
           {paid && writable && (
-            <button
+            <AsyncButton
               type="button"
               onClick={async () => {
                 await api.unmarkGuidePaid(g.id).catch(() => undefined);
@@ -154,7 +158,7 @@ function GuideSlip({ g, highlighted, onChange }: { g: PortalGuide; highlighted: 
             >
               <Undo2 size={15} aria-hidden="true" />
               {copy.undo}
-            </button>
+            </AsyncButton>
           )}
           <a
             href={whatsappLink(g.status === "OVERDUE" ? copy.overdueMessage(name) : copy.askMessage(name, formatDay(g.dueDate)))}
@@ -201,10 +205,10 @@ function Barcode({ barcode }: { barcode: string | null }) {
         <p id={`linha-${barcode}`} className="flex-1 font-mono text-[0.92rem] leading-relaxed tracking-[0.02em] text-ink [word-spacing:0.35em]">
           {groups.join(" ")}
         </p>
-        <button type="button" onClick={copyLine} className="btn btn-primary shrink-0 px-5 py-2.5 text-[0.9rem]" aria-live="polite">
+        <AsyncButton type="button" onClick={copyLine} className="btn btn-primary shrink-0 px-5 py-2.5 text-[0.9rem]" aria-live="polite">
           {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
           {copied ? copy.copied : copy.copy}
-        </button>
+        </AsyncButton>
       </div>
       <p className="mt-1.5 text-[0.8rem] text-faint">{copy.copyHint}</p>
     </div>
@@ -250,7 +254,7 @@ function PaidDialog({ g, onClose, onDone }: { g: PortalGuide; onClose: () => voi
           <p className="mt-4 rounded-xl bg-ok-tint px-3 py-2 text-[0.88rem]">{d.attached(receipt.fileName)}</p>
         ) : (
           <>
-            <button type="button" onClick={() => file.current?.click()} className="btn btn-ghost mt-4 px-4 py-2 text-[0.88rem]" disabled={uploading}>
+            <button type="button" onClick={() => file.current?.click()} className="btn btn-ghost mt-4 px-4 py-2 text-[0.88rem]" aria-busy={uploading} disabled={uploading}>
               <Paperclip size={15} aria-hidden="true" />
               {d.attach}
             </button>
@@ -273,7 +277,7 @@ function PaidDialog({ g, onClose, onDone }: { g: PortalGuide; onClose: () => voi
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <button type="button" onClick={() => ref.current?.close()} className="btn btn-ghost px-4 py-2.5 text-[0.9rem]">{d.cancel}</button>
-          <button type="button" onClick={confirm} disabled={busy || uploading} className="btn btn-primary px-5 py-2.5 text-[0.9rem]">{d.confirm}</button>
+          <button type="button" onClick={confirm} aria-busy={busy || uploading} disabled={busy || uploading} className="btn btn-primary px-5 py-2.5 text-[0.9rem]">{d.confirm}</button>
         </div>
       </div>
     </dialog>

@@ -1,3 +1,4 @@
+import { Loading } from "@/components/common/Loading";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: "Contratar | Exactra Contabilidade", 
 export default function CheckoutPage() {
   return (
     <CheckoutShell>
-      <Suspense>
+      <Suspense fallback={<Loading />}>
         <CheckoutForm />
       </Suspense>
     </CheckoutShell>

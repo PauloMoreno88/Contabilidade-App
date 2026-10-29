@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -21,6 +23,7 @@ export function Customers() {
 
   return (
     <section>
+      {rows.data && rows.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[1.3rem] font-semibold">{copy.title}</h1>
         <Link href="/admin/clientes/novo" className="btn btn-primary px-4 py-2 text-[0.88rem]">
@@ -34,7 +37,7 @@ export function Customers() {
         <input type="search" placeholder={copy.search} className="field-input bg-surface py-2 pl-9" onChange={(e) => setQuery({ q: e.target.value || undefined, page: 1 })} />
       </label>
       {rows.error && <p className="text-brand">{adminCopy.loadError}</p>}
-      {!rows.data && !rows.error && <p className="text-muted">{adminCopy.loading}</p>}
+      {!rows.data && !rows.error && <Loading />}
       {rows.data?.items.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{copy.empty}</p>}
       {!!rows.data?.items.length && (
         <div className="overflow-x-auto rounded-[14px] border border-line bg-surface">
@@ -124,7 +127,7 @@ export function NewCustomerForm() {
           {c.sendInvite}
         </label>
         <FormError>{error}</FormError>
-        <button type="submit" className="btn btn-primary" disabled={busy}>{c.submit}</button>
+        <button type="submit" className="btn btn-primary" aria-busy={busy} disabled={busy}>{c.submit}</button>
       </form>
     </section>
   );
