@@ -87,4 +87,8 @@ const baseMockApi = {
   },
 };
 
-export const mockApi: Api = { ...baseMockApi, ...mockPortalApi };
+export const mockApi: Api = {
+  ...baseMockApi, ...mockPortalApi,
+  async adminEmailRecipients() { return [{ id: "demo", name: "Cliente de demonstração", email: "cliente@example.com" }]; },
+  async adminSendEmail() { throw new Error("Envio de e-mail indisponível no modo de demonstração."); },
+};

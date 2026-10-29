@@ -13,6 +13,8 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
+- **E-mail personalizado em massa (#56), em 29/10/2026**: `/admin/emails`, restrito a admins no painel e na API. Todos os clientes vêm selecionados; admin pode desmarcar destinatários e editar assunto e mensagem. Envio individual pelo Resend, com relatório de falhas e seleção apenas dos que falharam para nova tentativa. Contratos HTTP em `packages/shared/src/bulk-email.ts`. Limite de 1.000 clientes por envio, síncrono; não há fila persistente.
+
 - **Fase 0 concluída em 04/10/2026**: monorepo pnpm criado. `apps/web` (Next.js, `output: 'export'`), `apps/api` (só `package.json` mínimo; o scaffold do NestJS é a primeira tarefa do agente de back) e `packages/shared` (`@exactra/shared`: enums, schemas zod, `plans.config.ts`, simulador, testes Vitest).
 - Todos os preços e regras do simulador são **PLACEHOLDER** (`packages/shared/src/plans.config.ts` e `simulator.ts`) até o contador responder (`docs/perguntas-contador.md`).
 - Protótipos HTML em `docs/prototype/` (variantes A–G; benchmark em `docs/benchmark-concorrentes.md`). A **variante G** foi aprovada pelo cliente em 22/10/2026 e é a base do front real. Exigência do cliente: **nenhuma foto de pessoas** (só imagens ligadas à contabilidade; depoimentos com iniciais). Textos e números continuam em arquivos de configuração.
