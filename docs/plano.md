@@ -153,6 +153,13 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [x] Página de fluxos para teste manual e apresentação (`docs/fluxos.html`) e testes Playwright dos 8 fluxos no staging (`e2e/`, 24/10/2026)
 - [ ] Depois: upload de guias em lote, importação de clientes por planilha, WhatsApp automático, certificado digital (#61)
 
+**Feedback da interface (29/10/2026, `feat/ui-feedback`)**
+- [x] Padronizar loading de telas, Suspense, consultas, formulários e ações; preservar dados durante atualizações e impedir cliques repetidos nas ações em espera.
+- [x] Aplicar cursor e hover em controles interativos, preservando foco visível, estados desabilitados e preferência de movimento reduzido.
+- [x] Adicionar regressão local com mocks para espera, atualizações, cursor e hover em 360, 768 e 1280 px.
+
+Padrão visual: spinner discreto na identidade da Exactra, acompanhado de texto nas telas; nos botões, manter o rótulo da ação com spinner e estado ocupado. Ações síncronas não recebem atrasos artificiais.
+
 ## 7. Como os agentes trabalham
 
 - Cada agente altera apenas sua pasta (`apps/web` ou `apps/api`). `packages/shared` só muda avisando o outro lado.

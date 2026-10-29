@@ -154,7 +154,7 @@ export function CheckoutForm() {
         {CHECKOUT_ENABLED ? (
           <>
             {errors.request && <p role="alert" className="mt-4 text-[0.85rem] text-brand">{errors.request}</p>}
-            <button type="submit" className="btn btn-primary mt-5 w-full" disabled={sending}>
+            <button type="submit" className="btn btn-primary mt-5 w-full" aria-busy={sending} disabled={sending}>
               {sending ? copy.submitting : copy.submit}
             </button>
           </>

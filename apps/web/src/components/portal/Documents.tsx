@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { AlertCircle, Check, Download } from "lucide-react";
@@ -34,6 +36,7 @@ export function Documents() {
 
   return (
     <>
+      {month.data && month.loading && <Loading compact label={feedbackCopy.updating} />}
       <PageHeader title={copy.title} lede={copy.lede}>
         {month.data && month.data.competences.length > 1 && (
           <label className="flex items-center gap-2 text-[0.88rem] text-muted">

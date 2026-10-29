@@ -1,5 +1,9 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
+import { LoadState } from "@/components/portal/ui";
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import {
@@ -13,7 +17,6 @@ import {
   type ChecklistItem,
   type UpsertChecklistItemInput,
 } from "@exactra/shared";
-import { adminCopy } from "@/config/admin";
 import { adminPortalCopy } from "@/config/admin-portal";
 import { api } from "@/lib/api";
 import { formatDay } from "@/lib/format";
@@ -67,6 +70,7 @@ export function ChecklistTemplates() {
 
   return (
     <section className="max-w-[880px]">
+      {items.data && items.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[1.3rem] font-semibold">{copy.title}</h1>
         <button type="button" onClick={() => setEditing("new")} className="btn btn-primary px-4 py-2 text-[0.88rem]">
@@ -77,7 +81,7 @@ export function ChecklistTemplates() {
       <p className="mb-5 max-w-[72ch] text-[0.88rem] text-muted">{copy.lede}</p>
       {editing === "new" && <ItemForm onDone={() => { setEditing(null); items.reload(); }} />}
       {!items.data ? (
-        <p className="text-muted">{items.error ? adminCopy.loadError : adminCopy.loading}</p>
+        <LoadState error={items.error} onRetry={items.reload} />
       ) : (
         <ul className="overflow-hidden rounded-[14px] border border-line bg-surface">
           {items.data.map((i) =>
@@ -99,7 +103,7 @@ export function ChecklistTemplates() {
                 <span className="text-[0.82rem]">{i.required ? copy.required : copy.optional}</span>
                 <span className="text-[0.82rem]">{i.active ? copy.active : copy.inactive}</span>
                 <button type="button" className="underline" onClick={() => setEditing(i)}>{copy.edit}</button>
-                <button
+                <AsyncButton
                   type="button"
                   className="underline"
                   onClick={async () => {
@@ -108,7 +112,7 @@ export function ChecklistTemplates() {
                   }}
                 >
                   {i.active ? copy.deactivate : copy.activate}
-                </button>
+                </AsyncButton>
               </li>
             ),
           )}
@@ -177,7 +181,7 @@ function ItemForm({ item, onDone }: { item?: ChecklistItem; onDone: () => void }
         </div>
       )}
       <div className="flex gap-2 sm:col-span-2">
-        <button type="submit" disabled={busy} className="btn btn-navy px-4 py-2 text-[0.88rem]">{copy.save}</button>
+        <button type="submit" aria-busy={busy} disabled={busy} className="btn btn-navy px-4 py-2 text-[0.88rem]">{copy.save}</button>
         <button type="button" onClick={onDone} className="btn btn-ghost px-4 py-2 text-[0.88rem]">{copy.cancel}</button>
       </div>
     </form>

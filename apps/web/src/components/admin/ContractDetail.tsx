@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -15,16 +17,17 @@ const copy = adminCopy.detail;
 
 export function ContractDetail() {
   const id = useSearchParams().get("id") ?? "";
-  const { data: c, error } = useLoad(() => api.adminContract(id), [id]);
+  const { data: c, error, loading } = useLoad(() => api.adminContract(id), [id]);
 
   return (
     <>
+      {c && loading && <Loading compact label={feedbackCopy.updating} />}
       <Link href="/admin" className="mb-6 inline-flex items-center gap-1.5 text-[0.88rem] text-muted hover:text-ink">
         <ArrowLeft size={16} aria-hidden="true" />
         {copy.back}
       </Link>
       {error && <p className="text-muted">{copy.notFound}</p>}
-      {!c && !error && <p className="text-muted">{adminCopy.loading}</p>}
+      {!c && !error && <Loading />}
       {c && (
         <>
           <div className="mb-6 flex flex-wrap items-center gap-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
@@ -70,7 +71,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         <h1 className="font-serif text-[1.6rem] font-semibold">{copy.noCompany.title}</h1>
         <p className="text-muted">{copy.noCompany.text}</p>
         <a href={whatsappLink(copy.helpMessage(me.user.name))} className="btn btn-wa" target="_blank" rel="noopener noreferrer">{copy.help}</a>
-        <button type="button" onClick={signOut} className="text-[0.88rem] text-muted underline">{copy.signOut}</button>
+        <AsyncButton type="button" onClick={signOut} className="text-[0.88rem] text-muted underline">{copy.signOut}</AsyncButton>
       </main>
     );
   }
@@ -116,10 +117,10 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
               <MessageCircle size={17} aria-hidden="true" />
               {copy.help}
             </a>
-            <button type="button" onClick={signOut} className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-white/[0.06] hover:text-white">
+            <AsyncButton type="button" onClick={signOut} className="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-white/[0.06] hover:text-white">
               <LogOut size={17} aria-hidden="true" />
               {copy.signOut}
-            </button>
+            </AsyncButton>
             <p className="mt-2 truncate px-3 text-[0.76rem] text-on-navy-faint">{me.user.email}</p>
           </div>
         </aside>
@@ -154,7 +155,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MobileTopBar({ company, email, help, onSignOut }: { company: string; email: string; help: string; onSignOut: () => void }) {
+function MobileTopBar({ company, email, help, onSignOut }: { company: string; email: string; help: string; onSignOut: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -192,10 +193,10 @@ function MobileTopBar({ company, email, help, onSignOut }: { company: string; em
               <MessageCircle size={17} aria-hidden="true" />
               {copy.help}
             </a>
-            <button type="button" onClick={onSignOut} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-surface-2">
+            <AsyncButton type="button" onClick={onSignOut} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-surface-2">
               <LogOut size={17} aria-hidden="true" />
               {copy.signOut}
-            </button>
+            </AsyncButton>
           </div>
         )}
       </div>

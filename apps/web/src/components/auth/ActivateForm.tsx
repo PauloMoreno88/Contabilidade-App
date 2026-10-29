@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -39,7 +41,7 @@ export function ActivateForm() {
     router.replace("/app");
   }
 
-  if (!invite.data && !invite.error) return <AuthCard title={copy.title}><p className="text-muted">{copy.checking}</p></AuthCard>;
+  if (!invite.data && !invite.error) return <AuthCard title={copy.title}><Loading label={copy.checking} /></AuthCard>;
 
   if (invite.error || !invite.data) {
     return (
@@ -53,14 +55,17 @@ export function ActivateForm() {
 
   const i = invite.data;
   return (
-    <AuthCard title={copy.title} lede={copy.lede(i.companyName)}>
+    <>
+      {invite.data && invite.loading && <Loading compact label={feedbackCopy.updating} />}
+<AuthCard title={copy.title} lede={copy.lede(i.companyName)}>
       <form onSubmit={submit}>
         <Field id="email" label={copy.email} type="email" value={i.email} readOnly autoComplete="username" />
         <Field id="password" label={authCopy.reset.password} type="password" autoComplete="new-password" minLength={MIN_PASSWORD} hint={authCopy.reset.hint} required autoFocus />
         <Field id="confirm" label={authCopy.reset.confirm} type="password" autoComplete="new-password" required />
         <FormError>{error}</FormError>
-        <button type="submit" className="btn btn-primary w-full" disabled={busy}>{copy.submit}</button>
+        <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{copy.submit}</button>
       </form>
     </AuthCard>
+    </>
   );
 }

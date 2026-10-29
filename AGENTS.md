@@ -26,6 +26,8 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - **Área do cliente em 23/10/2026** (branch `feat/acesso-cliente`, decisões 24–30 do `docs/plano.md`): login único em `/entrar` (papel `admin` → `/admin`, `customer` → `/app`), link mágico para clientes, convite por e-mail. `/app`: Início, Documentos (checklist mensal + upload direto ao R2), Guias (leitura do PDF com conferência dos dígitos verificadores, "Já paguei"), Plano (renovação), Empresa e primeiro acesso. Admin: `/admin/mes`, `/admin/clientes`, `/admin/cliente`, `/admin/guias/nova`, `/admin/checklist`. Contrato em `packages/shared/src/portal.ts` e `portal-admin.ts`. Regras PLACEHOLDER em `PORTAL_RULES`. Pendências: `docs/pendencias-area-do-cliente.md`.
 - **E-mails de renovação em 24/10/2026**: ao ativar novo contrato de empresa que já teve contrato iniciado, cliente e Exactra recebem confirmação de renovação com o novo período, sem repetir boas-vindas ou aviso de nova contratação (decisão 32 do `docs/plano.md`).
 
+- **Feedback de interface em 29/10/2026** (branch `feat/ui-feedback`): indicador de carregamento comum no front, fallbacks de navegação e Suspense, espera em ações e atualizações de dados; cursor e hover globais para controles interativos, com estados desabilitados e redução de movimento. Testes locais com mocks em `e2e/ui-feedback` (configuração `ui-feedback.config.ts`).
+
 ## 3. Estrutura alvo (monorepo pnpm)
 
 ```

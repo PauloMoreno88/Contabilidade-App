@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { planInfo, type AdminLeadsQuery } from "@exactra/shared";
@@ -13,9 +15,10 @@ const copy = adminCopy.leads;
 
 export function LeadsTable() {
   const [query, setQuery] = useState<AdminLeadsQuery>({ page: 1 });
-  const { data, error } = useLoad(() => api.adminLeads(query), [JSON.stringify(query)]);
+  const { data, error, loading } = useLoad(() => api.adminLeads(query), [JSON.stringify(query)]);
   return (
     <>
+      {data && loading && <Loading compact label={feedbackCopy.updating} />}
       <h1 className="mb-4 text-[1.3rem] font-semibold">{copy.title}</h1>
       <label className="relative mb-4 block max-w-[420px]">
         <span className="sr-only">{copy.search}</span>
@@ -28,7 +31,7 @@ export function LeadsTable() {
         />
       </label>
       {error && <p className="text-brand">{adminCopy.loadError}</p>}
-      {!data && !error && <p className="text-muted">{adminCopy.loading}</p>}
+      {!data && !error && <Loading />}
       {data?.items.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{copy.empty}</p>}
       {!!data?.items.length && (
         <div className="overflow-x-auto rounded-[14px] border border-line bg-surface">

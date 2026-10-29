@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight, MessageCircle, ShieldCheck } from "lucide-react";
@@ -18,6 +20,7 @@ export function Company() {
   const company = useLoad(() => api.company(), []);
   return (
     <>
+      {company.data && company.loading && <Loading compact label={feedbackCopy.updating} />}
       <PageHeader title={copy.title} lede={copy.lede} />
       {!company.data ? <LoadState error={company.error} onRetry={company.reload} /> : <CompanyView c={company.data} />}
     </>
@@ -29,7 +32,7 @@ type Save = "idle" | "saving" | "saved" | "error";
 function SaveButton({ state, disabled }: { state: Save; disabled?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <button type="submit" className="btn btn-navy px-5 py-2.5 text-[0.9rem]" disabled={disabled || state === "saving"}>{copy.save}</button>
+      <button type="submit" className="btn btn-navy px-5 py-2.5 text-[0.9rem]" aria-busy={state === "saving"} disabled={disabled || state === "saving"}>{copy.save}</button>
       <span role="status" className={`text-[0.86rem] ${state === "error" ? "text-brand" : "text-ok"}`}>
         {state === "saved" ? copy.saved : state === "error" ? copy.saveError : ""}
       </span>

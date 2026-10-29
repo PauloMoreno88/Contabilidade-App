@@ -1,9 +1,12 @@
 "use client";
 
+import { LoadState } from "@/components/portal/ui";
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
-import { AlertTriangle, ArrowLeft, CheckCircle2, FileUp, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, FileUp } from "lucide-react";
 import {
   competenceSchema,
   currentDocumentsCompetence,
@@ -50,7 +53,7 @@ export function PublishGuide() {
   const [error, setError] = useState<string>();
   const [done, setDone] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  const { uploads, upload, dismiss } = useUpload({ staff: true });
+  const { uploads, upload, dismiss, busy: uploading } = useUpload({ staff: true });
 
   const customer = customers.data?.items.find((c) => c.id === customerId);
   const set = (p: Partial<typeof form>) => {
@@ -128,17 +131,21 @@ export function PublishGuide() {
   const field = "field-input bg-surface";
   return (
     <section className="max-w-[760px]">
+      {customers.data && customers.loading && <Loading compact label={feedbackCopy.updating} />}
       <Link href={customerId ? `/admin/cliente?id=${customerId}&aba=guides` : "/admin/mes"} className="mb-4 inline-flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
         <ArrowLeft size={15} aria-hidden="true" />
         {adminPortalCopy.file.back}
       </Link>
       <h1 className="mb-5 text-[1.3rem] font-semibold">{copy.title}</h1>
 
+      {customers.error && <LoadState error onRetry={customers.reload} />}
+      {!customers.data && !customers.error && <Loading />}
       <form onSubmit={submit} className="flex flex-col gap-5">
         <div className="rounded-[14px] border border-line bg-surface p-5">
           <label htmlFor="customer" className="mb-1.5 block text-[0.84rem] font-semibold">{copy.customer}</label>
           <select
             id="customer"
+            disabled={customers.loading || uploading || reading || busy}
             value={customerId}
             onChange={(e) => {
               setCustomerId(e.target.value);
@@ -157,15 +164,15 @@ export function PublishGuide() {
           <div className="mt-5">
             <p className="text-[0.84rem] font-semibold">{copy.pdf}</p>
             <p className="mb-2.5 text-[0.82rem] text-faint">{copy.pdfHint}</p>
-            <button type="button" disabled={!customerId} onClick={() => input.current?.click()} className="btn btn-navy px-4 py-2 text-[0.88rem]">
+            <button type="button" disabled={!customerId || uploading || reading || busy} aria-busy={uploading || reading} onClick={() => input.current?.click()} className="btn btn-navy px-4 py-2 text-[0.88rem]">
               <FileUp size={16} aria-hidden="true" />
               {file ? file.fileName : copy.pdf}
             </button>
             <input ref={input} type="file" accept="application/pdf" className="sr-only" tabIndex={-1} aria-label={copy.pdf} onChange={(e) => e.target.files?.[0] && pick(e.target.files[0])} />
             <UploadProgress uploads={uploads} onDismiss={dismiss} />
             {reading && (
-              <p className="mt-3 flex items-center gap-2 text-[0.86rem] text-muted">
-                <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+              <p role="status" className="mt-3 flex items-center gap-2 text-[0.86rem] text-muted">
+                <span className="loading-spinner" aria-hidden="true" />
                 {copy.reading}
               </p>
             )}
@@ -186,7 +193,7 @@ export function PublishGuide() {
           )}
         </div>
 
-        <fieldset disabled={!file} className="grid gap-4 rounded-[14px] border border-line bg-surface p-5 disabled:opacity-50 sm:grid-cols-2">
+        <fieldset disabled={!file || reading || uploading || busy} className="grid gap-4 rounded-[14px] border border-line bg-surface p-5 disabled:opacity-50 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 block text-[0.84rem] text-muted">{copy.type}</span>
             <select value={form.type} onChange={(e) => set({ type: e.target.value as GuideType })} className={field}>
@@ -233,7 +240,7 @@ export function PublishGuide() {
           </div>
         )}
         {error && <p role="alert" className="text-[0.88rem] text-brand">{error}</p>}
-        <button type="submit" disabled={!valid || !checked || busy} className="btn btn-primary w-fit">{copy.submit}</button>
+        <button type="submit" aria-busy={busy} disabled={!valid || !checked || busy || uploading || reading} className="btn btn-primary w-fit">{copy.submit}</button>
       </form>
     </section>
   );

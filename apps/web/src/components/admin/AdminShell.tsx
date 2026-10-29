@@ -1,5 +1,7 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -43,7 +45,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     router.replace("/entrar");
   }
 
-  if (!user) return <p className="p-8 text-muted">{adminCopy.loading}</p>;
+  if (!user) return <Loading />;
 
   return (
     <SessionContext.Provider value={{ user, reload }}>
@@ -64,10 +66,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
-          <button type="button" onClick={signOut} className="ml-auto flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
+          <AsyncButton type="button" onClick={signOut} className="ml-auto flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
             <LogOut size={16} aria-hidden="true" />
             <span className="hidden sm:inline">{adminCopy.signOut}</span>
-          </button>
+          </AsyncButton>
         </div>
       </header>
       {!user.twoFactorEnabled && pathname !== "/admin/seguranca" && (
