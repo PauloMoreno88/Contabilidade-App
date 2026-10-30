@@ -13,6 +13,10 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
+- **Interface dos e-mails em 30/10/2026** (branch `feat/admin-email-design`): envio em duas colunas, busca de destinatários sem alterar a seleção e indicação de seleção parcial. Navegação comum entre novo envio e histórico; histórico com data e responsável; detalhe com mensagem separada, resumo e etiquetas dos quatro status. Leitura dos destinatários adaptada ao celular sem rolagem horizontal. Identidade visual e componentes do painel preservados.
+
+- **Painéis padronizados em 30/10/2026**: admin e cliente usam `WorkspaceShell`, inspirado no layout do projeto `Ten/portal`: barra lateral clara e recolhível, itens com ícones e menu móvel em diálogo nativo. A paleta da Exactra permanece; títulos, botões e cabeçalhos de tabela recebem densidade comum, limitada aos painéis. Avisos de acesso, onboarding, 2FA e permissões continuam nos respectivos shells. Menu móvel substitui as abas fixas do cliente.
+
 - **Histórico de e-mails em 29/10/2026** (branch `feat/admin-email-history`): cada envio cria `EmailCampaign` e destinatários `EmailRecipient` antes de enviar. `/admin/emails/historico` lista envios; `/admin/emails/envio?id=` mostra mensagem e status por cliente (Pendente, Enviado, Entregue, Falhou), só para admins. Webhook assinado em `POST /webhooks/resend`, com `RESEND_WEBHOOK_SECRET`; configuração e limites em `docs/historico-emails.md`. Migration aditiva `20261029000000_email_history`. Sem backfill de envios antigos nem fila de retomada.
 
 - **E-mail personalizado em massa (#56), em 29/10/2026**: `/admin/emails`, restrito a admins no painel e na API. Todos os clientes vêm selecionados; admin pode desmarcar destinatários e editar assunto e mensagem. Envio individual pelo Resend, com histórico e status por destinatário. Contratos HTTP em `packages/shared/src/bulk-email.ts`. Limite de 1.000 clientes por envio, síncrono; não há fila persistente.

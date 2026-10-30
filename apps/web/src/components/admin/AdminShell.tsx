@@ -1,14 +1,15 @@
 "use client";
 
-import { AsyncButton } from "@/components/common/AsyncButton";
 import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { LogOut, ShieldAlert } from "lucide-react";
+import { CalendarDays, CheckSquare, FileText, Mail, ShieldAlert, ShieldCheck, UserRoundSearch, Users } from "lucide-react";
 import { adminCopy } from "@/config/admin";
 import { authClient } from "@/lib/auth";
-import { Brand } from "@/components/landing/Brand";
+import { WorkspaceShell } from "@/components/common/WorkspaceShell";
+
+const navIcons = { "/admin/emails": Mail, "/admin/mes": CalendarDays, "/admin/clientes": Users, "/admin": FileText, "/admin/leads": UserRoundSearch, "/admin/checklist": CheckSquare, "/admin/seguranca": ShieldCheck };
 
 type AdminUser = { name: string; email: string; role?: string | null; twoFactorEnabled?: boolean | null };
 const SessionContext = createContext<{ user: AdminUser; reload: () => Promise<void> } | null>(null);
@@ -49,39 +50,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext.Provider value={{ user, reload }}>
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 sm:gap-6 sm:px-6">
-          <span className="hidden sm:block">
-            <Brand href="/admin/mes" />
-          </span>
-          <nav className="flex gap-1 overflow-x-auto">
-            {adminCopy.nav.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                aria-current={pathname === n.href ? "page" : undefined}
-                className="whitespace-nowrap rounded-md px-3 py-1.5 text-[0.9rem] text-muted hover:text-ink aria-[current=page]:bg-surface-2 aria-[current=page]:text-ink"
-              >
-                {n.label}
-              </Link>
-            ))}
-          </nav>
-          <AsyncButton type="button" onClick={signOut} className="ml-auto flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
-            <LogOut size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">{adminCopy.signOut}</span>
-          </AsyncButton>
-        </div>
-      </header>
-      {!user.twoFactorEnabled && pathname !== "/admin/seguranca" && (
+      <WorkspaceShell title="Painel administrativo" homeHref="/admin/mes" accountName={user.name} accountEmail={user.email} onSignOut={signOut}
+        navigation={adminCopy.nav.map((n) => ({ ...n, icon: navIcons[n.href as keyof typeof navIcons], active: n.href === "/admin" ? pathname === "/admin" || pathname.startsWith("/admin/contrato") : pathname === n.href || pathname.startsWith(`${n.href}/`) }))}
+        banners={!user.twoFactorEnabled && pathname !== "/admin/seguranca" && (
         <div className="border-b border-line bg-amber-50">
-          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-[0.88rem] sm:px-6">
+          <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-[0.88rem] sm:px-6 lg:px-8">
             <ShieldAlert size={16} className="shrink-0 text-amber-700" aria-hidden="true" />
             {adminCopy.twoFactorBanner.text}
             <Link href="/admin/seguranca" className="font-medium underline">{adminCopy.twoFactorBanner.cta}</Link>
           </div>
         </div>
-      )}
-      <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">{children}</main>
+      )}>
+        {children}
+      </WorkspaceShell>
     </SessionContext.Provider>
   );
 }

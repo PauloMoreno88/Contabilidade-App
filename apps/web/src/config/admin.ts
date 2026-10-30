@@ -17,12 +17,12 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
 export const adminCopy = {
   brand: "Painel Exactra",
   nav: [
-    { href: "/admin/emails", label: "E-mails" },
     { href: "/admin/mes", label: "Mês" },
     { href: "/admin/clientes", label: "Clientes" },
     { href: "/admin", label: "Contratos" },
     { href: "/admin/leads", label: "Leads" },
     { href: "/admin/checklist", label: "Checklist" },
+    { href: "/admin/emails", label: "E-mails" },
     { href: "/admin/seguranca", label: "Segurança" },
   ],
   twoFactorBanner: {

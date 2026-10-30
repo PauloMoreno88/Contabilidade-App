@@ -54,7 +54,7 @@ function MetricsView({ m }: { m: AdminMetrics }) {
         {cards.map(([label, value]) => (
           <div key={label} className="bg-surface p-4 last:col-span-2 md:last:col-span-1">
             <dt className="text-[0.78rem] text-faint">{label}</dt>
-            <dd className="mt-1 font-mono text-[1.5rem] font-semibold tabular-nums">{value}</dd>
+            <dd className="mt-1 text-[1.5rem] font-semibold tabular-nums">{value}</dd>
           </div>
         ))}
       </dl>
@@ -79,7 +79,7 @@ function Breakdown({ title, rows }: { title: string; rows: [string, number][] })
             <span className="h-2 overflow-hidden rounded bg-surface-3">
               <span className="block h-full rounded bg-brand" style={{ width: `${(value / max) * 100}%` }} />
             </span>
-            <span className="text-right font-mono tabular-nums">{value}</span>
+            <span className="text-right tabular-nums">{value}</span>
           </li>
         ))}
       </ul>
@@ -168,8 +168,8 @@ function ContractsTable() {
                   <td className="px-4 py-3">{planInfo(r.plan).name}</td>
                   <td className="px-4 py-3">{methodLabels[r.method].label}</td>
                   <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                  <td className="px-4 py-3 font-mono tabular-nums">{formatDate(r.startsAt)}</td>
-                  <td className="px-4 py-3 font-mono tabular-nums">{formatDate(r.endsAt)}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatDate(r.startsAt)}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatDate(r.endsAt)}</td>
                 </tr>
               ))}
             </tbody>

@@ -15,6 +15,14 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 
 ## 2. Decisões fechadas
 
+**30/10/2026 — base comum dos painéis:** a pedido do usuário, admin e cliente passam a compartilhar o layout `WorkspaceShell`, inspirado em `C:/Users/paulo/Backup OneDrive/Ten/portal/web/src/layouts/sidebar-layout.tsx` e seu tema. Barra lateral branca recolhível, links com ícones, seleção com cor da Exactra, identidade do usuário e saída no rodapé; menu móvel por diálogo nativo com Escape e retorno de foco. Títulos, controles e tabelas seguem um padrão comum apenas dentro dos painéis. Regras de acesso, empresa, renovação, onboarding e 2FA preservadas. Sem MUI nem novas dependências.
+
+- [x] Base visual compartilhada do admin e cliente, navegação responsiva e testes de teclado dos dois perfis.
+
+**30/10/2026 — interface dos e-mails:** refinamento das telas de envio, histórico e detalhe com a skill frontend-design, preservando os tokens e a tipografia da Exactra. Mensagem e destinatários separados no desktop; busca por nome/e-mail mantém a seleção completa e deixa isso explícito. Navegação comum, histórico organizado por assunto/responsável/data e status com texto e ícones. No celular, a data de atualização fica junto ao cliente para evitar rolagem horizontal. Contratos e regras de envio mantidos.
+
+- [x] Refinamento visual e responsivo das três telas de e-mail, com busca de destinatários e seleção parcial acessível.
+
 **29/10/2026 — histórico de e-mails:** cada envio personalizado gera um registro persistente, com assunto, mensagem, data, admin responsável e cópia dos destinatários. O detalhe mostra **Pendente**, **Enviado**, **Entregue** e **Falhou** por cliente. Entrega depende de webhook assinado do Resend (não indica leitura). Histórico e detalhe exclusivos para admins; alterações posteriores do cadastro não mudam o registro. Contratos em `packages/shared/src/bulk-email.ts`. Migrations aditivas, sem backfill; processamento síncrono atual mantido. Configuração externa pendente: webhook Resend e `RESEND_WEBHOOK_SECRET` (ver `historico-emails.md`).
 
 - [x] Histórico paginado, detalhe por cliente, persistência antes do envio e webhook assinado com tratamento de eventos duplicados/fora de ordem.
