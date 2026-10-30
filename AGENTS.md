@@ -13,7 +13,9 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
-- **E-mail personalizado em massa (#56), em 29/10/2026**: `/admin/emails`, restrito a admins no painel e na API. Todos os clientes vêm selecionados; admin pode desmarcar destinatários e editar assunto e mensagem. Envio individual pelo Resend, com relatório de falhas e seleção apenas dos que falharam para nova tentativa. Contratos HTTP em `packages/shared/src/bulk-email.ts`. Limite de 1.000 clientes por envio, síncrono; não há fila persistente.
+- **Histórico de e-mails em 29/10/2026** (branch `feat/admin-email-history`): cada envio cria `EmailCampaign` e destinatários `EmailRecipient` antes de enviar. `/admin/emails/historico` lista envios; `/admin/emails/envio?id=` mostra mensagem e status por cliente (Pendente, Enviado, Entregue, Falhou), só para admins. Webhook assinado em `POST /webhooks/resend`, com `RESEND_WEBHOOK_SECRET`; configuração e limites em `docs/historico-emails.md`. Migration aditiva `20261029000000_email_history`. Sem backfill de envios antigos nem fila de retomada.
+
+- **E-mail personalizado em massa (#56), em 29/10/2026**: `/admin/emails`, restrito a admins no painel e na API. Todos os clientes vêm selecionados; admin pode desmarcar destinatários e editar assunto e mensagem. Envio individual pelo Resend, com histórico e status por destinatário. Contratos HTTP em `packages/shared/src/bulk-email.ts`. Limite de 1.000 clientes por envio, síncrono; não há fila persistente.
 
 - **Fase 0 concluída em 04/10/2026**: monorepo pnpm criado. `apps/web` (Next.js, `output: 'export'`), `apps/api` (só `package.json` mínimo; o scaffold do NestJS é a primeira tarefa do agente de back) e `packages/shared` (`@exactra/shared`: enums, schemas zod, `plans.config.ts`, simulador, testes Vitest).
 - Todos os preços e regras do simulador são **PLACEHOLDER** (`packages/shared/src/plans.config.ts` e `simulator.ts`) até o contador responder (`docs/perguntas-contador.md`).

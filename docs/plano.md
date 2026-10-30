@@ -15,6 +15,10 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 
 ## 2. Decisões fechadas
 
+**29/10/2026 — histórico de e-mails:** cada envio personalizado gera um registro persistente, com assunto, mensagem, data, admin responsável e cópia dos destinatários. O detalhe mostra **Pendente**, **Enviado**, **Entregue** e **Falhou** por cliente. Entrega depende de webhook assinado do Resend (não indica leitura). Histórico e detalhe exclusivos para admins; alterações posteriores do cadastro não mudam o registro. Contratos em `packages/shared/src/bulk-email.ts`. Migrations aditivas, sem backfill; processamento síncrono atual mantido. Configuração externa pendente: webhook Resend e `RESEND_WEBHOOK_SECRET` (ver `historico-emails.md`).
+
+- [x] Histórico paginado, detalhe por cliente, persistência antes do envio e webhook assinado com tratamento de eventos duplicados/fora de ordem.
+
 **29/10/2026 — issue #56:** envio de e-mail personalizado exclusivo para admins, em `/admin/emails`. Todos os clientes cadastrados vêm marcados por padrão; destinatários são escolhidos antes de enviar. Assunto e mensagem em texto simples, e-mail individual sem expor outros destinatários. Contrato compartilhado em `bulk-email.ts`; API valida todos os IDs antes de enviar e informa falhas parciais. Até 1.000 clientes por requisição, com intervalo entre envios; fila persistente fica para quando o volume exigir. Em queda de conexão, conferir o provedor antes de reenviar, pois não há retomada persistente.
 
 - [x] #56 — tela, seleção de clientes, permissão admin na API e envio personalizado individual.

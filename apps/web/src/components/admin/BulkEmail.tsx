@@ -1,11 +1,14 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { bulkEmailSchema } from "@exactra/shared";
 import { api } from "@/lib/api";
 import { useLoad } from "./useLoad";
 
 export function BulkEmail() {
+  const router = useRouter();
   const rows = useLoad(() => api.adminEmailRecipients(), []);
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
   const [subject, setSubject] = useState("");
@@ -25,10 +28,9 @@ export function BulkEmail() {
     setNotice("");
     try {
       const result = await api.adminSendEmail(input.data);
-      setExcluded(new Set(rows.data!.filter((c) => !result.failedCustomerIds.includes(c.id)).map((c) => c.id)));
-      setNotice(`${result.sent} e-mail(s) enviado(s). ${result.failedCustomerIds.length} falha(s). Apenas os clientes com falha continuam selecionados.`);
+      router.push(`/admin/emails/envio?id=${encodeURIComponent(result.campaignId)}`);
     } catch {
-      setNotice("Não foi possível confirmar o envio. Confira os envios no provedor antes de tentar novamente para evitar duplicados.");
+      setNotice("Não foi possível confirmar o envio. Consulte o histórico antes de tentar novamente para evitar duplicados.");
     } finally {
       sending.current = false;
       setBusy(false);
@@ -38,6 +40,7 @@ export function BulkEmail() {
   return (
     <section className="max-w-3xl">
       <h1 className="text-2xl font-semibold">Enviar e-mail aos clientes</h1>
+      <Link href="/admin/emails/historico" className="mt-3 inline-block font-medium underline">Histórico de envios</Link>
       <p className="mt-2 text-muted">Escreva uma mensagem e escolha quem deve receber. Cada cliente recebe um e-mail individual.</p>
       {rows.error && <div role="alert" className="mt-6">Não foi possível carregar os clientes. <button type="button" onClick={rows.reload} className="underline">Tentar novamente</button></div>}
       {!rows.data && !rows.error && <p role="status" className="mt-6 text-muted">Carregando clientes…</p>}
