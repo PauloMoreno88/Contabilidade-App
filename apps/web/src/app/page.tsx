@@ -7,6 +7,7 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { MobileBar } from "@/components/landing/MobileBar";
 import { PlanCard } from "@/components/landing/PlanCard";
+import { Platform } from "@/components/landing/Platform";
 import { Services } from "@/components/landing/Services";
 import { WhatsAppBlock } from "@/components/landing/WhatsAppBlock";
 import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
@@ -22,6 +23,7 @@ export default function Home() {
         <Simulator />
         <About />
         <Services />
+        <Platform />
         <WhatsAppBlock />
         <PlanCard />
         <Band />
