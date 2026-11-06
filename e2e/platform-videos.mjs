@@ -22,7 +22,7 @@ const VIEWS = {
   desktop: { viewport: { width: 1100, height: 700 }, scale: 1.25, width: 1376, height: 876, context: {} },
 };
 // The scripted clicks feel slow at normal speed.
-const SPEED = 1.25;
+const SPEED = 1.5;
 // A fixed date keeps the greeting and the months the same on every recording. Before the documents deadline (day 10).
 const NOW = new Date("2026-11-05T09:30:00-03:00");
 const pdf = (name) => ({ name, mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 exemplo") });
@@ -123,10 +123,9 @@ async function addLastMonth(page) {
   await page.reload();
 }
 
-/** `setup` runs off camera. `poster` is the second of the video used as its still image. */
+/** `setup` runs off camera. */
 const flows = {
   "primeiro-acesso": {
-    poster: 2.5,
     setup: (page) => page.goto(`${BASE_URL}/app/boas-vindas`),
     ready: (page) => page.getByRole("checkbox"),
     async run(page, { wait, tap, scrollTo }) {
@@ -145,7 +144,6 @@ const flows = {
     },
   },
   inicio: {
-    poster: 1.5,
     async setup(page) {
       await finishOnboarding(page);
       // The renewal reminder is not what this flow is about.
@@ -169,7 +167,6 @@ const flows = {
     },
   },
   documentos: {
-    poster: 1,
     async setup(page) {
       await finishOnboarding(page);
       await page.goto(`${BASE_URL}/app/documentos`);
@@ -197,7 +194,6 @@ const flows = {
     },
   },
   guias: {
-    poster: 1,
     async setup(page) {
       await finishOnboarding(page);
       await page.goto(`${BASE_URL}/app/guias`);
@@ -219,7 +215,6 @@ const flows = {
     },
   },
   historico: {
-    poster: 1,
     async setup(page) {
       await finishOnboarding(page);
       await addLastMonth(page);
@@ -299,9 +294,9 @@ async function record(browser, viewName, id) {
   mkdirSync(out, { recursive: true });
   const mp4 = join(out, `${id}.mp4`);
   const duration = seconds / SPEED;
-  const filter = `scale=${view.width}:${view.height}:flags=lanczos,setsar=1,setpts=PTS/${SPEED},fps=30,fade=t=in:st=0:d=0.25:c=white,fade=t=out:st=${(duration - 0.35).toFixed(2)}:d=0.35:c=white,format=yuv420p`;
+  const filter = `scale=${view.width}:${view.height}:flags=lanczos,setsar=1,setpts=PTS/${SPEED},fps=30,format=yuv420p`;
   execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", join(dir, "list.txt"), "-vf", filter, "-an", "-c:v", "libx264", "-preset", "slow", "-crf", "27", "-movflags", "+faststart", mp4]);
-  execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-ss", String(flow.poster / SPEED), "-i", mp4, "-frames:v", "1", "-q:v", "4", join(out, `${id}.jpg`)]);
+  execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "4", join(out, `${id}.jpg`)]);
   rmSync(dir, { recursive: true, force: true });
   console.log(`${viewName}/${id}: ${duration.toFixed(1)}s, ${frames.length} frames`);
 }
