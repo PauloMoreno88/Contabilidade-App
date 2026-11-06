@@ -1,10 +1,10 @@
 # Spec — Seção da plataforma na landing
 
 ## Identificação
-- Versão / estado: 1.2 / implementada
+- Versão / estado: 1.3 / implementada
 - Workflow e versão / overrides: `standard-development` v1.1. E2E desativado (padrão). Vai para o staging via `feat/app-v2`, por pedido do usuário.
 - Fonte do pedido / responsável: conversa de 06/11/2026 com o usuário (Paulo).
-- Revisão do código: branch `feat/platform-section`, a partir de `origin/feat/app-v2` (`fc91388`). Vai para o staging por PR.
+- Revisão do código: v1.2 no PR #74 (`31329c7`). v1.3 na branch `feat/platform-desktop-videos`, a partir de `origin/feat/app-v2` (`1afdc4d`).
 
 ## Objetivo e limites
 Mostrar a quem visita a landing o que o cliente ganha usando a plataforma, com vídeos reais da área do cliente.
@@ -26,6 +26,8 @@ Mostrar a quem visita a landing o que o cliente ganha usando a plataforma, com v
 | REQ-008 | Os vídeos podem ser regravados sem dado real. | CA-008: `pnpm --filter e2e platform-videos` regrava os 5 usando o mock do front. | Execução do script |
 | REQ-009 | O menu do site cabe em qualquer largura e leva até a seção. | CA-009: de 320 a 1280 px, sem rolagem horizontal e com o botão do menu dentro da tela; em 390 e 768 px, o menu leva a `#plataforma`. | Playwright local |
 | REQ-010 | Setas, título do fluxo e vídeo ficam visíveis juntos. | CA-010: de 1280x720 a 1440x900, o vídeo cabe inteiro e as setas estão na tela ao chegar na seção; em 360x740, ao tocar na seta, o título novo e parte do vídeo seguem visíveis. | Playwright local |
+| REQ-011 | O visitante escolhe ver a plataforma no celular ou no computador. | CA-011: uma aba troca o vídeo mantendo o fluxo; a seta mantém a aba; a aba começa em Computador a partir de 1024 px e em Celular abaixo disso; trocar de aba não move as setas. Só baixa o vídeo em uso. | Playwright local |
+| REQ-012 | Os vídeos rodam 1.25x mais rápido que a gravação. | CA-012: a duração de cada vídeo é a duração gravada dividida por 1.25. | Script e metadados dos vídeos |
 
 ## Premissas e questões abertas
 - Os vídeos usam o modo mock e a empresa fictícia "Estúdio Marina Costa". Não há dado real.
@@ -43,7 +45,7 @@ Mostrar a quem visita a landing o que o cliente ganha usando a plataforma, com v
 Vídeos em formato de celular: uma única versão fica legível em qualquer tela, porque uma gravação de desktop reduzida a um celular ficaria ilegível. H.264 em MP4 para funcionar no iPhone. Botão de pausa acrescentado por acessibilidade (WCAG 2.2.2).
 
 ## Plano e resultados de validação
-`pnpm --filter web lint`: sem erros. `pnpm --filter web test`: 20 testes passaram. `pnpm --filter web build` (staging): passou, com os 10 arquivos em `out/video/plataforma`. Verificação no navegador feita com script Playwright avulso em Chromium, contra o front no modo mock, sem entrar na suíte. Suíte E2E: não executada (desativada). Safari/iPhone: não testado.
+`pnpm --filter web lint`: sem erros. `pnpm --filter web test`: 20 testes passaram (v1.3). `pnpm --filter web build` (staging): passou, com os 20 arquivos (10 vídeos e 10 imagens) em `out/video/plataforma`. Verificação no navegador feita com script Playwright avulso em Chromium, contra o front no modo mock, sem entrar na suíte. Suíte E2E: não executada (desativada). Safari/iPhone: não testado.
 
 ## Rastreabilidade final
 | Requisito / critério | Código: arquivo/símbolo | Teste/evidência | Resultado |
@@ -58,11 +60,14 @@ Vídeos em formato de celular: uma única versão fica legível em qualquer tela
 | REQ-008 / CA-008 | `e2e/platform-videos.mjs` | Execução real gerou os 5 vídeos; quadros revisados | Passou |
 | REQ-009 / CA-009 | `Header.tsx` | Script Playwright: 320 a 1280 px; menu em 390 e 768 px | Passou |
 | REQ-010 / CA-010 | `Platform.tsx` | Script Playwright: 1280x720, 1366x768, 1280x800, 1440x900, 1024x768 e 360x740. Em 768x1024 faltam 30 px do vídeo ao chegar; setas e título visíveis | Passou |
+| REQ-011 / CA-011 | `Platform.tsx`, `platformMedia` em `config/site.ts` | Script Playwright: abas de 320 a 1920 px; `config/site.test.ts` confere os 10 vídeos | Passou |
+| REQ-012 / CA-012 | `SPEED` em `e2e/platform-videos.mjs` | Exemplo: gravação de 18,5 s virou vídeo de 14,8 s | Passou |
 
 ## Auditoria e desvios
 Revisão independente `auto`: não exigida para esta mudança, que só altera a landing e não toca em dados ou pagamentos.
 
 ## Histórico
 - 1.0, 06/11/2026: versão inicial.
+- 1.3, 06/11/2026: pedido do usuário. Inclui vídeos de computador com abas (REQ-011) e velocidade 1.25x (REQ-012). Os vídeos passam a ficar em `mobile/` e `desktop/`, e o vídeo e as abas ficam em um painel. O título "Envie documentos pelo celular" virou "Envie os documentos do mês", porque agora também aparece com o vídeo de computador.
 - 1.2, 06/11/2026: revisão com a skill `frontend-design`, pedida pelo usuário. A primeira passada reprovou: setas abaixo da dobra no notebook e título fora da tela ao trocar de fluxo no celular. As setas foram para junto do texto e o celular passou a acompanhar a altura da tela. A etiqueta "Plataforma" acima do título foi mantida por ser o padrão das seções do site.
 - 1.1, 06/11/2026: inclui REQ-009. O link novo estourava o menu entre 768 e 996 px, e abaixo de ~400 px o botão do menu já ficava fora da tela antes desta mudança. Alteração pequena, necessária para o menu chegar à seção; a confirmar com o usuário no relatório.
