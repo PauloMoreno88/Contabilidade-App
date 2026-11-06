@@ -51,4 +51,4 @@ Os testes rodam em série (um navegador por vez): os fluxos usam a mesma conta d
 
 ## Vídeos da plataforma na landing
 
-`pnpm --filter e2e platform-videos` regrava os 5 vídeos de `apps/web/public/video/plataforma`, usando o modo mock do front (empresa fictícia, sem dado real). Precisa do ffmpeg com libx264 e do front rodando na porta 3100: os comandos estão no início de `platform-videos.mjs`. Para gravar um só: `pnpm --filter e2e platform-videos guias`.
+`pnpm --filter e2e platform-videos` regrava os 5 vídeos de `apps/web/public/video/plataforma`, em formato de celular e de computador e em velocidade 1.25x, usando o modo mock do front (empresa fictícia, sem dado real). Precisa do ffmpeg com libx264 e do front rodando na porta 3100: os comandos estão no início de `platform-videos.mjs`. Para gravar um fluxo: `pnpm --filter e2e platform-videos guias`. Em um só formato: `pnpm --filter e2e platform-videos desktop guias`.

@@ -91,12 +91,14 @@ export const services: { kicker: string; title: string; sub: string; items: Icon
   ],
 };
 
-const platformFlow = (id: string, title: string, text: string) => ({
-  id,
-  title,
-  text,
-  video: `/video/plataforma/${id}.mp4`,
-  poster: `/video/plataforma/${id}.jpg`,
+const platformFlow = (id: string, title: string, text: string) => ({ id, title, text });
+
+export type PlatformView = "mobile" | "desktop";
+
+/** Files recorded by e2e/platform-videos.mjs. */
+export const platformMedia = (view: PlatformView, id: string) => ({
+  video: `/video/plataforma/${view}/${id}.mp4`,
+  poster: `/video/plataforma/${view}/${id}.jpg`,
 });
 
 export const platformTour = {
@@ -107,11 +109,13 @@ export const platformTour = {
   next: "Ver próxima funcionalidade",
   pause: "Pausar vídeo",
   play: "Reproduzir vídeo",
+  viewLabel: "Ver a plataforma no",
+  views: { mobile: "Celular", desktop: "Computador" } satisfies Record<PlatformView, string>,
   position: (current: number, total: number) => `${current} de ${total}`,
   flows: [
     platformFlow("primeiro-acesso", "Comece em poucos minutos", "No primeiro acesso, você confirma seus dados, conta como é a empresa e já vê a lista de documentos certa para ela."),
     platformFlow("inicio", "Saiba o que falta resolver", "A tela inicial mostra as guias e os documentos pendentes, com os mais urgentes primeiro."),
-    platformFlow("documentos", "Envie documentos pelo celular", "Cada documento do mês tem seu lugar. Escolha o arquivo ou tire uma foto e acompanhe o que ainda falta."),
+    platformFlow("documentos", "Envie os documentos do mês", "Cada documento tem seu lugar. Escolha o arquivo ou, no celular, tire uma foto, e acompanhe o que ainda falta."),
     platformFlow("guias", "Pague a guia sem digitar o código", "Copie o código, cole no app do banco e marque como paga. Se quiser, anexe o comprovante."),
     platformFlow("historico", "Encontre tudo mês a mês", "Guias pagas e documentos ficam separados por mês. Precisou? Baixe tudo de um mês de uma vez."),
   ],
@@ -122,7 +126,7 @@ export const whatsappBlock = {
   title: "Atendimento de gente, no canal que você preferir",
   sub: "As guias chegam prontas para pagar no seu e-mail, os prazos são lembrados com antecedência e as dúvidas vão direto para quem cuida da sua empresa.",
   items: [
-    { icon: Receipt, title: "Guias no seu e-mail", text: "Você recebe a guia do imposto pronta para pagar, antes de vencer. Em breve, também pela plataforma." },
+    { icon: Receipt, title: "Guias no seu e-mail", text: "Você recebe a guia do imposto pronta para pagar, antes de vencer." },
     { icon: Bell, title: "Prazos lembrados", text: "Nada de multa por esquecer uma declaração." },
     { icon: MessageSquare, title: "Resposta humana", text: "Por WhatsApp, e-mail, telefone ou vídeo, no mesmo dia útil." },
   ] satisfies IconItem[],

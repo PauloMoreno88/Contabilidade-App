@@ -13,7 +13,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
-- **Plataforma na landing em 06/11/2026** (branch `feat/platform-section`, decisão 37, `docs/specs/plataforma-na-landing.md`): seção `components/landing/Platform.tsx` com 5 vídeos sem som em loop e setas; textos em `platformTour` (`config/site.ts`), vídeos em `public/video/plataforma`. O menu do site vira hambúrguer abaixo de `lg`, e abaixo de 420 px "Acessar plataforma" mostra só o ícone. Regravar os vídeos quando as telas do cliente mudarem.
+- **Plataforma na landing em 06/11/2026** (branch `feat/platform-section`, decisão 37, `docs/specs/plataforma-na-landing.md`): seção `components/landing/Platform.tsx` com 5 vídeos sem som em loop, setas e abas Celular e Computador; textos em `platformTour` (`config/site.ts`), vídeos em `public/video/plataforma/{mobile,desktop}`, gravados a 1.25x. O menu do site vira hambúrguer abaixo de `lg`, e abaixo de 420 px "Acessar plataforma" mostra só o ícone. Regravar os vídeos quando as telas do cliente mudarem.
 
 - **Interface dos e-mails em 30/10/2026** (branch `feat/admin-email-design`): envio em duas colunas, busca de destinatários sem alterar a seleção e indicação de seleção parcial. Navegação comum entre novo envio e histórico; histórico com data e responsável; detalhe com mensagem separada, resumo e etiquetas dos quatro status. Leitura dos destinatários adaptada ao celular sem rolagem horizontal. Identidade visual e componentes do painel preservados.
 
