@@ -19,10 +19,14 @@ export function Platform() {
   const [view, setView] = useState<PlatformView>("mobile");
   const [visible, setVisible] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [playing, setPlaying] = useState<string | null>(null);
+  // What the player shows. It only follows the chosen flow and view once the next image is ready to paint.
+  const [shown, setShown] = useState<{ view: PlatformView; id: string }>({ view: "mobile", id: copy.flows[0].id });
   const total = copy.flows.length;
   const flow = copy.flows[index];
-  const media = platformMedia(view, flow.id);
-  const desktop = view === "desktop";
+  const media = platformMedia(shown.view, shown.id);
+  const desktop = shown.view === "desktop";
+  const videoKey = `${shown.view}-${shown.id}`;
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setPaused(true);
@@ -40,7 +44,35 @@ export function Platform() {
     v.muted = true;
     if (visible && !paused) v.play().catch(() => undefined);
     else v.pause();
-  }, [visible, paused, index, view]);
+  }, [visible, paused, videoKey]);
+
+  // The current video stays on screen until the next image is decoded: both then change in a single paint.
+  useEffect(() => {
+    const next = { view, id: flow.id };
+    if (!visible) return setShown(next);
+    let current = true;
+    const image = new Image();
+    image.src = platformMedia(view, flow.id).poster;
+    image
+      .decode()
+      .catch(() => undefined)
+      .then(() => {
+        if (current) setShown(next);
+      });
+    return () => {
+      current = false;
+    };
+  }, [visible, view, flow.id]);
+
+  // Ready before the arrows or tabs ask for them, so the next video changes without waiting.
+  useEffect(() => {
+    if (!visible) return;
+    const other = view === "desktop" ? "mobile" : "desktop";
+    const posters = [...copy.flows.map((f) => platformMedia(view, f.id).poster), platformMedia(other, flow.id).poster];
+    posters.forEach((src) => {
+      new Image().src = src;
+    });
+  }, [visible, view, flow.id]);
 
   return (
     <section id="plataforma" className="py-16">
@@ -67,7 +99,7 @@ export function Platform() {
           </button>
         </div>
 
-        <ol className="min-h-[124px] lg:col-start-2 lg:min-h-0">
+        <ol className="min-h-[156px] sm:min-h-[106px] lg:col-start-2 lg:min-h-0">
           {copy.flows.map((f, i) => (
             <li key={f.id} className={i === index ? "" : "max-lg:hidden"}>
               <button
@@ -104,18 +136,23 @@ export function Platform() {
           </div>
           <div className="grid w-full flex-1 place-items-center">
             <div className={`bg-navy shadow-[0_10px_26px_rgba(15,33,51,.2)] ${desktop ? "w-full rounded-[18px] p-1.5 sm:p-2" : "w-full max-w-[280px] rounded-[34px] p-2.5 lg:w-[var(--phone)] lg:max-w-none"}`}>
-              <video
-                key={`${view}-${flow.id}`}
-                ref={video}
-                src={media.video}
-                poster={media.poster}
-                aria-label={`${flow.title} (${copy.views[view]})`}
-                muted
-                loop
-                playsInline
-                preload="none"
-                className={`w-full bg-surface object-cover ${desktop ? "aspect-[1100/700] rounded-xl" : "aspect-[390/760] rounded-3xl"}`}
-              />
+              {/* The image is the video's first frame. The video stays hidden until it plays, so changing flows never shows an empty player. */}
+              <div className={`relative w-full overflow-hidden bg-surface ${desktop ? "aspect-[1100/700] rounded-xl" : "aspect-[390/760] rounded-3xl"}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={media.poster} alt="" decoding="sync" className="absolute inset-0 size-full object-cover" />
+                <video
+                  key={videoKey}
+                  ref={video}
+                  src={media.video}
+                  aria-label={`${flow.title} (${copy.views[shown.view]})`}
+                  muted
+                  loop
+                  playsInline
+                  preload="none"
+                  onPlaying={() => setPlaying(videoKey)}
+                  className={`absolute inset-0 size-full object-cover ${playing === videoKey ? "" : "opacity-0"}`}
+                />
+              </div>
             </div>
           </div>
         </div>
