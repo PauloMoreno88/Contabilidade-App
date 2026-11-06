@@ -34,6 +34,7 @@ export const nav = {
     { href: "/#simulador", label: "Simulador" },
     { href: "/#sobre", label: "Sobre nós" },
     { href: "/#servicos", label: "Serviços" },
+    { href: "/#plataforma", label: "Plataforma" },
     { href: "/#plano", label: "Plano" },
     { href: "/blog", label: "Blog" },
     { href: "/#contato", label: "Contato" },
@@ -87,6 +88,32 @@ export const services: { kicker: string; title: string; sub: string; items: Icon
     { icon: Receipt, title: "Notas fiscais", text: "Orientação para emitir certo e manter tudo organizado." },
     { icon: Building2, title: "Troca de contador", text: "Pedimos seus documentos ao contador atual e fazemos a transição, sem custo." },
     { icon: MonitorSmartphone, title: "Plataforma online", text: "Guias, documentos e relatórios do ano reunidos em um só lugar." },
+  ],
+};
+
+const platformFlow = (id: string, title: string, text: string) => ({
+  id,
+  title,
+  text,
+  video: `/video/plataforma/${id}.mp4`,
+  poster: `/video/plataforma/${id}.jpg`,
+});
+
+export const platformTour = {
+  kicker: "Plataforma",
+  title: "Abra a plataforma e veja o que precisa fazer",
+  sub: "Guias, documentos e prazos da sua empresa ficam em um só lugar, no celular ou no computador.",
+  previous: "Ver funcionalidade anterior",
+  next: "Ver próxima funcionalidade",
+  pause: "Pausar vídeo",
+  play: "Reproduzir vídeo",
+  position: (current: number, total: number) => `${current} de ${total}`,
+  flows: [
+    platformFlow("primeiro-acesso", "Comece em poucos minutos", "No primeiro acesso, você confirma seus dados, conta como é a empresa e já vê a lista de documentos certa para ela."),
+    platformFlow("inicio", "Saiba o que falta resolver", "A tela inicial mostra as guias e os documentos pendentes, com os mais urgentes primeiro."),
+    platformFlow("documentos", "Envie documentos pelo celular", "Cada documento do mês tem seu lugar. Escolha o arquivo ou tire uma foto e acompanhe o que ainda falta."),
+    platformFlow("guias", "Pague a guia sem digitar o código", "Copie o código, cole no app do banco e marque como paga. Se quiser, anexe o comprovante."),
+    platformFlow("historico", "Encontre tudo mês a mês", "Guias pagas e documentos ficam separados por mês. Precisou? Baixe tudo de um mês de uma vez."),
   ],
 };
 

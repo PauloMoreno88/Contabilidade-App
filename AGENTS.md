@@ -13,6 +13,8 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
+- **Plataforma na landing em 06/11/2026** (branch `feat/platform-section`, decisão 37, `docs/specs/plataforma-na-landing.md`): seção `components/landing/Platform.tsx` com 5 vídeos sem som em loop e setas; textos em `platformTour` (`config/site.ts`), vídeos em `public/video/plataforma`. O menu do site vira hambúrguer abaixo de `lg`, e abaixo de 420 px "Acessar plataforma" mostra só o ícone. Regravar os vídeos quando as telas do cliente mudarem.
+
 - **Interface dos e-mails em 30/10/2026** (branch `feat/admin-email-design`): envio em duas colunas, busca de destinatários sem alterar a seleção e indicação de seleção parcial. Navegação comum entre novo envio e histórico; histórico com data e responsável; detalhe com mensagem separada, resumo e etiquetas dos quatro status. Leitura dos destinatários adaptada ao celular sem rolagem horizontal. Identidade visual e componentes do painel preservados.
 
 - **Painéis padronizados em 30/10/2026**: admin e cliente usam `WorkspaceShell`, inspirado no layout do projeto `Ten/portal`: barra lateral clara e recolhível, itens com ícones e menu móvel em diálogo nativo. A paleta da Exactra permanece; títulos, botões e cabeçalhos de tabela recebem densidade comum, limitada aos painéis. Avisos de acesso, onboarding, 2FA e permissões continuam nos respectivos shells. Menu móvel substitui as abas fixas do cliente.
@@ -100,6 +102,7 @@ pnpm --filter web test       # unitários do front (src/lib)
 pnpm --filter api test:unit  # unitários do API (src/**/*.test.ts)
 pnpm --filter api test:e2e
 pnpm --filter e2e staging    # fluxos completos no staging (Playwright); e-mails esperados: pnpm --filter e2e emails
+pnpm --filter e2e platform-videos  # regrava os vídeos da landing (instruções no início de e2e/platform-videos.mjs)
 ```
 
 `pnpm --filter api ...` só funciona depois que o scaffold do Nest existir. Ajuste esta seção se os nomes dos scripts mudarem.

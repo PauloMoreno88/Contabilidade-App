@@ -48,3 +48,7 @@ Os testes rodam em série (um navegador por vez): os fluxos usam a mesma conta d
 ## Feedback de interface local
 
 `pnpm --filter e2e exec playwright test --config ui-feedback.config.ts` inicia o front na porta 3101 usando somente mocks. Confere loading, atualização de filtros, bloqueio durante ações, cursor, hover e movimento reduzido em 360, 768 e 1280 px. Não usa credenciais nem altera o staging.
+
+## Vídeos da plataforma na landing
+
+`pnpm --filter e2e platform-videos` regrava os 5 vídeos de `apps/web/public/video/plataforma`, usando o modo mock do front (empresa fictícia, sem dado real). Precisa do ffmpeg com libx264 e do front rodando na porta 3100: os comandos estão no início de `platform-videos.mjs`. Para gravar um só: `pnpm --filter e2e platform-videos guias`.
