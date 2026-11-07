@@ -162,7 +162,7 @@ O que cada estado do pagamento faz:
 | `approved` com valor diferente, sem contrato, ou em contrato que não está pendente | Não muda (responde 200) | Sim |
 | `rejected` ou `cancelled` | Continua pendente: o comprador pode tentar de novo no mesmo link | Não |
 
-O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos Mercado Pago pendentes há mais de 8 dias (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
+O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos Mercado Pago pendentes há mais de 8 dias (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Depois disso, e até o job cancelar o contrato pendente, a API responde 409 (decisão 39). O comprador paga os juros do parcelado (decisão 38). Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
 
 Na documentação da integração por preferências, pagamentos feitos com credenciais de teste podem não disparar notificações automaticamente: simule **Pagamentos** no painel com o ID do pagamento de teste e confira a ativação; repita o fluxo real após receber as credenciais. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
 

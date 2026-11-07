@@ -1,10 +1,10 @@
 # Spec — Mercado Pago: bloqueios antes do teste real
 
 ## Identificação
-- Versão / estado: 1.0 / implementada
+- Versão / estado: 1.1 / implementada
 - Workflow e versão / overrides: `standard-development` v1.1. E2E (Playwright) desativado; não há keys. Sem deploy no staging por pedido do usuário.
 - Fonte do pedido / responsável: conversa de 05/11/2026 com o usuário (Paulo).
-- Revisão do código: alterações ainda sem commit em `feat/mercado-pago-checkout`, sobre `cfa4f30`.
+- Revisão do código: commitada em `feat/mercado-pago-checkout`, ainda fora de `feat/app-v2`.
 
 ## Objetivo e limites
 Fechar os bloqueios de código encontrados na verificação do Mercado Pago, para que o teste real comece quando as keys chegarem.
@@ -26,6 +26,8 @@ Fechar os bloqueios de código encontrados na verificação do Mercado Pago, par
 | REQ-008 | A renovação abandonada no Mercado Pago pode ser retomada. | CA-008: dado pendente com menos de 3 dias, quando o cliente renova de novo, então recebe o mesmo contrato e o link da preferência, sem 409 e sem novo contrato. | e2e |
 | REQ-009 | Pagamento aprovado que não pode ativar o contrato não se perde. | CA-009: dado valor diferente, contrato inexistente ou contrato já resolvido, quando chega, então responde 200, não muda o contrato e alerta uma vez, mesmo com reenvio. | e2e |
 | REQ-010 | E-mails internos não citam o provedor. | CA-010: os avisos de contratação e renovação não contêm "Stripe". | unitário |
+| REQ-011 | Enquanto um contrato Mercado Pago está pendente, não nasce outra renovação. | CA-011: dado pendente com o link expirado, quando o cliente renova, então recebe 409 até o job cancelar o contrato; depois, cria um contrato novo. | e2e |
+| REQ-012 | O site não promete parcela sem juros. | CA-012: nenhum texto do Mercado Pago ou da landing mostra parcela sem juros; a landing mostra o valor anual e avisa dos juros. | build e leitura dos textos; falta conferir no navegador |
 
 ## Premissas e questões abertas
 Só o teste real confirma:
@@ -39,6 +41,8 @@ Só o teste real confirma:
 | Cancelar só em reembolso total ou chargeback; parcial mantém o contrato e alerta. | Rollback: reverter a alteração, sem migration. | Paulo, 05/11/2026: "sim, pode seguir com essas duas regras". | 1.0 |
 | Link de pagamento de 3 dias. | A documentação recomenda pelo menos 3 dias para Pix e boleto. | Paulo, mesma mensagem. | 1.0 |
 | Não subir para o staging antes das keys. | Sem merge nem PR. | Paulo, mesma mensagem. | 1.0 |
+| O comprador paga os juros do parcelado (decisão 38). | Muda textos e o card de preço da landing. | Paulo, 07/11/2026. | 1.1 |
+| Trava da renovação até o job cancelar o pendente (decisão 39). | Rollback: voltar o filtro de `renew`, sem migration. | Paulo, 07/11/2026. | 1.1 |
 
 Escolhas de implementação, dentro do pedido e reversíveis:
 - **Recusado não cancela na hora:** o comprador pode tentar de novo no mesmo link, e cancelar faria essa nova tentativa cobrar sem ativar. O cancelamento fica com o job.
@@ -69,6 +73,8 @@ Não executado: Playwright (desativado) e qualquer chamada ao Mercado Pago real 
 | REQ-008 | `portal.controller.ts` `renew`; `mercado-pago.provider.ts` `checkoutUrl` | `portal.e2e-spec.ts` |
 | REQ-009 | `webhook.controller.ts` `review`; `notifications.ts` `sendPaymentAlert` | `mercado-pago.e2e-spec.ts` |
 | REQ-010 | `packages/emails/src/copy.ts` | `emails.test.ts` |
+| REQ-011 | `portal.controller.ts` `renew`; `portal/Plan.tsx` | `portal.e2e-spec.ts` |
+| REQ-012 | `config/site.ts`, `config/checkout.ts`, `config/portal.ts`, `config/legal.ts`, `landing/PlanCard.tsx` | build; falta conferir no navegador |
 
 ## Auditoria e desvios
 Revisão independente: `auto` no workflow, não executada. Sem teste contra o Mercado Pago real.
@@ -77,3 +83,4 @@ Limitação aceita: um `Payment` reembolsado continua `PAID`, porque o enum não
 
 ## Histórico
 - 1.0 (05/11/2026): versão inicial.
+- 1.1 (07/11/2026): juros pagos pelo comprador e trava da renovação pendente.

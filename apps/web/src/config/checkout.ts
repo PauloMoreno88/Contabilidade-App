@@ -13,7 +13,7 @@ export const methodLabels: Record<PaymentMethod, { label: string; hint: (maxInst
 
 export const providerLabels: Record<PaymentProviderId, { label: string; hint: string }> = {
   STRIPE: { label: "Stripe", hint: "Escolha cartão, Pix ou boleto aqui." },
-  MERCADO_PAGO: { label: "Mercado Pago", hint: "Escolha a forma de pagamento no Mercado Pago. Cartão em até 12x, conforme as condições exibidas lá." },
+  MERCADO_PAGO: { label: "Mercado Pago", hint: "Escolha a forma de pagamento no Mercado Pago. Cartão em até 12x, com juros, conforme as condições exibidas lá." },
 };
 
 export const periodLabels: Record<BillingPeriod, string> = {
@@ -36,7 +36,7 @@ export const checkoutCopy = {
   contract: "Contrato anual",
   methodTitle: "Forma de pagamento",
   providerTitle: "Onde quer pagar",
-  mercadoPagoMethod: "A forma de pagamento e o valor das parcelas serão mostrados no Mercado Pago antes de confirmar.",
+  mercadoPagoMethod: "A forma de pagamento, o valor das parcelas e os juros serão mostrados no Mercado Pago antes de confirmar.",
   customerTitle: "Seus dados",
   fields: {
     name: { label: "Nome completo", placeholder: "Seu nome" },

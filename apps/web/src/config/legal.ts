@@ -116,7 +116,7 @@ export const termsOfUse: LegalDoc = {
       title: "Pagamento",
       items: [
         "O contrato tem duração de 12 meses e é pago na contratação.",
-        "Cartão de crédito: à vista ou parcelado. As parcelas são cobradas pela operadora do cartão.",
+        "Cartão de crédito: à vista ou parcelado. No parcelado, os juros são pagos por você e aparecem no ambiente de pagamento antes de confirmar.",
         "Pix ou boleto: valor anual à vista.",
         "Não há taxa de adesão.",
         "O contrato começa quando o pagamento é confirmado. No boleto, a confirmação leva de 1 a 3 dias úteis.",

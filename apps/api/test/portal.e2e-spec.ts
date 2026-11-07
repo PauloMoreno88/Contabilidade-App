@@ -17,6 +17,7 @@ import {
   todayInSaoPaulo,
   uploadTicketSchema,
 } from '@exactra/shared';
+import { ExpiryJob } from '../src/contracts/expiry.job.js';
 import { prisma } from '../src/db.js';
 import { MercadoPagoProvider } from '../src/payments/mercado-pago.provider.js';
 import { sendEmail } from '../src/email.js';
@@ -380,6 +381,10 @@ describe('customer area (e2e)', () => {
     await prisma.contract.update({ where: { id: first.body.contractId }, data: { createdAt: new Date(Date.now() - 3.5 * DAY) } });
     await renew().expect(409);
     await prisma.contract.update({ where: { id: first.body.contractId }, data: { createdAt: new Date(Date.now() - 5 * DAY) } });
+    await renew().expect(409);
+    // Only after the daily job cancels the pending contract can the customer start over.
+    await prisma.contract.update({ where: { id: first.body.contractId }, data: { createdAt: new Date(Date.now() - 9 * DAY) } });
+    await app.get(ExpiryJob).run();
     const next = await renew().expect(201);
     expect(next.body.contractId).not.toBe(first.body.contractId);
 

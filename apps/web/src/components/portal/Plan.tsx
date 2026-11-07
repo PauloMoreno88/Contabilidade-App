@@ -10,7 +10,7 @@ import { CHECKOUT_PAYMENT_METHODS, PAYMENT_PROVIDERS, planInfo, PORTAL_RULES, wh
 import { portalCopy } from "@/config/portal";
 import { providerLabels } from "@/config/checkout";
 import { useLoad } from "@/components/admin/useLoad";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { formatBRLExact, formatDate } from "@/lib/format";
 import { LoadState, PageHeader } from "./ui";
 
@@ -132,7 +132,7 @@ function Renew({ p }: { p: PortalPlan }) {
   const [provider, setProvider] = useState<PaymentProviderId>("STRIPE");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!p.canRenew) {
     const opens = p.access.endsAt ? new Date(Date.parse(p.access.endsAt) - PORTAL_RULES.renewWindowDays * DAY).toISOString() : null;
@@ -141,12 +141,12 @@ function Renew({ p }: { p: PortalPlan }) {
 
   async function renew() {
     setBusy(true);
-    setError(false);
+    setError(null);
     try {
       const { checkoutUrl } = await api.renew({ method: provider === "MERCADO_PAGO" ? "CARD" : method, provider, consent: true });
       window.location.href = checkoutUrl;
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(err instanceof ApiError && err.status === 409 ? copy.renewPending : copy.renewError);
       setBusy(false);
     }
   }
@@ -186,7 +186,7 @@ function Renew({ p }: { p: PortalPlan }) {
           <Link href="/privacidade" target="_blank" className="underline">{terms.privacyLink}</Link>.
         </span>
       </label>
-      {error && <p role="alert" className="mt-4 text-[0.88rem] text-brand">{copy.renewError}</p>}
+      {error && <p role="alert" className="mt-4 text-[0.88rem] text-brand">{error}</p>}
       <button type="button" onClick={renew} aria-busy={busy} disabled={!consent || busy} className="btn btn-primary mt-5">{copy.renewCta}</button>
     </section>
   );

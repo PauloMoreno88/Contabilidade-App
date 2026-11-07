@@ -345,8 +345,10 @@ export class PortalController {
     }
     const c = ctx.customer;
     // One renewal at a time: a boleto takes up to 3 business days, and a second payment would add another year.
+    // A Mercado Pago contract stays pending until the daily job cancels it, because a boleto can clear after the link expires.
+    // TODO(docs): move this rule to the project documentation later (docs/plano.md, decision 39).
     const pending = await prisma.contract.findFirst({
-      where: { customerId: c.id, status: 'PENDING_PAYMENT', createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } },
+      where: { customerId: c.id, status: 'PENDING_PAYMENT', OR: [{ provider: 'MERCADO_PAGO' }, { createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } }] },
       orderBy: { createdAt: 'desc' },
     });
     // Mercado Pago sends no "checkout left" event: while the link is valid, the customer resumes the same checkout.
