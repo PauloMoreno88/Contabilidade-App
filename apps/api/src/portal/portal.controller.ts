@@ -54,7 +54,7 @@ import {
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PaymentProvider } from '../payments/payment-provider.js';
-import { MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
+import { MERCADO_PAGO_LINK_DAYS, MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
 import { StorageProvider } from '../storage/storage-provider.js';
 import { webOrigin } from '../web-origin.js';
 import { ZodPipe } from '../zod.pipe.js';
@@ -345,7 +345,16 @@ export class PortalController {
     }
     const c = ctx.customer;
     // One renewal at a time: a boleto takes up to 3 business days, and a second payment would add another year.
-    const pending = await prisma.contract.count({ where: { customerId: c.id, status: 'PENDING_PAYMENT', createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } } });
+    const pending = await prisma.contract.findFirst({
+      where: { customerId: c.id, status: 'PENDING_PAYMENT', createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } },
+      orderBy: { createdAt: 'desc' },
+    });
+    // Mercado Pago sends no "checkout left" event: while the link is valid, the customer resumes the same checkout.
+    if (pending?.mercadoPagoPreferenceId && input.provider === 'MERCADO_PAGO' && pending.createdAt.getTime() > Date.now() - MERCADO_PAGO_LINK_DAYS * 86400_000) {
+      const checkoutUrl = await this.mercadoPago.checkoutUrl(pending.mercadoPagoPreferenceId);
+      await prisma.customer.update({ where: { id: c.id }, data: { consentAt: new Date() } });
+      return { checkoutUrl, contractId: pending.id, statusToken: pending.statusToken };
+    }
     if (pending) throw new ConflictException('Já existe uma renovação aguardando pagamento. Se precisar trocar a forma de pagamento, fale com a gente no WhatsApp.');
     const contract = await prisma.contract.create({
       data: {

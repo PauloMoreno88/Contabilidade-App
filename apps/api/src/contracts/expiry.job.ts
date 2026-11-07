@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { sendExpiryNotice } from '../notifications.js';
+import { MERCADO_PAGO_PENDING_DAYS } from '../payments/mercado-pago.provider.js';
 
 export const EXPIRY_NOTICE_DAYS = 7;
 
@@ -19,7 +20,7 @@ export class ExpiryJob {
   @Cron('0 9 * * *', { timeZone: 'America/Sao_Paulo' })
   async daily() {
     const r = await this.run();
-    this.log.log(`expired=${r.expired} notified=${r.notified}`);
+    this.log.log(`expired=${r.expired} notified=${r.notified} abandoned=${r.abandoned}`);
   }
 
   async run(now = new Date()) {
@@ -46,6 +47,12 @@ export class ExpiryJob {
         this.log.error(`Expiry notice failed for contract ${c.id}`, err as Error); // retried next day
       }
     }
-    return { expired, notified };
+
+    // Mercado Pago has no "checkout expired" event. A payment that still arrives later warns the team (webhook.controller.ts).
+    const { count: abandoned } = await prisma.contract.updateMany({
+      where: { provider: 'MERCADO_PAGO', status: 'PENDING_PAYMENT', createdAt: { lte: new Date(now.getTime() - MERCADO_PAGO_PENDING_DAYS * 86400_000) } },
+      data: { status: 'CANCELED' },
+    });
+    return { expired, notified, abandoned };
   }
 }

@@ -150,7 +150,21 @@ O Checkout Pro coexiste com a Stripe. O comprador escolhe o provedor em `/checko
 
 Para habilitar o teste, crie a aplicação da Exactra em **Suas integrações** do Mercado Pago e configure no API: `MERCADO_PAGO_ACCESS_TOKEN` (credencial de teste), `MERCADO_PAGO_WEBHOOK_SECRET` (assinatura secreta de Webhooks) e `MERCADO_PAGO_MODE=test`. Sem os dois segredos ou o modo explícito, a opção Mercado Pago responde 503; a Stripe continua funcionando. Configure a notificação **Pagamentos** para `https://<api>/webhooks/mercado-pago` no painel, nas abas Teste e depois Produção. Não defina `notification_url` na preferência: a URL central do painel fornece o segredo usado para validar `x-signature`. Mantenha `CHECKOUT_ENABLED=false` até validar os preços; `MERCADO_PAGO_MODE=live` só permite cobranças se a flag for `true`. Access tokens de teste e produção podem começar com `APP_USR`, portanto confirme o modo e a credencial no painel antes de habilitar o ambiente real.
 
-O webhook valida assinatura e horário, consulta `/v1/payments/{id}` com o access token, confere referência do contrato e valor, e só ativa pagamentos `approved`. Duplicatas não geram segundo pagamento. Na documentação da integração por preferências, pagamentos feitos com credenciais de teste podem não disparar notificações automaticamente: simule **Pagamentos** no painel com o ID do pagamento de teste e confira a ativação; repita o fluxo real após receber as credenciais. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
+O webhook valida a assinatura, sem limite de idade do `ts` (a unidade varia na documentação e o reenvio pode manter o valor original; reenviar é inofensivo porque os eventos são idempotentes e o estado vem da API). Depois consulta `/v1/payments/{id}` com o access token, confere referência do contrato e valor, e só ativa pagamentos `approved`. Duplicatas não geram segundo pagamento.
+
+O que cada estado do pagamento faz:
+
+| Estado | Contrato | Alerta para `ADMIN_NOTIFY_EMAIL` |
+|---|---|---|
+| `refunded` ou `charged_back` do pagamento que ativou o contrato | `CANCELED` | Sim |
+| `refunded` ou `charged_back` de outro pagamento | Não muda | Sim |
+| Reembolso parcial, `in_mediation` ou chargeback `reimbursed` | Não muda | Sim |
+| `approved` com valor diferente, sem contrato, ou em contrato que não está pendente | Não muda (responde 200) | Sim |
+| `rejected` ou `cancelled` | Continua pendente: o comprador pode tentar de novo no mesmo link | Não |
+
+O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos Mercado Pago pendentes há mais de 8 dias (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
+
+Na documentação da integração por preferências, pagamentos feitos com credenciais de teste podem não disparar notificações automaticamente: simule **Pagamentos** no painel com o ID do pagamento de teste e confira a ativação; repita o fluxo real após receber as credenciais. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
 
 Fontes: [preferências e parcelas](https://www.mercadopago.com.br/developers/en/docs/checkout-pro-preferences/additional-settings/payment-methods), [webhooks e simulação](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-preferences/payment-notifications).
 

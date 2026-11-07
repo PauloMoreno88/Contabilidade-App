@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { renderExpiryReminderEmail, renderNewContractNotice, renderWelcomeEmail } from '@exactra/emails';
+import { renderExpiryReminderEmail, renderNewContractNotice, renderPaymentAlertEmail, renderWelcomeEmail, type PaymentAlertReason } from '@exactra/emails';
 import { PORTAL_RULES } from '@exactra/shared';
 import { prisma } from './db.js';
 import { sendEmail } from './email.js';
@@ -77,6 +77,33 @@ export async function notifyActivation(contractId: string): Promise<void> {
     });
   } catch (err) {
     log.error(`Internal notice e-mail failed for contract ${contractId}`, err as Error);
+  }
+}
+
+export type PaymentAlert = { reason: PaymentAlertReason; contractId: string; paymentId: string; amountCents?: number };
+
+/** Tells the Exactra team that a payment needs a person. Never throws: the webhook is already recorded. */
+export async function sendPaymentAlert({ reason, contractId, paymentId, amountCents }: PaymentAlert): Promise<void> {
+  // The log keeps the case visible if the e-mail fails or ADMIN_NOTIFY_EMAIL is not set.
+  log.warn(`Payment alert ${reason}: contract ${contractId}, payment ${paymentId}`);
+  if (!process.env.ADMIN_NOTIFY_EMAIL) return;
+  try {
+    const contract = await prisma.contract.findUnique({ where: { id: contractId }, include: { customer: true } });
+    await sendEmail({
+      to: process.env.ADMIN_NOTIFY_EMAIL,
+      ...(await renderPaymentAlertEmail({
+        reason,
+        paymentId,
+        contractId,
+        customerName: contract?.customer.name,
+        customerEmail: contract?.customer.email,
+        contractAmountCents: contract?.amountCents,
+        paidAmountCents: amountCents,
+        url: contract ? `${webOrigin()}/admin/contrato?id=${contract.id}` : `${webOrigin()}/admin`,
+      })),
+    });
+  } catch (err) {
+    log.error(`Payment alert e-mail failed for contract ${contractId}`, err as Error);
   }
 }
 

@@ -3,9 +3,9 @@ import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import type { Request } from 'express';
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
-import { PaymentProvider, type VerifiedWebhook } from '../payments/payment-provider.js';
+import { PaymentProvider, type PaymentEvent, type VerifiedWebhook } from '../payments/payment-provider.js';
 import { InvalidMercadoPagoNotification, MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
-import { notifyActivation } from '../notifications.js';
+import { notifyActivation, sendPaymentAlert, type PaymentAlert } from '../notifications.js';
 import { applyPaymentEvent } from './contract-lifecycle.js';
 
 @AllowAnonymous()
@@ -45,13 +45,7 @@ export class WebhookController {
   }
 
   private async process(hook: VerifiedWebhook) {
-    if (hook.event?.type === 'prepaid.paid') {
-      const contract = await prisma.contract.findUnique({ where: { id: hook.event.contractId } });
-      // shortcut: a split payment does not activate the contract; reconcile merchant orders if that option is enabled.
-      if (!contract || contract.provider !== hook.event.provider || contract.amountCents !== hook.event.amountCents) {
-        throw new BadRequestException('Payment does not match contract');
-      }
-    }
+    const { apply, alert } = hook.event ? await this.review(hook.event) : { apply: false, alert: null };
     // Recording the event and applying it share one transaction: a duplicate delivery skips on the
     // unique stripeEventId and changes nothing; a failure rolls back so the provider retries.
     const result = await prisma.$transaction(async (tx) => {
@@ -60,9 +54,37 @@ export class WebhookController {
         skipDuplicates: true,
       });
       if (count === 0) return { duplicate: true, activated: null };
-      return { duplicate: false, activated: hook.event ? await applyPaymentEvent(tx, hook.event) : null };
+      return { duplicate: false, activated: apply ? await applyPaymentEvent(tx, hook.event!) : null };
     });
     if (result.activated) await notifyActivation(result.activated);
+    if (alert && !result.duplicate) await sendPaymentAlert(alert);
     return result.duplicate ? { received: true, duplicate: true } : { received: true };
+  }
+
+  /** Decides whether an event may change the contract, and whether the Exactra team must look at it. */
+  private async review(ev: PaymentEvent): Promise<{ apply: boolean; alert: PaymentAlert | null }> {
+    if (ev.type === 'payment.attention') {
+      return { apply: false, alert: { reason: ev.reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId } };
+    }
+    if (ev.type === 'payment.reversed') {
+      // A contract paid twice stays active when the extra payment is the one refunded.
+      const paid = await prisma.payment.count({ where: { contractId: ev.contractId, mercadoPagoPaymentId: ev.mercadoPagoPaymentId } });
+      const reason = paid ? ev.reason : 'REVERSAL_NOT_APPLIED';
+      return { apply: Boolean(paid), alert: { reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId } };
+    }
+    if (ev.type !== 'prepaid.paid') return { apply: true, alert: null };
+
+    const contract = await prisma.contract.findUnique({ where: { id: ev.contractId } });
+    const matches = contract?.provider === ev.provider && contract.amountCents === ev.amountCents;
+    if (ev.provider !== 'MERCADO_PAGO') {
+      if (!matches) throw new BadRequestException('Payment does not match contract');
+      return { apply: true, alert: null };
+    }
+    // The money is already in: a 4xx would only make Mercado Pago retry, so warn a person instead.
+    const reason = !matches ? 'PAYMENT_MISMATCH' : contract.status !== 'PENDING_PAYMENT' ? 'PAYMENT_NOT_NEEDED' : null;
+    return {
+      apply: !reason,
+      alert: reason && { reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId ?? '', amountCents: ev.amountCents },
+    };
   }
 }

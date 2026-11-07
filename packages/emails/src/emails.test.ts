@@ -11,6 +11,7 @@ import {
   renderExpiryReminderEmail,
   renderNewContractNotice,
   renderPasswordResetEmail,
+  renderPaymentAlertEmail,
   renderTwoFactorCodeEmail,
   renderWelcomeEmail,
   type EmailContent,
@@ -87,6 +88,22 @@ describe("e-mails", () => {
     });
     expectSafe(e);
     expect(e.html).toContain("/admin/contrato?id=c1");
+  });
+
+  it("internal notices do not name a payment provider", async () => {
+    for (const renewal of [false, true]) {
+      const e = await renderNewContractNotice({ customer: { name: "Ana", email: "a@ex.com", phone: "21999990000", document: "12345678909" }, contract: { ...prepaid, id: "c1" }, renewal });
+      expect(e.text).not.toContain("Stripe");
+    }
+  });
+
+  it("payment alert escapes names and shows what the team needs", async () => {
+    const e = await renderPaymentAlertEmail({ reason: "PAYMENT_MISMATCH", paymentId: "123", contractId: "c1", customerName: evil, customerEmail: "a@ex.com", contractAmountCents: 358800, paidAmountCents: 100, url: "https://www.exactracontabilidade.com.br/admin/contrato?id=c1" });
+    expectSafe(e);
+    expect(e.text).toContain("ID do pagamento: 123");
+    expect(e.text).toContain("Valor pago: R$");
+    const unknown = await renderPaymentAlertEmail({ reason: "PAYMENT_MISMATCH", paymentId: "123", contractId: "c9", url: "https://www.exactracontabilidade.com.br/admin" });
+    expect(unknown.subject).toContain("c9");
   });
 
   it("password reset rejects non-http links", async () => {

@@ -15,6 +15,7 @@ import {
   guideDueMessage,
   guidePublishedMessage,
   magicLinkMessage,
+  paymentAlertMessage,
   portalInviteMessage,
   portalText,
   retentionNoticeMessage,
@@ -75,6 +76,8 @@ function portal<P>(message: (props: P) => PortalMessage) {
 export const renderPortalInviteEmail = portal(portalInviteMessage);
 /** Better Auth magicLink sendMagicLink. */
 export const renderMagicLinkEmail = portal(magicLinkMessage);
+export const renderPaymentAlertEmail = portal(paymentAlertMessage);
+export type { PaymentAlertReason } from "./copy";
 export const renderGuidePublishedEmail = portal(guidePublishedMessage);
 export const renderGuideDueEmail = portal(guideDueMessage);
 export const renderDocumentsOpenEmail = portal(documentsOpenMessage);

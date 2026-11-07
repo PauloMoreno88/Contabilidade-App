@@ -60,6 +60,16 @@ export async function applyPaymentEvent(tx: Prisma.TransactionClient, ev: Paymen
       });
       return null;
 
+    case 'payment.reversed':
+      await tx.contract.updateMany({
+        where: { id: ev.contractId, status: { in: ['PENDING_PAYMENT', 'ACTIVE', 'PAST_DUE'] } },
+        data: { status: 'CANCELED' },
+      });
+      return null;
+
+    case 'payment.attention':
+      return null;
+
     case 'subscription.started': {
       const c = await tx.contract.findUnique({ where: { id: ev.contractId } });
       if (!c) return null;

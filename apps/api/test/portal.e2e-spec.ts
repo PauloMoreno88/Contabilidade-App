@@ -18,6 +18,7 @@ import {
   uploadTicketSchema,
 } from '@exactra/shared';
 import { prisma } from '../src/db.js';
+import { MercadoPagoProvider } from '../src/payments/mercado-pago.provider.js';
 import { sendEmail } from '../src/email.js';
 import { PortalJob } from '../src/portal/portal.job.js';
 import { PaymentProvider } from '../src/payments/payment-provider.js';
@@ -357,6 +358,35 @@ describe('customer area (e2e)', () => {
     expect(mails().map((m) => m.subject)).toEqual(expect.arrayContaining([
       expect.stringContaining('Renovação confirmada'),
     ]));
+  });
+
+  it('plan: a renewal left on Mercado Pago can be resumed while the link is valid', async () => {
+    const mp = app.get(MercadoPagoProvider);
+    Object.defineProperty(mp, 'configured', { value: true });
+    const create = vi.spyOn(mp, 'createCheckout').mockImplementation(async () => ({ sessionId: `pref_${create.mock.calls.length}`, url: 'https://mp.test/new' }));
+    const resume = vi.spyOn(mp, 'checkoutUrl').mockResolvedValue('https://mp.test/resume');
+    await prisma.contract.updateMany({ where: { customerId, status: 'ACTIVE' }, data: { endsAt: new Date(Date.now() + 20 * DAY) } });
+    const renew = () => as(customerCookie).post('/app/plan/renew', { method: 'CARD', provider: 'MERCADO_PAGO', consent: true });
+
+    const first = await renew().expect(201);
+    expect(first.body.checkoutUrl).toBe('https://mp.test/new');
+    const again = await renew().expect(201);
+    expect(again.body).toMatchObject({ checkoutUrl: 'https://mp.test/resume', contractId: first.body.contractId });
+    expect(resume).toHaveBeenCalledWith('pref_1');
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(await prisma.contract.count({ where: { customerId, status: 'PENDING_PAYMENT' } })).toBe(1);
+
+    // The link has expired, but a boleto paid on the last day may still clear.
+    await prisma.contract.update({ where: { id: first.body.contractId }, data: { createdAt: new Date(Date.now() - 3.5 * DAY) } });
+    await renew().expect(409);
+    await prisma.contract.update({ where: { id: first.body.contractId }, data: { createdAt: new Date(Date.now() - 5 * DAY) } });
+    const next = await renew().expect(201);
+    expect(next.body.contractId).not.toBe(first.body.contractId);
+
+    await prisma.contract.updateMany({ where: { customerId, status: 'PENDING_PAYMENT' }, data: { status: 'CANCELED' } });
+    create.mockRestore();
+    resume.mockRestore();
+    Object.defineProperty(mp, 'configured', { value: false });
   });
 
   it('read-only after the end: history stays, writing is refused', async () => {

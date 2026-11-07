@@ -72,7 +72,7 @@ export const newContractCopy = {
   subject: (customer: string, plan: string) => `Nova contratação: ${customer} (${plan})`,
   preview: (customer: string) => `${customer} acabou de ativar um contrato.`,
   title: "Nova contratação ativa",
-  lede: "O pagamento foi confirmado pelo Stripe. Entre em contato com o cliente para iniciar o atendimento.",
+  lede: "O pagamento foi confirmado. Entre em contato com o cliente para iniciar o atendimento.",
   customerTitle: "Cliente",
   name: "Nome",
   email: "E-mail",
@@ -90,8 +90,27 @@ export const renewalNoticeCopy = {
   subject: (customer: string, plan: string) => `Renovação confirmada: ${customer} (${plan})`,
   preview: (customer: string) => `${customer} renovou o contrato.`,
   title: "Renovação confirmada",
-  lede: "O pagamento da renovação foi confirmado pelo Stripe. Confira o novo período do contrato no painel.",
+  lede: "O pagamento da renovação foi confirmado. Confira o novo período do contrato no painel.",
 };
+
+export const paymentAlertCopy = {
+  preview: "Um pagamento precisa da sua atenção.",
+  cta: "Abrir no painel",
+  note: "Confira o pagamento no painel do provedor antes de responder ao cliente.",
+  rows: { customer: "Cliente", email: "E-mail", contract: "ID do contrato", payment: "ID do pagamento", contractAmount: "Valor do contrato", paidAmount: "Valor pago" },
+  reasons: {
+    REFUND: { title: "Pagamento reembolsado", lede: "O pagamento foi reembolsado por inteiro e o contrato foi cancelado." },
+    CHARGEBACK: { title: "Chargeback recebido", lede: "O cliente contestou o pagamento no cartão e o contrato foi cancelado." },
+    REVERSAL_NOT_APPLIED: { title: "Reembolso sem mudança no contrato", lede: "Um pagamento foi reembolsado ou contestado, mas não foi ele que ativou este contrato. O contrato não mudou." },
+    PARTIAL_REFUND: { title: "Reembolso parcial", lede: "Parte do pagamento foi reembolsada. O contrato continua como está. Decida se algo precisa mudar." },
+    DISPUTE: { title: "Pagamento em disputa", lede: "O pagamento entrou em mediação. O contrato continua como está até a decisão." },
+    CHARGEBACK_REVERSED: { title: "Chargeback revertido", lede: "O valor do chargeback voltou para a conta. Se o contrato foi cancelado por causa dele, reative-o com o cliente." },
+    PAYMENT_MISMATCH: { title: "Pagamento não confere com o contrato", lede: "Recebemos um pagamento com valor diferente do contrato, ou sem contrato correspondente. O contrato não foi ativado. Fale com o cliente." },
+    PAYMENT_NOT_NEEDED: { title: "Pagamento em contrato já resolvido", lede: "Recebemos um pagamento de um contrato que não estava aguardando pagamento, por exemplo cancelado por prazo ou já pago. Ative o atendimento ou reembolse o cliente." },
+  },
+};
+
+export type PaymentAlertReason = keyof typeof paymentAlertCopy.reasons;
 
 export const passwordResetCopy = {
   subject: "Redefinir sua senha da Exactra",

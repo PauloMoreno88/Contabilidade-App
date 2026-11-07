@@ -1,5 +1,5 @@
 import { competenceLabel, GUIDE_TYPE_LABELS, REJECTION_REASONS, type GuideType, type RejectionReason } from "@exactra/shared";
-import { brand, portalCopy as copy } from "./copy";
+import { brand, paymentAlertCopy, portalCopy as copy, type PaymentAlertReason } from "./copy";
 import { firstName, formatBRL, formatDay } from "./format";
 import type { PortalMessage } from "./templates/portal";
 
@@ -99,6 +99,29 @@ export const retentionNoticeMessage = ({ customerName, competence, deletesOn, ur
 });
 
 /** Plain-text version of any customer area e-mail. */
+export type PaymentAlertProps = {
+  reason: PaymentAlertReason;
+  paymentId: string;
+  contractId: string;
+  customerName?: string;
+  customerEmail?: string;
+  contractAmountCents?: number;
+  paidAmountCents?: number;
+  url: string;
+};
+/** Internal, to ADMIN_NOTIFY_EMAIL. */
+export const paymentAlertMessage = (p: PaymentAlertProps): PortalMessage => {
+  const { rows: label, reasons, ...c } = paymentAlertCopy;
+  const r = reasons[p.reason];
+  const rows: NonNullable<PortalMessage["rows"]> = [];
+  if (p.customerName) rows.push([label.customer, p.customerName]);
+  if (p.customerEmail) rows.push([label.email, p.customerEmail]);
+  rows.push([label.contract, p.contractId, true], [label.payment, p.paymentId, true]);
+  if (p.contractAmountCents !== undefined) rows.push([label.contractAmount, formatBRL(p.contractAmountCents), true]);
+  if (p.paidAmountCents !== undefined) rows.push([label.paidAmount, formatBRL(p.paidAmountCents), true]);
+  return { subject: `${r.title}: ${p.customerName ?? p.contractId}`, preview: c.preview, title: r.title, lede: r.lede, rows, cta: { label: c.cta, url: p.url }, notes: [c.note] };
+};
+
 export function portalText(m: PortalMessage, footer: string): string {
   const blocks = [
     m.title,

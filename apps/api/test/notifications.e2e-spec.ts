@@ -193,4 +193,21 @@ describe('e-mails and expiry job (e2e)', () => {
     await job.run(now);
     expect(sent).not.toHaveBeenCalled();
   });
+
+  it('daily job: cancels Mercado Pago contracts still waiting after the deadline, nothing else', async () => {
+    const pending = async (provider: 'MERCADO_PAGO' | 'STRIPE', days: number) => {
+      const c = await contract({ method: 'CARD', endsAt: new Date(Date.now() + 365 * DAY) });
+      return prisma.contract.update({ where: { id: c.id }, data: { provider, status: 'PENDING_PAYMENT', startsAt: null, endsAt: null, createdAt: new Date(Date.now() - days * DAY) } });
+    };
+    const old = await pending('MERCADO_PAGO', 9);
+    const recent = await pending('MERCADO_PAGO', 7);
+    const stripe = await pending('STRIPE', 9);
+
+    const { abandoned } = await app.get(ExpiryJob).run();
+    expect(abandoned).toBe(1);
+    const status = async (id: string) => (await prisma.contract.findUniqueOrThrow({ where: { id } })).status;
+    expect(await status(old.id)).toBe('CANCELED');
+    expect(await status(recent.id)).toBe('PENDING_PAYMENT');
+    expect(await status(stripe.id)).toBe('PENDING_PAYMENT');
+  });
 });

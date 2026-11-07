@@ -17,6 +17,10 @@ export type PaymentEvent =
   | { type: 'prepaid.paid'; contractId: string; provider: PaymentProviderId; customerId?: string; paymentIntentId?: string; mercadoPagoPaymentId?: string; method?: PaymentMethod; amountCents: number }
   /** Async payment failed or the checkout expired before paying. */
   | { type: 'checkout.failed'; contractId: string }
+  /** Full refund or chargeback of a Mercado Pago payment: cancels the contract that payment activated. */
+  | { type: 'payment.reversed'; contractId: string; mercadoPagoPaymentId: string; reason: 'REFUND' | 'CHARGEBACK' }
+  /** Needs a person, the contract does not change. */
+  | { type: 'payment.attention'; contractId: string; mercadoPagoPaymentId: string; reason: 'PARTIAL_REFUND' | 'DISPUTE' | 'CHARGEBACK_REVERSED' }
   /** Legacy monthly card subscriptions (sold before decision 22) keep sending these events. */
   | { type: 'subscription.started'; contractId: string; subscriptionId: string; customerId?: string }
   | {
