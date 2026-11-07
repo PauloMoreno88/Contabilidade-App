@@ -8,6 +8,40 @@ datasource db {
   provider = "postgresql"
 }
 
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model EmailCampaign {
+  id         String @id @default(cuid())
+  subject    String
+  message    String
+  createdAt  DateTime @default(now())
+  createdBy  String
+  recipients EmailRecipient[]
+
+  @@index([createdAt])
+}
+
+// Snapshots preserve the original recipients even if a customer changes or is deleted.
+model EmailRecipient {
+  id                String @id @default(cuid())
+  campaignId        String
+  campaign          EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId        String
+  name              String
+  email             String
+  status            EmailDeliveryStatus @default(PENDING)
+  providerMessageId String? @unique
+  lastEventAt       DateTime?
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@unique([campaignId, customerId])
+}
+
 // ---------- Better Auth (user, session, account, verification, twoFactor) ----------
 
 model User {

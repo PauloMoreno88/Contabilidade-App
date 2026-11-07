@@ -15,6 +15,22 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 
 ## 2. Decisões fechadas
 
+**30/10/2026 — base comum dos painéis:** a pedido do usuário, admin e cliente passam a compartilhar o layout `WorkspaceShell`, inspirado em `C:/Users/paulo/Backup OneDrive/Ten/portal/web/src/layouts/sidebar-layout.tsx` e seu tema. Barra lateral branca recolhível, links com ícones, seleção com cor da Exactra, identidade do usuário e saída no rodapé; menu móvel por diálogo nativo com Escape e retorno de foco. Títulos, controles e tabelas seguem um padrão comum apenas dentro dos painéis. Regras de acesso, empresa, renovação, onboarding e 2FA preservadas. Sem MUI nem novas dependências.
+
+- [x] Base visual compartilhada do admin e cliente, navegação responsiva e testes de teclado dos dois perfis.
+
+**30/10/2026 — interface dos e-mails:** refinamento das telas de envio, histórico e detalhe com a skill frontend-design, preservando os tokens e a tipografia da Exactra. Mensagem e destinatários separados no desktop; busca por nome/e-mail mantém a seleção completa e deixa isso explícito. Navegação comum, histórico organizado por assunto/responsável/data e status com texto e ícones. No celular, a data de atualização fica junto ao cliente para evitar rolagem horizontal. Contratos e regras de envio mantidos.
+
+- [x] Refinamento visual e responsivo das três telas de e-mail, com busca de destinatários e seleção parcial acessível.
+
+**29/10/2026 — histórico de e-mails:** cada envio personalizado gera um registro persistente, com assunto, mensagem, data, admin responsável e cópia dos destinatários. O detalhe mostra **Pendente**, **Enviado**, **Entregue** e **Falhou** por cliente. Entrega depende de webhook assinado do Resend (não indica leitura). Histórico e detalhe exclusivos para admins; alterações posteriores do cadastro não mudam o registro. Contratos em `packages/shared/src/bulk-email.ts`. Migrations aditivas, sem backfill; processamento síncrono atual mantido. Configuração externa pendente: webhook Resend e `RESEND_WEBHOOK_SECRET` (ver `historico-emails.md`).
+
+- [x] Histórico paginado, detalhe por cliente, persistência antes do envio e webhook assinado com tratamento de eventos duplicados/fora de ordem.
+
+**29/10/2026 — issue #56:** envio de e-mail personalizado exclusivo para admins, em `/admin/emails`. Todos os clientes cadastrados vêm marcados por padrão; destinatários são escolhidos antes de enviar. Assunto e mensagem em texto simples, e-mail individual sem expor outros destinatários. Contrato compartilhado em `bulk-email.ts`; API valida todos os IDs antes de enviar e informa falhas parciais. Até 1.000 clientes por requisição, com intervalo entre envios; fila persistente fica para quando o volume exigir. Em queda de conexão, conferir o provedor antes de reenviar, pois não há retomada persistente.
+
+- [x] #56 — tela, seleção de clientes, permissão admin na API e envio personalizado individual.
+
 | # | Tema | Decisão |
 |---|---|---|
 | 1 | Monorepo | **pnpm workspaces**, sem Turborepo por enquanto |
@@ -55,6 +71,10 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 36 | Mercado Pago: reembolso e prazo | Em 05/11/2026: **reembolso total ou chargeback cancelam o contrato**; reembolso parcial mantém o contrato e alerta a Exactra. **O link de pagamento vale 3 dias.** Nada do Mercado Pago sobe para o staging antes das keys. Spec: `docs/specs/mercado-pago-webhook-hardening.md`. |
 
 **Teste do Checkout Pro:** integração e testes automatizados feitos na branch `feat/mercado-pago-checkout`. Falta receber o access token e o segredo do webhook da conta Exactra, configurar `POST /webhooks/mercado-pago` no painel e testar cartão em 12x, Pix, boleto, retorno e notificações no staging. Não publicar preços nem prometer parcelas sem juros antes de conferir as condições comerciais da conta.
+| 37 | Plataforma na landing | Seção `#plataforma` depois de Serviços, com 5 vídeos sem som em loop (primeiro acesso, início, documentos, guias, histórico) e setas. Vídeos em formato de celular e de computador, à escolha do visitante por abas, em velocidade 1.5x. A tela "Meu plano" fica de fora porque mostra preço PLACEHOLDER. Vídeos gravados no modo mock com `pnpm --filter e2e platform-videos`; regravar quando as telas mudarem. Número 37 para não colidir com as decisões 35 e 36 da branch do Mercado Pago, ainda não mergeada. |
+| 38 | Juros do parcelado | Em 07/11/2026: **o comprador paga os juros** do parcelado no cartão, nas condições mostradas pelo Mercado Pago antes de confirmar. Não anunciar "sem juros". Conferir no painel, antes de produção, que a Exactra não assume esse custo. |
+| 39 | Renovação pendente no Mercado Pago | Em 07/11/2026: enquanto o contrato estiver pendente (até o job cancelar, depois de 8 dias), o cliente não cria outra renovação, para um boleto atrasado não somar um segundo ano. Nos 3 dias do link ele retoma o mesmo checkout; depois, recebe a orientação de falar com a Exactra no WhatsApp. |
+| 40 | Colunas `stripe*` no banco | Em 07/11/2026: mantidas ao tirar a Stripe do código. A limpeza (renomear `stripeEventId`, trocar o padrão de `provider`, tirar as colunas sem uso) fica numa migration própria, **obrigatória antes do primeiro deploy de produção**, que ainda não tem nenhum checkout. |
 
 ## 3. Arquitetura alvo
 
@@ -156,6 +176,13 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [ ] Respostas do contador (#62) e revisão dos textos pela Exactra
 - [x] Página de fluxos para teste manual e apresentação (`docs/fluxos.html`) e testes Playwright dos 8 fluxos no staging (`e2e/`, 24/10/2026)
 - [ ] Depois: upload de guias em lote, importação de clientes por planilha, WhatsApp automático, certificado digital (#61)
+
+**Feedback da interface (29/10/2026, `feat/ui-feedback`)**
+- [x] Padronizar loading de telas, Suspense, consultas, formulários e ações; preservar dados durante atualizações e impedir cliques repetidos nas ações em espera.
+- [x] Aplicar cursor e hover em controles interativos, preservando foco visível, estados desabilitados e preferência de movimento reduzido.
+- [x] Adicionar regressão local com mocks para espera, atualizações, cursor e hover em 360, 768 e 1280 px.
+
+Padrão visual: spinner discreto na identidade da Exactra, acompanhado de texto nas telas; nos botões, manter o rótulo da ação com spinner e estado ocupado. Ações síncronas não recebem atrasos artificiais.
 
 ## 7. Como os agentes trabalham
 

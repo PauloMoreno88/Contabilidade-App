@@ -1,5 +1,9 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
+import { feedbackCopy } from "@/config/feedback";
+import { LoadState } from "@/components/portal/ui";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -38,11 +42,12 @@ export function CustomerFile() {
   const go = (t: Tab) => router.replace(`/admin/cliente?id=${id}&aba=${t}${params.get("competencia") ? `&competencia=${params.get("competencia")}` : ""}`);
 
   if (customer.error && !customer.data) return <p className="text-brand">{copy.notFound}</p>;
-  if (!customer.data) return <p className="text-muted">{adminCopy.loading}</p>;
+  if (!customer.data) return <Loading />;
   const c = customer.data;
 
   return (
     <section>
+      {customer.data && customer.loading && <Loading compact label={feedbackCopy.updating} />}
       <Link href="/admin/mes" className="mb-4 inline-flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
         <ArrowLeft size={15} aria-hidden="true" />
         {copy.back}
@@ -88,11 +93,12 @@ function DocumentsTab({ customerId, competence }: { customerId: string; competen
   const [month, setMonth] = useState(competence);
   const docs = useLoad(() => api.adminDocuments(customerId, month), [customerId, month]);
   const [rejecting, setRejecting] = useState<DocumentRequest | null>(null);
-  if (!docs.data) return <p className="text-muted">{docs.error ? adminCopy.loadError : adminCopy.loading}</p>;
+  if (!docs.data) return <LoadState error={docs.error} onRetry={docs.reload} />;
   const m = docs.data;
 
   return (
     <>
+      {docs.data && docs.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <select value={m.competence} onChange={(e) => setMonth(e.target.value)} className="rounded-lg border border-line bg-surface px-3 py-2 text-[0.88rem]">
           {m.competences.map((x) => <option key={x} value={x}>{competenceLabel(x)}</option>)}
@@ -148,7 +154,7 @@ function RejectDialog({ r, onClose, onDone }: { r: DocumentRequest; onClose: () 
           <button type="button" onClick={onClose} className="btn btn-ghost px-4 py-2 text-[0.88rem]">{copy.cancel}</button>
           <button
             type="button"
-            disabled={busy}
+            aria-busy={busy} disabled={busy}
             onClick={async () => {
               setBusy(true);
               await api.adminReject(r.id, { reason, note: note.trim() || undefined }).catch(() => undefined);
@@ -167,10 +173,12 @@ function RejectDialog({ r, onClose, onDone }: { r: DocumentRequest; onClose: () 
 
 function GuidesTab({ customerId }: { customerId: string }) {
   const guides = useLoad(() => api.adminGuides(customerId), [customerId]);
-  if (!guides.data) return <p className="text-muted">{guides.error ? adminCopy.loadError : adminCopy.loading}</p>;
+  if (!guides.data) return <LoadState error={guides.error} onRetry={guides.reload} />;
   if (!guides.data.length) return <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{copy.guidesEmpty}</p>;
   return (
-    <ul className="overflow-hidden rounded-[14px] border border-line bg-surface">
+    <>
+      {guides.data && guides.loading && <Loading compact label={feedbackCopy.updating} />}
+      <ul className="overflow-hidden rounded-[14px] border border-line bg-surface">
       {guides.data.map((g) => (
         <li key={g.id} className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-line px-4 py-3 text-[0.88rem] last:border-b-0">
           <span className="min-w-[200px] flex-1">
@@ -180,9 +188,9 @@ function GuidesTab({ customerId }: { customerId: string }) {
           <span className="tabular-nums">{formatBRLExact(g.amountCents)}</span>
           <span className="tabular-nums">{formatDay(g.dueDate)}</span>
           <span className={g.status === "PAID" ? "text-ok" : g.status === "OVERDUE" ? "font-semibold text-brand" : ""}>{portalCopy.guides.status[g.status]}</span>
-          <button type="button" onClick={() => openFile(g.file)} className="underline">PDF</button>
-          {g.receipt && <button type="button" onClick={() => openFile(g.receipt!)} className="underline">{portalCopy.guides.receipt}</button>}
-          <button
+          <AsyncButton type="button" onClick={() => openFile(g.file)} className="underline">PDF</AsyncButton>
+          {g.receipt && <AsyncButton type="button" onClick={() => openFile(g.receipt!)} className="underline">{portalCopy.guides.receipt}</AsyncButton>}
+          <AsyncButton
             type="button"
             onClick={async () => {
               if (!window.confirm(copy.removeGuideConfirm)) return;
@@ -192,10 +200,11 @@ function GuidesTab({ customerId }: { customerId: string }) {
             className="text-faint hover:text-brand"
           >
             {copy.removeGuide}
-          </button>
+          </AsyncButton>
         </li>
       ))}
     </ul>
+    </>
   );
 }
 
@@ -236,7 +245,7 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
           ))}
         </ul>
         {!activated && (
-          <button type="button" onClick={invite} disabled={busy} className="btn btn-navy mt-4 px-4 py-2 text-[0.88rem]">
+          <button type="button" onClick={invite} aria-busy={busy} disabled={busy} className="btn btn-navy mt-4 px-4 py-2 text-[0.88rem]">
             {c.members.length ? copy.resend : copy.invite}
           </button>
         )}
@@ -251,7 +260,7 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
           <dt className="text-faint">{copy.onboarded}</dt><dd>{c.onboardedAt ? formatDate(c.onboardedAt) : copy.onboardedNo}</dd>
           <dt className="text-faint">{copy.reminders}</dt>
           <dd>
-            <button
+            <AsyncButton
               type="button"
               onClick={async () => {
                 await api.adminUpdateCustomer(c.id, { remindersEnabled: !c.remindersEnabled }).catch(() => undefined);
@@ -260,7 +269,7 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
               className="underline"
             >
               {c.remindersEnabled ? copy.remindersOn : copy.remindersOff}
-            </button>
+            </AsyncButton>
           </dd>
         </dl>
         <h3 className="mb-1.5 mt-4 text-[0.88rem] font-semibold">{copy.profile}</h3>
@@ -290,6 +299,7 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
 }
 
 function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => void }) {
+  const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
   const [required, setRequired] = useState(true);
   const [start, setStart] = useState(() => addMonthsToCompetence(currentDocumentsCompetence(), 1));
@@ -311,7 +321,7 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
             <span className="text-[0.8rem]">{i.required ? portalCopy.documents.required : portalCopy.documents.optional}</span>
             <span className="text-[0.8rem]">{i.customerId ? copy.own : i.disabled ? copy.disabled : i.applies ? copy.applies : copy.notApplies}</span>
             {i.customerId ? (
-              <button
+              <AsyncButton
                 type="button"
                 className="underline"
                 onClick={async () => {
@@ -320,9 +330,9 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
                 }}
               >
                 {copy.turnOff}
-              </button>
+              </AsyncButton>
             ) : (
-              i.applies && <button type="button" className="underline" onClick={() => toggle(i.id, !i.disabled)}>{i.disabled ? copy.turnOn : copy.turnOff}</button>
+              i.applies && <AsyncButton type="button" className="underline" onClick={() => toggle(i.id, !i.disabled)}>{i.disabled ? copy.turnOn : copy.turnOff}</AsyncButton>
             )}
           </li>
         ))}
@@ -331,8 +341,10 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
         className="mt-4 flex flex-wrap items-end gap-3 rounded-[14px] border border-dashed border-line bg-surface p-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (title.trim().length < 2) return;
+          if (adding || title.trim().length < 2) return;
+          setAdding(true);
           await api.adminCreateChecklistItem({ title: title.trim(), required, appliesTo: {}, customerId: c.id, startsCompetence: start }).catch(() => undefined);
+          setAdding(false);
           setTitle("");
           onChange();
         }}
@@ -345,7 +357,7 @@ function ChecklistTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () =>
           <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} className="accent-brand" />
           {copy.itemRequired}
         </label>
-        <button type="submit" className="btn btn-navy px-4 py-2.5 text-[0.88rem]">{copy.add}</button>
+        <button type="submit" disabled={adding} aria-busy={adding} className="btn btn-navy px-4 py-2.5 text-[0.88rem]">{copy.add}</button>
         <div className="basis-full">
           <StartPicker value={start} onChange={setStart} />
         </div>

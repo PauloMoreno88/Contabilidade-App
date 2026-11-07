@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useState } from "react";
 import { Search, Upload } from "lucide-react";
@@ -24,6 +26,7 @@ export function MonthOverview() {
 
   return (
     <section>
+      {page.data && page.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[1.3rem] font-semibold">{copy.title(competenceLabel(query.competence ?? current))}</h1>
@@ -84,7 +87,7 @@ export function MonthOverview() {
       </div>
 
       {page.error && <p className="text-brand">{adminCopy.loadError}</p>}
-      {!page.data && !page.error && <p className="text-muted">{adminCopy.loading}</p>}
+      {!page.data && !page.error && <Loading />}
       {page.data?.items.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{copy.empty}</p>}
       {!!page.data?.items.length && (
         <div className="overflow-x-auto rounded-[14px] border border-line bg-surface">

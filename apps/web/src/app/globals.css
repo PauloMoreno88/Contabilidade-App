@@ -40,6 +40,25 @@ body {
   overflow-x: hidden;
 }
 
+/* Shared workspace density, inspired by Portal; public pages keep the landing design. */
+.workspace h1 {
+  font-family: var(--font-sans);
+  font-size: clamp(1.45rem, 2.2vw, 1.8rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.workspace .btn {
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+}
+
+.workspace table thead {
+  background: var(--color-surface-2);
+}
+
 section[id] {
   scroll-margin-top: 80px;
 }
@@ -110,3 +129,49 @@ h3 {
   scrollbar-width: thin;
   scrollbar-color: var(--color-brand) var(--color-surface-2);
 }
+
+/* Base feedback yields to the hover utilities of each component. */
+@layer base {
+  :where(a[href], button, summary, select, [role="button"], [role="tab"], input:is([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="date"], [type="month"], [type="button"], [type="submit"]), label[for], label:has(input, select)) {
+    cursor: pointer;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms;
+  }
+  :where(button:disabled, input:disabled, select:disabled, [aria-disabled="true"], label:has(input:disabled, select:disabled)) {
+    cursor: not-allowed;
+  }
+  @media (hover: hover) {
+    :where(a[href], button, summary, [role="button"], [role="tab"]):not(:disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
+      box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 8%, transparent);
+    }
+    :where(select, input:is([type="date"], [type="month"]), label:has(input, select)):not(:disabled):not(:has(:disabled)):hover {
+      border-color: var(--color-faint);
+      box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 5%, transparent);
+    }
+    :where(input:is([type="checkbox"], [type="radio"], [type="range"], [type="file"])):not(:disabled):hover { filter: brightness(0.85); }
+  }
+}
+button[aria-busy="true"] { cursor: wait; }
+
+.loading-spinner,
+button[aria-busy="true"]::before {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: loading-spin 800ms linear infinite;
+}
+button[aria-busy="true"]::before {
+  content: "";
+  margin-inline-end: 0.5em;
+  vertical-align: -0.125em;
+}
+@keyframes loading-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+button[aria-busy="true"] > svg { display: none; }
+button[aria-busy="true"]:is(.btn, .grid)::before { margin-inline-end: 0; }

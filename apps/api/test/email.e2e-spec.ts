@@ -1,5 +1,5 @@
 const { send } = vi.hoisted(() => ({
-  send: vi.fn(async (_payload: Record<string, unknown>) => ({ error: null as { message: string } | null })),
+  send: vi.fn(async (_payload: Record<string, unknown>) => ({ data: { id: 'resend-email-id' } as { id: string } | null, error: null as { message: string } | null })),
 }));
 
 vi.mock('resend', () => ({
@@ -32,7 +32,7 @@ describe('sendEmail (Resend)', () => {
       EMAIL_FROM: 'Exactra <contato@envio.exactra.test>',
       EMAIL_REPLY_TO: 'atendimento@exactra.test',
     });
-    await sendEmail(email);
+    await expect(sendEmail(email)).resolves.toBe('resend-email-id');
     expect(send).toHaveBeenCalledWith({
       from: 'Exactra <contato@envio.exactra.test>',
       to: 'cliente@ex.com',
@@ -51,7 +51,7 @@ describe('sendEmail (Resend)', () => {
 
   it('throws when Resend refuses the e-mail', async () => {
     const sendEmail = await load({ RESEND_API_KEY: 're_test', EMAIL_FROM: 'Exactra <contato@envio.exactra.test>', EMAIL_REPLY_TO: undefined });
-    send.mockResolvedValueOnce({ error: { message: 'domain not verified' } });
+    send.mockResolvedValueOnce({ data: null, error: { message: 'domain not verified' } });
     await expect(sendEmail(email)).rejects.toThrow('Resend: domain not verified');
   });
 

@@ -48,6 +48,7 @@ import {
   type UpsertChecklistItemInput,
 } from "@exactra/shared";
 import { z } from "zod";
+import { emailRecipientsSchema, bulkEmailResultSchema, emailHistorySchema, emailCampaignSchema, type BulkEmailInput } from "@exactra/shared";
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
@@ -92,6 +93,10 @@ async function json<S extends z.ZodTypeAny>(schema: S, path: string, opts: Optio
 }
 
 export const httpApi = {
+  adminEmailHistory: (page = 1) => json(emailHistorySchema, "/admin/emails", { query: { page }, session: true }),
+  adminEmailCampaign: (id: string) => json(emailCampaignSchema, `/admin/emails/${encodeURIComponent(id)}`, { session: true }),
+  adminEmailRecipients: () => json(emailRecipientsSchema, "/admin/emails/recipients", { session: true }),
+  adminSendEmail: (input: BulkEmailInput) => json(bulkEmailResultSchema, "/admin/emails", { method: "POST", body: input, session: true }),
   createLead: (input: CreateLeadInput) => json(createLeadResponseSchema, "/leads", { method: "POST", body: input }),
 
   createCheckout: (input: CreateCheckoutInput) => json(checkoutResponseSchema, "/checkout/sessions", { method: "POST", body: input }),

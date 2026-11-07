@@ -1,5 +1,6 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -102,9 +103,9 @@ export function Onboarding() {
             <ProfileFields value={profile} onChange={setProfile} />
             {error && <p role="alert" className="mt-5 text-[0.88rem] text-brand">{error}</p>}
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={() => save(true)} disabled={busy} className="btn btn-primary">{copy.next}</button>
-              <button type="button" onClick={() => save(false)} disabled={busy} className="btn btn-ghost">{copy.skip}</button>
-              <button type="button" onClick={() => setStep(0)} className="ml-auto text-[0.88rem] text-muted underline">{copy.back}</button>
+              <button type="button" onClick={() => save(true)} aria-busy={busy} disabled={busy} className="btn btn-primary">{copy.next}</button>
+              <button type="button" onClick={() => save(false)} aria-busy={busy} disabled={busy} className="btn btn-ghost">{copy.skip}</button>
+              <button type="button" disabled={busy} onClick={() => setStep(0)} className="ml-auto text-[0.88rem] text-muted underline">{copy.back}</button>
             </div>
           </div>
         )}
@@ -137,8 +138,8 @@ export function Onboarding() {
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
-              <button type="button" onClick={() => finish("/app/documentos")} className="btn btn-primary">{copy.sendNow}</button>
-              <button type="button" onClick={() => finish("/app")} className="btn btn-ghost">{copy.finish}</button>
+              <AsyncButton type="button" onClick={() => finish("/app/documentos")} className="btn btn-primary">{copy.sendNow}</AsyncButton>
+              <AsyncButton type="button" onClick={() => finish("/app")} className="btn btn-ghost">{copy.finish}</AsyncButton>
             </div>
           </div>
         )}

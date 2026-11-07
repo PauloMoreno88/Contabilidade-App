@@ -13,6 +13,16 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
+- **Plataforma na landing em 06/11/2026** (branch `feat/platform-section`, decisão 37, `docs/specs/plataforma-na-landing.md`): seção `components/landing/Platform.tsx` com 5 vídeos sem som em loop, setas e abas Celular e Computador; textos em `platformTour` (`config/site.ts`), vídeos em `public/video/plataforma/{mobile,desktop}`, gravados a 1.5x. O menu do site vira hambúrguer abaixo de `lg`, e abaixo de 420 px "Acessar plataforma" mostra só o ícone. Regravar os vídeos quando as telas do cliente mudarem.
+
+- **Interface dos e-mails em 30/10/2026** (branch `feat/admin-email-design`): envio em duas colunas, busca de destinatários sem alterar a seleção e indicação de seleção parcial. Navegação comum entre novo envio e histórico; histórico com data e responsável; detalhe com mensagem separada, resumo e etiquetas dos quatro status. Leitura dos destinatários adaptada ao celular sem rolagem horizontal. Identidade visual e componentes do painel preservados.
+
+- **Painéis padronizados em 30/10/2026**: admin e cliente usam `WorkspaceShell`, inspirado no layout do projeto `Ten/portal`: barra lateral clara e recolhível, itens com ícones e menu móvel em diálogo nativo. A paleta da Exactra permanece; títulos, botões e cabeçalhos de tabela recebem densidade comum, limitada aos painéis. Avisos de acesso, onboarding, 2FA e permissões continuam nos respectivos shells. Menu móvel substitui as abas fixas do cliente.
+
+- **Histórico de e-mails em 29/10/2026** (branch `feat/admin-email-history`): cada envio cria `EmailCampaign` e destinatários `EmailRecipient` antes de enviar. `/admin/emails/historico` lista envios; `/admin/emails/envio?id=` mostra mensagem e status por cliente (Pendente, Enviado, Entregue, Falhou), só para admins. Webhook assinado em `POST /webhooks/resend`, com `RESEND_WEBHOOK_SECRET`; configuração e limites em `docs/historico-emails.md`. Migration aditiva `20261029000000_email_history`. Sem backfill de envios antigos nem fila de retomada.
+
+- **E-mail personalizado em massa (#56), em 29/10/2026**: `/admin/emails`, restrito a admins no painel e na API. Todos os clientes vêm selecionados; admin pode desmarcar destinatários e editar assunto e mensagem. Envio individual pelo Resend, com histórico e status por destinatário. Contratos HTTP em `packages/shared/src/bulk-email.ts`. Limite de 1.000 clientes por envio, síncrono; não há fila persistente.
+
 - **Fase 0 concluída em 04/10/2026**: monorepo pnpm criado. `apps/web` (Next.js, `output: 'export'`), `apps/api` (só `package.json` mínimo; o scaffold do NestJS é a primeira tarefa do agente de back) e `packages/shared` (`@exactra/shared`: enums, schemas zod, `plans.config.ts`, simulador, testes Vitest).
 - Todos os preços e regras do simulador são **PLACEHOLDER** (`packages/shared/src/plans.config.ts` e `simulator.ts`) até o contador responder (`docs/perguntas-contador.md`).
 - Protótipos HTML em `docs/prototype/` (variantes A–G; benchmark em `docs/benchmark-concorrentes.md`). A **variante G** foi aprovada pelo cliente em 22/10/2026 e é a base do front real. Exigência do cliente: **nenhuma foto de pessoas** (só imagens ligadas à contabilidade; depoimentos com iniciais). Textos e números continuam em arquivos de configuração.
@@ -27,6 +37,8 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 - **E-mails de renovação em 24/10/2026**: ao ativar novo contrato de empresa que já teve contrato iniciado, cliente e Exactra recebem confirmação de renovação com o novo período, sem repetir boas-vindas ou aviso de nova contratação (decisão 32 do `docs/plano.md`).
 - **Checkout duplo em 25/10/2026** (branch `feat/mercado-pago-checkout`, decisão 35): visitante e cliente em renovação escolhem Stripe ou Mercado Pago. Stripe segue disponível; Mercado Pago usa Checkout Pro com até 12 parcelas configuradas na preferência. API e webhook do Mercado Pago estão preparados, aguardando access token e segredo do webhook da conta Exactra para teste real. Não há clientes reais a migrar.
 - **Mercado Pago em 05/11/2026** (mesma branch, sem commit; decisão 36, `docs/specs/mercado-pago-webhook-hardening.md`): webhook sem limite de idade do `ts`, reembolso total ou chargeback cancelam o contrato, link de 3 dias, job cancela pendentes após 8 dias, renovação retoma o link e pagamento que não pode ativar gera alerta à Exactra. Só com testes simulados. Nada sobe para o staging antes das keys.
+
+- **Feedback de interface em 29/10/2026** (branch `feat/ui-feedback`): indicador de carregamento comum no front, fallbacks de navegação e Suspense, espera em ações e atualizações de dados; cursor e hover globais para controles interativos, com estados desabilitados e redução de movimento. Testes locais com mocks em `e2e/ui-feedback` (configuração `ui-feedback.config.ts`).
 
 ## 3. Estrutura alvo (monorepo pnpm)
 
@@ -92,6 +104,7 @@ pnpm --filter web test       # unitários do front (src/lib)
 pnpm --filter api test:unit  # unitários do API (src/**/*.test.ts)
 pnpm --filter api test:e2e
 pnpm --filter e2e staging    # fluxos completos no staging (Playwright); e-mails esperados: pnpm --filter e2e emails
+pnpm --filter e2e platform-videos  # regrava os vídeos da landing (instruções no início de e2e/platform-videos.mjs)
 ```
 
 `pnpm --filter api ...` só funciona depois que o scaffold do Nest existir. Ajuste esta seção se os nomes dos scripts mudarem.

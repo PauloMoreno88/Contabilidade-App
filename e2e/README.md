@@ -44,3 +44,11 @@ pnpm --filter e2e emails                      # e-mails que deveriam ter chegado
 Cada rodada cria clientes `E2E Compra …` e `E2E Manual …` (e-mails `+e2e-…` da caixa da equipe), um lead, uma guia `DAS E2E …` e arquivos no mês do cliente de teste. O item de checklist criado no fluxo 3 é desligado no fim. Telefone, perfil, lembretes e 2FA voltam ao que eram.
 
 Os testes rodam em série (um navegador por vez): os fluxos usam a mesma conta de cliente e o Better Auth limita logins seguidos.
+
+## Feedback de interface local
+
+`pnpm --filter e2e exec playwright test --config ui-feedback.config.ts` inicia o front na porta 3101 usando somente mocks. Confere loading, atualização de filtros, bloqueio durante ações, cursor, hover e movimento reduzido em 360, 768 e 1280 px. Não usa credenciais nem altera o staging.
+
+## Vídeos da plataforma na landing
+
+`pnpm --filter e2e platform-videos` regrava os 5 vídeos de `apps/web/public/video/plataforma`, em formato de celular e de computador e em velocidade 1.5x, usando o modo mock do front (empresa fictícia, sem dado real). Precisa do ffmpeg com libx264 e do front rodando na porta 3100: os comandos estão no início de `platform-videos.mjs`. Para gravar um fluxo: `pnpm --filter e2e platform-videos guias`. Em um só formato: `pnpm --filter e2e platform-videos desktop guias`.

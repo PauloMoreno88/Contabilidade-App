@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { AsyncButton } from "@/components/common/AsyncButton";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -27,11 +29,15 @@ export function SignInForm() {
   const [methods, setMethods] = useState<string[]>(["totp"]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | undefined>(params.get("error") ? copy.login.linkError : undefined);
+  const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
 
   // Already signed in: go straight in.
   useEffect(() => {
-    authClient.getSession().then(({ data }) => data?.user && router.replace(destinationFor(data.user.role, next)));
+    authClient.getSession().then(({ data }) => {
+      if (data?.user) router.replace(destinationFor(data.user.role, next));
+      else setChecking(false);
+    }).catch(() => setChecking(false));
   }, [router, next]);
 
   async function enter() {
@@ -45,13 +51,16 @@ export function SignInForm() {
     setEmail(String(f.get("email")));
     setBusy(true);
     const { data, error } = await authClient.signIn.email({ email: String(f.get("email")), password: String(f.get("password")) });
-    setBusy(false);
-    if (error) return setError(copy.login.invalid);
+    if (error) {
+      setBusy(false);
+      return setError(copy.login.invalid);
+    }
     setError(undefined);
     if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
       const available = "twoFactorMethods" in data && Array.isArray(data.twoFactorMethods) ? (data.twoFactorMethods as string[]) : ["totp"];
       setMethods(available);
       // Accounts without an authenticator app only have the e-mail code.
+      setBusy(false);
       if (available.includes("totp")) setStep("totp");
       else await goTo("otp");
     } else await enter();
@@ -93,10 +102,14 @@ export function SignInForm() {
         : step === "otp"
           ? await authClient.twoFactor.verifyOtp({ code, trustDevice })
           : await authClient.twoFactor.verifyBackupCode({ code, trustDevice });
-    setBusy(false);
-    if (error) return setError(copy.twoFactor.invalid);
+    if (error) {
+      setBusy(false);
+      return setError(copy.twoFactor.invalid);
+    }
     await enter();
   }
+
+  if (checking) return <AuthCard title={copy.login.title}><Loading /></AuthCard>;
 
   const help = (
     <div className="mt-6 border-t border-line pt-5 text-center text-[0.84rem] text-muted">
@@ -121,7 +134,7 @@ export function SignInForm() {
           ).map(([s, label]) => {
             const active = s === "password" ? step === "password" : step !== "password";
             return (
-              <button
+              <AsyncButton disabled={busy}
                 key={s}
                 type="button"
                 role="tab"
@@ -130,7 +143,7 @@ export function SignInForm() {
                 className="rounded-full px-3 py-2 font-medium text-muted transition-colors aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow-[0_1px_2px_rgba(15,33,51,0.12)]"
               >
                 {label}
-              </button>
+              </AsyncButton>
             );
           })}
         </div>
@@ -140,7 +153,7 @@ export function SignInForm() {
             <Field id="email" label={l.email} type="email" autoComplete="username" defaultValue={email} required />
             <Field id="password" label={l.password} type="password" autoComplete="current-password" required />
             <FormError>{error}</FormError>
-            <button type="submit" className="btn btn-primary w-full" disabled={busy}>{l.submit}</button>
+            <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{l.submit}</button>
             <Link href="/entrar/esqueci-senha" className="mt-4 block text-center text-[0.86rem] text-muted underline hover:text-ink">{l.forgot}</Link>
           </form>
         )}
@@ -149,7 +162,7 @@ export function SignInForm() {
             <p className="mb-4 text-[0.9rem] text-muted">{l.linkText}</p>
             <Field id="email" label={l.email} type="email" autoComplete="username" defaultValue={email} required />
             <FormError>{error}</FormError>
-            <button type="submit" className="btn btn-primary w-full" disabled={busy}>{l.linkSubmit}</button>
+            <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{l.linkSubmit}</button>
           </form>
         )}
         {step === "linkSent" && <p role="status" className="rounded-xl bg-ok-tint p-4 text-[0.9rem] text-ink">{l.linkSent(email)}</p>}
@@ -193,14 +206,14 @@ export function SignInForm() {
           {t.trustDevice}
         </label>
         <FormError>{error}</FormError>
-        <button type="submit" className="btn btn-primary w-full" disabled={busy}>{t.submit}</button>
+        <button type="submit" className="btn btn-primary w-full" aria-busy={busy} disabled={busy}>{t.submit}</button>
       </form>
       <div className="mt-4 flex flex-col items-center gap-2 text-[0.86rem]">
         {step === "otp" && (
-          <button type="button" onClick={() => goTo("otp")} className="text-muted underline hover:text-ink">{t.resendOtp}</button>
+          <AsyncButton disabled={busy} type="button" onClick={() => goTo("otp")} className="text-muted underline hover:text-ink">{t.resendOtp}</AsyncButton>
         )}
         {alternatives.map(([s, label]) => (
-          <button key={s} type="button" onClick={() => goTo(s)} className="text-muted underline hover:text-ink">{label}</button>
+          <AsyncButton disabled={busy} key={s} type="button" onClick={() => goTo(s)} className="text-muted underline hover:text-ink">{label}</AsyncButton>
         ))}
       </div>
     </AuthCard>

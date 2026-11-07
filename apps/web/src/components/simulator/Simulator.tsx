@@ -139,7 +139,7 @@ export function Simulator() {
                   <button type="button" className="px-1 py-2 font-semibold text-muted hover:text-ink" onClick={() => setPhase("steps")}>
                     {copy.back}
                   </button>
-                  <button type="submit" form={LEAD_FORM_ID} className="btn btn-primary flex-1 sm:flex-none" disabled={sending}>
+                  <button type="submit" form={LEAD_FORM_ID} className="btn btn-primary flex-1 sm:flex-none" aria-busy={sending} disabled={sending}>
                     {sending ? copy.gate.submitting : copy.gate.submit}
                   </button>
                 </>

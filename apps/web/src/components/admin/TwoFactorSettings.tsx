@@ -1,5 +1,6 @@
 "use client";
 
+import { AsyncButton } from "@/components/common/AsyncButton";
 import { useState, type FormEvent } from "react";
 import QRCode from "react-qr-code";
 import { ShieldCheck, ShieldOff } from "lucide-react";
@@ -86,7 +87,7 @@ export function TwoFactorSettings({ user, reload }: { user: SessionUser; reload:
           <form onSubmit={start}>
             <Field id="password" label={copy.password} type="password" autoComplete="current-password" required />
             <FormError>{error}</FormError>
-            <button type="submit" className="btn btn-primary" disabled={busy}>{copy.start}</button>
+            <button type="submit" className="btn btn-primary" aria-busy={busy} disabled={busy}>{copy.start}</button>
           </form>
         </Card>
       )}
@@ -109,7 +110,7 @@ export function TwoFactorSettings({ user, reload }: { user: SessionUser; reload:
             <form onSubmit={verify}>
               <Field id="code" label={copy.code} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required />
               <FormError>{error}</FormError>
-              <button type="submit" className="btn btn-primary" disabled={busy}>{copy.confirm}</button>
+              <button type="submit" className="btn btn-primary" aria-busy={busy} disabled={busy}>{copy.confirm}</button>
             </form>
           </Card>
         </div>
@@ -152,7 +153,7 @@ function PasswordForm({ id, submit, busy, ghost, onSubmit }: { id: string; submi
         <label htmlFor={id} className="mb-1.5 block text-[0.82rem] text-muted">{copy.password}</label>
         <input id={id} name="password" type="password" autoComplete="current-password" required className="field-input" />
       </div>
-      <button type="submit" className={`btn ${ghost ? "btn-ghost" : "btn-primary"}`} disabled={busy}>{submit}</button>
+      <button type="submit" className={`btn ${ghost ? "btn-ghost" : "btn-primary"}`} aria-busy={busy} disabled={busy}>{submit}</button>
     </form>
   );
 }
@@ -164,7 +165,7 @@ function BackupCodes({ codes }: { codes: string[] }) {
       <ul className="mb-3 grid grid-cols-2 gap-1.5 rounded-lg bg-surface-2 p-3 font-mono text-[0.88rem] sm:grid-cols-3">
         {codes.map((c) => <li key={c}>{c}</li>)}
       </ul>
-      <button
+      <AsyncButton
         type="button"
         className="btn btn-ghost px-3 py-1.5 text-[0.86rem]"
         onClick={async () => {
@@ -173,7 +174,7 @@ function BackupCodes({ codes }: { codes: string[] }) {
         }}
       >
         {copied ? copy.copied : copy.copyCodes}
-      </button>
+      </AsyncButton>
     </>
   );
 }

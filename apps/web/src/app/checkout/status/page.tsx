@@ -1,3 +1,4 @@
+import { Loading } from "@/components/common/Loading";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CheckoutShell } from "@/components/checkout/CheckoutShell";
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Pagamento | Exactra Contabilidade", 
 export default function PaymentStatusPage() {
   return (
     <CheckoutShell>
-      <Suspense>
+      <Suspense fallback={<Loading />}>
         <PaymentStatus />
       </Suspense>
     </CheckoutShell>

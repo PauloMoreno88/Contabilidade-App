@@ -1,5 +1,7 @@
 "use client";
 
+import { feedbackCopy } from "@/config/feedback";
+import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
 import { useState } from "react";
 import { Download, Search } from "lucide-react";
@@ -29,7 +31,9 @@ export function Dashboard() {
   const metrics = useLoad(() => api.adminMetrics(), []);
   return (
     <>
+      {metrics.data && metrics.loading && <Loading compact label={feedbackCopy.updating} />}
       {metrics.error && <p className="mb-6 text-brand">{copy.loadError}</p>}
+      {!metrics.data && !metrics.error && <Loading />}
       {metrics.data && <MetricsView m={metrics.data} />}
       <ContractsTable />
     </>
@@ -50,7 +54,7 @@ function MetricsView({ m }: { m: AdminMetrics }) {
         {cards.map(([label, value]) => (
           <div key={label} className="bg-surface p-4 last:col-span-2 md:last:col-span-1">
             <dt className="text-[0.78rem] text-faint">{label}</dt>
-            <dd className="mt-1 font-mono text-[1.5rem] font-semibold tabular-nums">{value}</dd>
+            <dd className="mt-1 text-[1.5rem] font-semibold tabular-nums">{value}</dd>
           </div>
         ))}
       </dl>
@@ -75,7 +79,7 @@ function Breakdown({ title, rows }: { title: string; rows: [string, number][] })
             <span className="h-2 overflow-hidden rounded bg-surface-3">
               <span className="block h-full rounded bg-brand" style={{ width: `${(value / max) * 100}%` }} />
             </span>
-            <span className="text-right font-mono tabular-nums">{value}</span>
+            <span className="text-right tabular-nums">{value}</span>
           </li>
         ))}
       </ul>
@@ -113,9 +117,10 @@ function ContractsTable() {
 
   return (
     <section>
+      {rows.data && rows.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[1.3rem] font-semibold">{c.title}</h1>
-        <button type="button" onClick={exportCsv} disabled={exporting} className="btn btn-ghost px-4 py-2 text-[0.88rem]">
+        <button type="button" onClick={exportCsv} aria-busy={exporting} disabled={exporting} className="btn btn-ghost px-4 py-2 text-[0.88rem]">
           <Download size={16} aria-hidden="true" />
           {c.exportCsv}
         </button>
@@ -143,7 +148,7 @@ function ContractsTable() {
 
       {exportFailed && <p role="alert" className="mb-3 text-[0.86rem] text-brand">{c.exportError}</p>}
       {rows.error && <p className="text-brand">{copy.loadError}</p>}
-      {!rows.data && !rows.error && <p className="text-muted">{copy.loading}</p>}
+      {!rows.data && !rows.error && <Loading />}
       {rows.data?.items.length === 0 && <p className="rounded-[14px] border border-line bg-surface p-6 text-muted">{c.empty}</p>}
       {!!rows.data?.items.length && (
         <div className="overflow-x-auto rounded-[14px] border border-line bg-surface">
@@ -163,8 +168,8 @@ function ContractsTable() {
                   <td className="px-4 py-3">{planInfo(r.plan).name}</td>
                   <td className="px-4 py-3">{methodLabels[r.method].label}</td>
                   <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                  <td className="px-4 py-3 font-mono tabular-nums">{formatDate(r.startsAt)}</td>
-                  <td className="px-4 py-3 font-mono tabular-nums">{formatDate(r.endsAt)}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatDate(r.startsAt)}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatDate(r.endsAt)}</td>
                 </tr>
               ))}
             </tbody>

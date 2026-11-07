@@ -1,5 +1,7 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
+import { feedbackCopy } from "@/config/feedback";
 import Link from "next/link";
 import { AlertCircle, CalendarClock, Check, Download, FileText, ReceiptText, RefreshCw, Sparkles } from "lucide-react";
 import { competenceLabel, daysUntil, GUIDE_TYPE_LABELS, type PortalHome, type PortalTask } from "@exactra/shared";
@@ -22,6 +24,7 @@ export function Home() {
 
   return (
     <>
+      {home.data && home.loading && <Loading compact label={feedbackCopy.updating} />}
       <header className="mb-8">
         <h1 className="font-serif text-[clamp(1.9rem,5vw,2.6rem)] font-semibold leading-[1.08] tracking-[-0.02em]">
           {copy.greeting(dayPeriod(), name)}
@@ -91,7 +94,7 @@ function describe(t: PortalTask): Row {
         href: `/app/guias?id=${t.guideId}`,
         cta: k.guide.cta,
         urgent,
-        aside: <span className="font-serif text-[1.15rem] font-semibold tabular-nums">{formatBRLExact(t.amountCents)}</span>,
+        aside: <span className="text-[1.15rem] font-semibold tabular-nums">{formatBRLExact(t.amountCents)}</span>,
       };
     }
     case "rejected":
@@ -164,7 +167,7 @@ function Glance({ home }: { home: PortalHome }) {
             {copy.documentsDue(formatDayShort(d.dueDate))}
           </span>
         </div>
-        <p className="mt-4 font-serif text-[1.6rem] font-semibold tabular-nums leading-none">{copy.documentsSummary(d.sent, d.total)}</p>
+        <p className="mt-4 text-[1.6rem] font-semibold tabular-nums leading-none">{copy.documentsSummary(d.sent, d.total)}</p>
         {d.total > 0 && (
           // One segment per required document: the month fills up as files arrive.
           <div className="mt-4 flex gap-1" aria-hidden="true">
@@ -180,7 +183,7 @@ function Glance({ home }: { home: PortalHome }) {
         <h2 className="font-semibold">{copy.guidesTitle}</h2>
         {g.open ? (
           <>
-            <p className="mt-4 font-serif text-[1.6rem] font-semibold tabular-nums leading-none">{formatBRLExact(g.openAmountCents)}</p>
+            <p className="mt-4 text-[1.6rem] font-semibold tabular-nums leading-none">{formatBRLExact(g.openAmountCents)}</p>
             <p className="mt-2 text-[0.88rem] text-muted">
               {copy.guidesSummary(g.open)}
               {g.nextDueDate && <>. {copy.guidesNext(formatDay(g.nextDueDate))}</>}
