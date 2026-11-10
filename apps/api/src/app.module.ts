@@ -12,6 +12,7 @@ import { WebhookController } from './contracts/webhook.controller.js';
 import { LeadRetentionJob } from './lead-retention.job.js';
 import { LeadsController } from './leads.controller.js';
 import { PaymentProvider } from './payments/payment-provider.js';
+import { MercadoPagoProvider } from './payments/mercado-pago.provider.js';
 import { StripeProvider } from './payments/stripe.provider.js';
 import { AccountController } from './portal/account.controller.js';
 import { AdminPortalController } from './portal/admin-portal.controller.js';
@@ -40,6 +41,7 @@ import { StorageProvider } from './storage/storage-provider.js';
   ],
   providers: [
     { provide: PaymentProvider, useClass: StripeProvider },
+    MercadoPagoProvider,
     { provide: StorageProvider, useFactory: createStorage },
     ExpiryJob,
     LeadRetentionJob,

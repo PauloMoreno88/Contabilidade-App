@@ -26,7 +26,7 @@ export const privacyPolicy: LegalDoc = {
       items: [
         "No simulador: nome, WhatsApp, e-mail (opcional) e as respostas sobre o seu negócio, como perfil, faturamento estimado e número de funcionários.",
         "Na contratação: nome completo, e-mail, telefone e CPF ou CNPJ.",
-        "Dados de pagamento, como número do cartão, são informados direto no ambiente da Stripe. A Exactra não recebe nem guarda esses dados.",
+        "Dados de pagamento, como número do cartão, são informados direto no ambiente da Stripe ou do Mercado Pago. A Exactra não recebe nem guarda esses dados.",
         "Dados de navegação: origem da visita (parâmetros de campanha, como utm_source) e registros técnicos de acesso.",
       ],
     },
@@ -50,6 +50,7 @@ export const privacyPolicy: LegalDoc = {
       paragraphs: ["Compartilhamos dados só com empresas que nos ajudam a operar o serviço, e só o necessário:"],
       items: [
         "Stripe: processamento de pagamentos (cartão, Pix e boleto).",
+        "Mercado Pago: processamento de pagamentos escolhidos nesse ambiente.",
         "Resend: envio de e-mails.",
         "Render e Neon: hospedagem do site e do banco de dados.",
         "Autoridades públicas, quando a lei exigir.",
@@ -115,7 +116,7 @@ export const termsOfUse: LegalDoc = {
       title: "Pagamento",
       items: [
         "O contrato tem duração de 12 meses e é pago na contratação.",
-        "Cartão de crédito: à vista ou parcelado. As parcelas são cobradas pela operadora do cartão.",
+        "Cartão de crédito: à vista ou parcelado. No parcelado, os juros são pagos por você e aparecem no ambiente de pagamento antes de confirmar.",
         "Pix ou boleto: valor anual à vista.",
         "Não há taxa de adesão.",
         "O contrato começa quando o pagamento é confirmado. No boleto, a confirmação leva de 1 a 3 dias úteis.",

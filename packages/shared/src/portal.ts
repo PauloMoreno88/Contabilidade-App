@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, STORED_PLAN_IDS, type ContractStatus } from "./enums";
+import { BILLING_PERIODS, CHECKOUT_PAYMENT_METHODS, CONTRACT_STATUSES, PAYMENT_METHODS, PAYMENT_PROVIDERS, STORED_PLAN_IDS, type ContractStatus } from "./enums";
 import { parseBarcodeLine } from "./barcode";
 
 /**
@@ -434,8 +434,8 @@ export const portalPlanSchema = z.object({
 });
 export type PortalPlan = z.infer<typeof portalPlanSchema>;
 
-/** POST /app/plan/renew → a new Stripe Checkout for the same company. */
-export const renewInputSchema = z.object({ method: z.enum(PAYMENT_METHODS), consent: z.literal(true) });
+/** POST /app/plan/renew → a new hosted checkout for the same company. */
+export const renewInputSchema = z.object({ method: z.enum(CHECKOUT_PAYMENT_METHODS), provider: z.enum(PAYMENT_PROVIDERS).default("STRIPE"), consent: z.literal(true) });
 export type RenewInput = z.infer<typeof renewInputSchema>;
 export const renewResponseSchema = z.object({ checkoutUrl: z.string().url(), contractId: z.string(), statusToken: z.string() });
 
