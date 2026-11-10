@@ -1,4 +1,4 @@
-import type { BillingPeriod, PaymentMethod, PlanId } from '@exactra/shared';
+import type { BillingPeriod, PaymentMethod, PaymentProviderId, PlanId } from '@exactra/shared';
 
 export interface CheckoutRequest {
   contractId: string;
@@ -14,9 +14,13 @@ export interface CheckoutRequest {
 /** Provider-agnostic payment events that drive the contract lifecycle. */
 export type PaymentEvent =
   /** Prepaid contract (card, Pix or boleto): money is in (immediately or after async confirmation). */
-  | { type: 'prepaid.paid'; contractId: string; customerId?: string; paymentIntentId?: string; amountCents: number }
+  | { type: 'prepaid.paid'; contractId: string; provider: PaymentProviderId; customerId?: string; paymentIntentId?: string; mercadoPagoPaymentId?: string; method?: PaymentMethod; amountCents: number }
   /** Async payment failed or the checkout expired before paying. */
   | { type: 'checkout.failed'; contractId: string }
+  /** Full refund or chargeback of a Mercado Pago payment: cancels the contract that payment activated. */
+  | { type: 'payment.reversed'; contractId: string; mercadoPagoPaymentId: string; reason: 'REFUND' | 'CHARGEBACK' }
+  /** Needs a person, the contract does not change. */
+  | { type: 'payment.attention'; contractId: string; mercadoPagoPaymentId: string; reason: 'PARTIAL_REFUND' | 'DISPUTE' | 'CHARGEBACK_REVERSED' }
   /** Legacy monthly card subscriptions (sold before decision 22) keep sending these events. */
   | { type: 'subscription.started'; contractId: string; subscriptionId: string; customerId?: string }
   | {
@@ -46,5 +50,5 @@ export abstract class PaymentProvider {
   abstract readonly liveMode: boolean;
   abstract createCheckout(req: CheckoutRequest): Promise<{ sessionId: string; url: string }>;
   /** Verifies the signature (throws if invalid) and normalizes the event. */
-  abstract verifyWebhook(rawBody: Buffer, signature: string): VerifiedWebhook;
+  abstract verifyWebhook(rawBody: Buffer, signature: string, requestId?: string, dataId?: string): VerifiedWebhook | Promise<VerifiedWebhook>;
 }

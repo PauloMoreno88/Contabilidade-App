@@ -146,13 +146,13 @@ export const planSection = {
   title: "Um preço fixo, sem surpresa no fim do mês",
   sub: "Tudo o que o seu CNPJ precisa num plano só, com contrato anual. O valor não sobe porque você faturou mais.",
   tag: "Um plano, tudo incluso",
-  installments: (n: number) => `${n}x de`,
   perInstallment: "no cartão",
-  upfront: (v: string) => `ou ${v} à vista no cartão, Pix ou boleto`,
+  perYear: "por ano",
+  upfront: (monthly: string, n: number) => `Equivale a ${monthly} por mês. À vista no cartão, Pix ou boleto, ou em até ${n}x no cartão, com juros.`,
   cta: "Contratar o Plano Exactra",
   simulate: { href: "#simulador", label: "Antes, simular quanto vou pagar de imposto" },
   includedTitle: "O que está incluso",
-  payment: ["Contrato anual", "Cartão à vista ou parcelado, Pix ou boleto", "Sem taxa de adesão", "O valor não sobe se você faturar mais"],
+  payment: ["Contrato anual", "Cartão à vista ou parcelado com juros, Pix ou boleto", "Sem taxa de adesão", "O valor não sobe se você faturar mais"],
 };
 
 export const band = {
@@ -169,7 +169,7 @@ export const faq: { kicker: string; title: string; sub: string; items: { q: stri
     { q: "A simulação é confiável?", a: "Ela usa as regras gerais de cada regime para dar uma boa ideia do seu caso. Antes de qualquer decisão, um contador confere sua atividade e sua cidade." },
     { q: "Como funciona a troca de contador?", a: "Depois que você contrata, pedimos seus documentos ao contador atual e fazemos a transição, sem custo." },
     { q: "O valor sobe se eu faturar mais?", a: "Não. O valor do plano é o mesmo durante todo o contrato, mesmo que você fature mais." },
-    { q: "Como funciona o pagamento?", a: "O contrato é anual. No cartão, você paga à vista ou parcelado. No Pix ou no boleto, o valor anual é pago à vista. Não há taxa de adesão." },
+    { q: "Como funciona o pagamento?", a: "O contrato é anual. No cartão, você paga à vista ou parcelado, com juros mostrados antes de confirmar. No Pix ou no boleto, o valor anual é pago à vista. Não há taxa de adesão." },
     { q: "Posso desistir depois de contratar?", a: "Sim, em até 7 dias após a contratação, com reembolso integral, como garante o Código de Defesa do Consumidor. Depois disso, o contrato vale pelos 12 meses." },
   ],
 };

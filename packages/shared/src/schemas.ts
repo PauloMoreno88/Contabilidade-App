@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BILLING_PERIODS, CONTRACT_STATUSES, PAYMENT_METHODS, PLAN_IDS, STORED_PLAN_IDS } from "./enums";
+import { BILLING_PERIODS, CHECKOUT_PAYMENT_METHODS, CONTRACT_STATUSES, PAYMENT_METHODS, PAYMENT_PROVIDERS, PLAN_IDS, STORED_PLAN_IDS } from "./enums";
 import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
 import { isValidTaxId } from "./tax-id";
 
@@ -33,7 +33,8 @@ export type CreateLeadResponse = z.infer<typeof createLeadResponseSchema>;
 export const createCheckoutSchema = z.object({
   plan: z.enum(PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
-  method: z.enum(PAYMENT_METHODS),
+  method: z.enum(CHECKOUT_PAYMENT_METHODS),
+  provider: z.enum(PAYMENT_PROVIDERS).default("STRIPE"),
   customer: z.object({
     name: z.string().min(2).max(120),
     email: z.string().email(),
@@ -57,6 +58,7 @@ export const contractStatusResponseSchema = z.object({
   contractId: z.string(),
   status: z.enum(CONTRACT_STATUSES),
   method: z.enum(PAYMENT_METHODS),
+  provider: z.enum(PAYMENT_PROVIDERS).default("STRIPE"),
   plan: z.enum(STORED_PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
 });

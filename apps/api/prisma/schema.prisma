@@ -151,6 +151,12 @@ enum PaymentMethod {
   CARD
   PIX
   BOLETO
+  OTHER
+}
+
+enum PaymentProviderId {
+  STRIPE
+  MERCADO_PAGO
 }
 
 enum ContractStatus {
@@ -225,6 +231,7 @@ model Contract {
   plan                 PlanId
   period               BillingPeriod
   method               PaymentMethod
+  provider             PaymentProviderId @default(STRIPE)
   amountCents          Int
   status               ContractStatus @default(PENDING_PAYMENT)
   source               ContractSource @default(CHECKOUT)
@@ -232,6 +239,7 @@ model Contract {
   startsAt             DateTime?
   endsAt               DateTime?
   stripeSessionId      String?        @unique
+  mercadoPagoPreferenceId String?      @unique
   stripeSubscriptionId String?        @unique
   expiryNoticeSentAt   DateTime?
   createdAt            DateTime       @default(now())
@@ -250,6 +258,7 @@ model Payment {
   status                PaymentStatus
   method                PaymentMethod
   stripePaymentIntentId String?
+  mercadoPagoPaymentId   String?       @unique
   stripeInvoiceId       String?       @unique
   paidAt                DateTime?
   createdAt             DateTime      @default(now())

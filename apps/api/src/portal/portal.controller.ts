@@ -54,6 +54,7 @@ import {
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PaymentProvider } from '../payments/payment-provider.js';
+import { MERCADO_PAGO_LINK_DAYS, MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
 import { StorageProvider } from '../storage/storage-provider.js';
 import { webOrigin } from '../web-origin.js';
 import { ZodPipe } from '../zod.pipe.js';
@@ -73,6 +74,7 @@ export class PortalController {
   constructor(
     private readonly storage: StorageProvider,
     private readonly payments: PaymentProvider,
+    private readonly mercadoPago: MercadoPagoProvider,
   ) {}
 
   @Get('me')
@@ -337,12 +339,24 @@ export class PortalController {
   async renew(@Session() session: UserSession, @Body(new ZodPipe(renewInputSchema)) input: RenewInput) {
     const ctx = await companyFor(session);
     if (!canRenew(ctx.access)) throw new BadRequestException('A renovação abre perto do fim do contrato.');
-    if (!this.payments.configured || (this.payments.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
+    const provider = input.provider === 'MERCADO_PAGO' ? this.mercadoPago : this.payments;
+    if (!provider.configured || (provider.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
       throw new ServiceUnavailableException('Renovação online indisponível no momento.');
     }
     const c = ctx.customer;
     // One renewal at a time: a boleto takes up to 3 business days, and a second payment would add another year.
-    const pending = await prisma.contract.count({ where: { customerId: c.id, status: 'PENDING_PAYMENT', createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } } });
+    // A Mercado Pago contract stays pending until the daily job cancels it, because a boleto can clear after the link expires.
+    // TODO(docs): move this rule to the project documentation later (docs/plano.md, decision 39).
+    const pending = await prisma.contract.findFirst({
+      where: { customerId: c.id, status: 'PENDING_PAYMENT', OR: [{ provider: 'MERCADO_PAGO' }, { createdAt: { gt: new Date(Date.now() - 4 * 86400_000) } }] },
+      orderBy: { createdAt: 'desc' },
+    });
+    // Mercado Pago sends no "checkout left" event: while the link is valid, the customer resumes the same checkout.
+    if (pending?.mercadoPagoPreferenceId && input.provider === 'MERCADO_PAGO' && pending.createdAt.getTime() > Date.now() - MERCADO_PAGO_LINK_DAYS * 86400_000) {
+      const checkoutUrl = await this.mercadoPago.checkoutUrl(pending.mercadoPagoPreferenceId);
+      await prisma.customer.update({ where: { id: c.id }, data: { consentAt: new Date() } });
+      return { checkoutUrl, contractId: pending.id, statusToken: pending.statusToken };
+    }
     if (pending) throw new ConflictException('Já existe uma renovação aguardando pagamento. Se precisar trocar a forma de pagamento, fale com a gente no WhatsApp.');
     const contract = await prisma.contract.create({
       data: {
@@ -350,12 +364,13 @@ export class PortalController {
         plan: CURRENT_PLAN.id,
         period: CONTRACT_PERIOD,
         method: input.method,
+        provider: input.provider,
         amountCents: totalPriceCents(CURRENT_PLAN.id),
         statusToken: randomBytes(24).toString('base64url'),
       },
     });
     try {
-      const session = await this.payments.createCheckout({
+      const session = await provider.createCheckout({
         contractId: contract.id,
         plan: contract.plan as typeof CURRENT_PLAN.id,
         period: contract.period,
@@ -365,7 +380,7 @@ export class PortalController {
         successUrl: `${webOrigin()}/checkout/status?contract=${contract.id}&token=${contract.statusToken}`,
         cancelUrl: `${webOrigin()}/app/plano?cancelado=1`,
       });
-      await prisma.contract.update({ where: { id: contract.id }, data: { stripeSessionId: session.sessionId } });
+      await prisma.contract.update({ where: { id: contract.id }, data: input.provider === 'STRIPE' ? { stripeSessionId: session.sessionId } : { mercadoPagoPreferenceId: session.sessionId } });
       await prisma.customer.update({ where: { id: c.id }, data: { consentAt: new Date() } });
       return { checkoutUrl: session.url, contractId: contract.id, statusToken: contract.statusToken };
     } catch (err) {

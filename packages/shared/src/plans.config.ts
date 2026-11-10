@@ -73,7 +73,7 @@ export function totalPriceCents(plan: PlanId): number {
   return PLANS[plan].annualPriceCents;
 }
 
-/** Value of each card installment, in cents (no interest: PLACEHOLDER until Exactra confirms). */
+/** Annual price split into equal parts, without interest. The buyer pays interest (decision 38): never advertise it as the installment. */
 export function installmentCents(plan: PlanId): number {
   return Math.round(PLANS[plan].annualPriceCents / PLANS[plan].maxInstallments);
 }

@@ -6,16 +6,18 @@ import { useState, type FormEvent } from "react";
 import { FlaskConical, Info, ShieldCheck } from "lucide-react";
 import {
   CONTRACT_PERIOD,
+  CHECKOUT_PAYMENT_METHODS,
   createCheckoutSchema,
   CURRENT_PLAN,
   installmentCents,
   normalizeTaxId,
-  PAYMENT_METHODS,
+  PAYMENT_PROVIDERS,
   PRICES_ARE_PLACEHOLDER,
   totalPriceCents,
-  type PaymentMethod,
+  type CheckoutPaymentMethod,
+  type PaymentProviderId,
 } from "@exactra/shared";
-import { CHECKOUT_ENABLED, checkoutCopy as copy, methodLabels } from "@/config/checkout";
+import { CHECKOUT_ENABLED, checkoutCopy as copy, methodLabels, providerLabels } from "@/config/checkout";
 import { IS_STAGING, stagingCopy } from "@/config/env";
 import { whatsappLink } from "@/config/site";
 import { api } from "@/lib/api";
@@ -31,13 +33,14 @@ export function CheckoutForm() {
 
   // A single plan on sale (docs/plano.md, decision 20); ?plan= in old links is ignored.
   const plan = CURRENT_PLAN;
-  const [method, setMethod] = useState<PaymentMethod>("CARD");
+  const [method, setMethod] = useState<CheckoutPaymentMethod>("CARD");
+  const [provider, setProvider] = useState<PaymentProviderId>("STRIPE");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [sending, setSending] = useState(false);
 
   // One-year contract paid upfront (docs/plano.md, decision 22): the price is the same for every method.
   const total = totalPriceCents(plan.id);
-  const installments = plan.maxInstallments > 1 && method === "CARD";
+  const installments = plan.maxInstallments > 1 && method === "CARD" && provider === "STRIPE";
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,7 +49,8 @@ export function CheckoutForm() {
     const parsed = createCheckoutSchema.safeParse({
       plan: plan.id,
       period: CONTRACT_PERIOD,
-      method,
+      method: provider === "MERCADO_PAGO" ? "CARD" : method,
+      provider,
       customer: {
         name: text("name"),
         email: text("email"),
@@ -106,13 +110,12 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <ChoiceGroup
-          name="method"
-          legend={copy.methodTitle}
-          value={method}
-          onChange={setMethod}
-          options={PAYMENT_METHODS.map((m) => ({ value: m, label: methodLabels[m].label, hint: methodLabels[m].hint(plan.maxInstallments) }))}
-        />
+        <ChoiceGroup name="provider" legend={copy.providerTitle} value={provider} onChange={setProvider} columns={2}
+          options={PAYMENT_PROVIDERS.map((p) => ({ value: p, ...providerLabels[p] }))} />
+        {provider === "STRIPE" ? (
+          <ChoiceGroup name="method" legend={copy.methodTitle} value={method} onChange={setMethod}
+            options={CHECKOUT_PAYMENT_METHODS.map((m) => ({ value: m, label: methodLabels[m].label, hint: methodLabels[m].hint(plan.maxInstallments) }))} />
+        ) : <p className="mb-8 text-[0.9rem] text-muted">{copy.mercadoPagoMethod}</p>}
 
         <fieldset className="mb-6">
           <legend className="mb-3 text-[1.02rem] font-semibold">{copy.customerTitle}</legend>
@@ -138,7 +141,7 @@ export function CheckoutForm() {
       <aside className="rounded-[20px] border border-line bg-surface p-6 lg:sticky lg:top-6">
         <h2 className="mb-4 font-semibold">{copy.summaryTitle}</h2>
         <p className="text-[0.9rem] text-muted">
-          {plan.name}, {copy.contract.toLowerCase()}, {methodLabels[method].label.toLowerCase()}
+          {plan.name}, {copy.contract.toLowerCase()}, {provider === "STRIPE" ? methodLabels[method].label.toLowerCase() : providerLabels.MERCADO_PAGO.label}
         </p>
         <div className="mt-4 border-t border-line pt-4">
           <div className="text-[0.78rem] text-faint">{copy.totalNow}</div>
@@ -149,7 +152,7 @@ export function CheckoutForm() {
           <p className="mt-3 text-[0.84rem] text-muted">{copy.annualNote}</p>
         </div>
 
-        {IS_STAGING && <TestCards />}
+        {IS_STAGING && provider === "STRIPE" && <TestCards />}
 
         {CHECKOUT_ENABLED ? (
           <>
@@ -170,7 +173,7 @@ export function CheckoutForm() {
 
         <p className="mt-4 flex gap-2 text-[0.78rem] text-faint">
           <ShieldCheck size={16} className="shrink-0" aria-hidden="true" />
-          {copy.secureNote}
+          {copy.secureNote(provider)}
         </p>
         {PRICES_ARE_PLACEHOLDER && <p className="mt-2 text-[0.78rem] text-faint">{copy.placeholderNote}</p>}
       </aside>
