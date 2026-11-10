@@ -12,25 +12,37 @@ import { Field, FormError } from "@/components/auth/AuthCard";
 
 const copy = adminPortalCopy.newUser;
 type UserType = keyof typeof copy.types;
+/** Slide duration; also the fallback when no transitionend fires (reduced motion). */
+const SLIDE_MS = 250;
 
 /** Side drawer (600px) that creates a customer (manual contract + login) or a team admin. */
 export function NewUserDrawer({ onClose, onAdminCreated }: { onClose: () => void; onAdminCreated: (email: string) => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [type, setType] = useState<UserType>("customer");
+  const [shown, setShown] = useState(false);
 
   useEffect(() => {
     ref.current?.showModal();
+    // Next frame, so the closed position is painted first and the slide-in runs.
+    const frame = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  const close = () => ref.current?.close();
+  const close = () => {
+    setShown(false);
+    setTimeout(() => ref.current?.close(), SLIDE_MS);
+  };
 
   return (
     <dialog
       ref={ref}
       aria-labelledby="new-user-title"
+      data-shown={shown}
       onClose={onClose}
+      onCancel={(e) => { e.preventDefault(); close(); }}
       onClick={(e) => { if (e.target === e.currentTarget) close(); }}
-      className="fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-none w-[600px] max-w-full border-0 border-l border-line bg-surface p-0 text-ink backdrop:bg-navy/40"
+      style={{ transitionDuration: `${SLIDE_MS}ms` }}
+      className="fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-none w-[600px] max-w-full translate-x-full border-0 border-l border-line bg-surface p-0 text-ink shadow-2xl transition-transform ease-out backdrop:bg-navy/40 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-[250ms] data-[shown=true]:translate-x-0 data-[shown=true]:backdrop:opacity-100"
     >
       <div className="flex h-full flex-col">
         <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
