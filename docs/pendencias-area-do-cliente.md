@@ -39,7 +39,7 @@ Trabalho feito em 23/10/2026 (decisões 24–30 do `docs/plano.md`). O código e
 ## 4. Para depois (fora da v1, combinados na conversa)
 
 - Upload de guias em lote, casando cada PDF com o cliente pelo CNPJ.
-- Importação de clientes por planilha (hoje: cadastro manual um por um em `/admin/clientes/novo`).
+- Importação de clientes por planilha (hoje: cadastro manual um por um no drawer "Criar usuário" de `/admin/clientes`).
 - WhatsApp automático (API oficial da Meta).
 - Certificado digital e senhas (issue #61).
 - Seletor de empresa para quem tem vários CNPJs (o banco já suporta).
