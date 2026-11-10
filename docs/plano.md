@@ -75,6 +75,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 38 | Juros do parcelado | Em 07/11/2026: **o comprador paga os juros** do parcelado no cartão, nas condições mostradas pelo Mercado Pago antes de confirmar. Não anunciar "sem juros". Conferir no painel, antes de produção, que a Exactra não assume esse custo. |
 | 39 | Renovação pendente no Mercado Pago | Em 07/11/2026: enquanto o contrato estiver pendente (até o job cancelar, depois de 8 dias), o cliente não cria outra renovação, para um boleto atrasado não somar um segundo ano. Nos 3 dias do link ele retoma o mesmo checkout; depois, recebe a orientação de falar com a Exactra no WhatsApp. |
 | 40 | Colunas `stripe*` no banco | Em 07/11/2026: mantidas ao tirar a Stripe do código. A limpeza (renomear `stripeEventId`, trocar o padrão de `provider`, tirar as colunas sem uso) fica numa migration própria, **obrigatória antes do primeiro deploy de produção**, que ainda não tem nenhum checkout. |
+| 41 | Criar administrador pelo painel | Em `/admin/clientes`, o botão **"Criar usuário"** abre um drawer lateral de 600 px com o select **Cliente** ou **Administrador** (substitui a página `/admin/clientes/novo`). O administrador é criado com **senha inicial digitada no formulário**, repassada por quem cadastra por canal seguro, pelo endpoint `admin/create-user` do Better Auth (só admins); sem convite por e-mail. Spec em `docs/specs/drawer-criar-usuario.md`. Número 41 para não colidir com as decisões 38 a 40 da branch do Mercado Pago. Decisão de 10/11/2026 |
 
 ## 3. Arquitetura alvo
 

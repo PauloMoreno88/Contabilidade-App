@@ -3,22 +3,23 @@
 import { feedbackCopy } from "@/config/feedback";
 import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { ArrowLeft, Plus, Search } from "lucide-react";
-import { isValidTaxId, todayInSaoPaulo, type AdminCustomersQuery } from "@exactra/shared";
+import { useState } from "react";
+import { Plus, Search } from "lucide-react";
+import type { AdminCustomersQuery } from "@exactra/shared";
 import { adminCopy } from "@/config/admin";
 import { accessLabels, adminPortalCopy } from "@/config/admin-portal";
-import { api, ApiError } from "@/lib/api";
+import { api } from "@/lib/api";
 import { formatDate, formatDocument } from "@/lib/format";
-import { Field, FormError } from "@/components/auth/AuthCard";
 import { Pager } from "../Pager";
 import { useLoad } from "../useLoad";
+import { NewUserDrawer } from "./NewUserDrawer";
 
 const copy = adminPortalCopy.customers;
 
 export function Customers() {
   const [query, setQuery] = useState<AdminCustomersQuery>({ page: 1 });
+  const [drawer, setDrawer] = useState(false);
+  const [notice, setNotice] = useState<string>();
   const rows = useLoad(() => api.adminCustomers(query), [JSON.stringify(query)]);
 
   return (
@@ -26,11 +27,13 @@ export function Customers() {
       {rows.data && rows.loading && <Loading compact label={feedbackCopy.updating} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[1.3rem] font-semibold">{copy.title}</h1>
-        <Link href="/admin/clientes/novo" className="btn btn-primary px-4 py-2 text-[0.88rem]">
+        <button type="button" onClick={() => { setNotice(undefined); setDrawer(true); }} className="btn btn-primary px-4 py-2 text-[0.88rem]">
           <Plus size={16} aria-hidden="true" />
           {copy.add}
-        </Link>
+        </button>
       </div>
+      {notice && <p role="status" className="mb-4 rounded-xl bg-ok-tint px-4 py-3 text-[0.88rem]">{notice}</p>}
+      {drawer && <NewUserDrawer onClose={() => setDrawer(false)} onAdminCreated={(email) => setNotice(copy.adminCreated(email))} />}
       <label className="relative mb-4 block">
         <span className="sr-only">{copy.search}</span>
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
@@ -65,70 +68,6 @@ export function Customers() {
         </div>
       )}
       {rows.data && <Pager page={rows.data.page} pageSize={rows.data.pageSize} total={rows.data.total} onPage={(p) => setQuery((q) => ({ ...q, page: p }))} />}
-    </section>
-  );
-}
-
-/** A customer who pays outside the site: MANUAL contract + login + invite. */
-export function NewCustomerForm() {
-  const router = useRouter();
-  const c = adminPortalCopy.newCustomer;
-  const today = todayInSaoPaulo();
-  const nextYear = `${Number(today.slice(0, 4)) + 1}${today.slice(4)}`;
-  const [error, setError] = useState<string>();
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const reais = String(f.get("amount") || "0").replace(/\./g, "").replace(",", ".");
-    if (!isValidTaxId(String(f.get("document")))) return setError(c.invalidDocument);
-    setBusy(true);
-    try {
-      const { id } = await api.adminCreateCustomer({
-        name: String(f.get("name")),
-        email: String(f.get("email")),
-        phone: String(f.get("phone")),
-        document: String(f.get("document")),
-        startsAt: String(f.get("startsAt")),
-        endsAt: String(f.get("endsAt")),
-        amountCents: Math.round(Number(reais) * 100) || 0,
-        sendInvite: f.get("sendInvite") === "on",
-      });
-      router.replace(`/admin/cliente?id=${id}&aba=access`);
-    } catch (err) {
-      setError(err instanceof ApiError && err.status === 409 ? err.message : c.error);
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section className="max-w-[640px]">
-      <Link href="/admin/clientes" className="mb-4 inline-flex items-center gap-1.5 text-[0.86rem] text-muted hover:text-ink">
-        <ArrowLeft size={15} aria-hidden="true" />
-        {c.back}
-      </Link>
-      <h1 className="text-[1.3rem] font-semibold">{c.title}</h1>
-      <p className="mb-6 mt-1 text-[0.9rem] text-muted">{c.lede}</p>
-      <form onSubmit={submit} className="rounded-[14px] border border-line bg-surface p-5">
-        <Field id="name" label={c.name} required minLength={2} maxLength={120} />
-        <div className="grid gap-x-4 sm:grid-cols-2">
-          <Field id="document" label={c.document} required minLength={11} maxLength={18} inputMode="numeric" />
-          <Field id="phone" label={c.phone} type="tel" required minLength={10} maxLength={20} />
-        </div>
-        <Field id="email" label={c.email} type="email" required />
-        <div className="grid gap-x-4 sm:grid-cols-3">
-          <Field id="startsAt" label={c.startsAt} type="date" defaultValue={today} required />
-          <Field id="endsAt" label={c.endsAt} type="date" defaultValue={nextYear} required />
-          <Field id="amount" label={c.amount} inputMode="decimal" placeholder="3.588,00" />
-        </div>
-        <label className="mb-5 flex items-center gap-2.5 text-[0.9rem]">
-          <input type="checkbox" name="sendInvite" defaultChecked className="size-4 accent-brand" />
-          {c.sendInvite}
-        </label>
-        <FormError>{error}</FormError>
-        <button type="submit" className="btn btn-primary" aria-busy={busy} disabled={busy}>{c.submit}</button>
-      </form>
     </section>
   );
 }

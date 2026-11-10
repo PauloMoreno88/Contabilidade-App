@@ -30,7 +30,7 @@ const MOCK_USERS = {
 type MockEmail = keyof typeof MOCK_USERS;
 const delay = () => new Promise((r) => setTimeout(r, 400));
 const ok = <T>(data: T) => ({ data, error: null });
-const fail = (status: number, message: string) => ({ data: null, error: { status, message, statusText: message } });
+const fail = (status: number, message: string) => ({ data: null, error: { status, message, statusText: message, code: message } });
 const read = (k: string) => sessionStorage.getItem(k);
 const twoFa = (email: string) => read(`${TWO_FA}:${email}`) === "1";
 const setTwoFa = (email: string, on: boolean) => (on ? sessionStorage.setItem(`${TWO_FA}:${email}`, "1") : sessionStorage.removeItem(`${TWO_FA}:${email}`));
@@ -106,6 +106,14 @@ const mockClient = {
       if (password !== PASSWORD || !me) return fail(400, "INVALID_PASSWORD");
       setTwoFa(me, false);
       return ok({ status: true });
+    },
+  },
+  admin: {
+    async createUser({ email, password }: { email: string; password: string; name: string; role: string }) {
+      await delay();
+      if (email.toLowerCase() in MOCK_USERS) return fail(400, "USER_ALREADY_EXISTS");
+      if (password.length < 8) return fail(400, "PASSWORD_TOO_SHORT");
+      return ok({ user: { id: `usr_${Date.now()}`, email } });
     },
   },
   async requestPasswordReset(input: { email: string; redirectTo: string }) {
