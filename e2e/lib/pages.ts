@@ -10,16 +10,6 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
 }
 
-/** Pays on the Stripe hosted Checkout page (test mode). */
-export async function payWithCard(page: Page, number: string, holder: string) {
-  await page.waitForURL(/checkout\.stripe\.com/);
-  await page.getByRole("textbox", { name: "Número do cartão" }).fill(number);
-  await page.getByRole("textbox", { name: "Validade" }).fill("12 / 34");
-  await page.getByRole("textbox", { name: /CVC/ }).fill("123");
-  await page.getByRole("textbox", { name: "Nome do titular do cartão" }).fill(holder);
-  await page.getByRole("button", { name: "Pagar" }).click();
-}
-
 type Tab = "Documentos" | "Guias" | "Acesso e dados" | "Checklist";
 
 /** Opens a customer's file in the admin panel, searching the customer list by e-mail or name. Returns the customer id. */

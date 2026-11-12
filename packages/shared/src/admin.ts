@@ -6,7 +6,7 @@ import { simulatorAnswersSchema, simulatorResultSchema } from "./simulator";
 /**
  * Admin contract, mirroring what apps/api/src/admin.controller.ts returns
  * (Prisma rows serialized to JSON: dates are ISO strings). Unknown keys are
- * stripped on parse, so internal fields (statusToken, Stripe ids) never
+ * stripped on parse, so internal fields (statusToken, payment provider ids) never
  * need to be modeled here.
  */
 

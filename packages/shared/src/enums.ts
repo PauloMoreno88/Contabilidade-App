@@ -17,6 +17,7 @@ export type CheckoutPaymentMethod = (typeof CHECKOUT_PAYMENT_METHODS)[number];
 export const PAYMENT_METHODS = [...CHECKOUT_PAYMENT_METHODS, "OTHER"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
+/** STRIPE only on old test contracts: new checkouts always use Mercado Pago. */
 export const PAYMENT_PROVIDERS = ["STRIPE", "MERCADO_PAGO"] as const;
 export type PaymentProviderId = (typeof PAYMENT_PROVIDERS)[number];
 

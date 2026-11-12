@@ -6,9 +6,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
-import { CHECKOUT_PAYMENT_METHODS, PAYMENT_PROVIDERS, planInfo, PORTAL_RULES, whatsappLink, type CheckoutPaymentMethod, type PaymentProviderId, type PortalContract, type PortalPlan } from "@exactra/shared";
+import { planInfo, PORTAL_RULES, whatsappLink, type PortalContract, type PortalPlan } from "@exactra/shared";
 import { portalCopy } from "@/config/portal";
-import { providerLabels } from "@/config/checkout";
 import { useLoad } from "@/components/admin/useLoad";
 import { api, ApiError } from "@/lib/api";
 import { formatBRLExact, formatDate } from "@/lib/format";
@@ -128,8 +127,6 @@ function ContractCard({ c, title }: { c: PortalContract; title: string }) {
 }
 
 function Renew({ p }: { p: PortalPlan }) {
-  const [method, setMethod] = useState<CheckoutPaymentMethod>("PIX");
-  const [provider, setProvider] = useState<PaymentProviderId>("STRIPE");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -143,7 +140,7 @@ function Renew({ p }: { p: PortalPlan }) {
     setBusy(true);
     setError(null);
     try {
-      const { checkoutUrl } = await api.renew({ method: provider === "MERCADO_PAGO" ? "CARD" : method, provider, consent: true });
+      const { checkoutUrl } = await api.renew({ method: "CARD", consent: true }); // the buyer picks the method at Mercado Pago
       window.location.href = checkoutUrl;
     } catch (err) {
       setError(err instanceof ApiError && err.status === 409 ? copy.renewPending : copy.renewError);
@@ -155,30 +152,7 @@ function Renew({ p }: { p: PortalPlan }) {
     <section className="rounded-2xl border-2 border-navy bg-surface p-5">
       <h2 className="font-serif text-[1.35rem] font-semibold">{copy.renewTitle}</h2>
       <p className="mt-1 text-[0.92rem] text-muted">{copy.renewText}</p>
-      <fieldset className="mt-5">
-        <legend className="mb-2 text-[0.88rem] font-semibold">{copy.renewProvider}</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {PAYMENT_PROVIDERS.map((p) => (
-            <label key={p} className="cursor-pointer rounded-xl border border-line px-4 py-3 font-medium has-[:checked]:border-navy has-[:checked]:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand">
-              <input type="radio" name="provider" value={p} checked={provider === p} onChange={() => setProvider(p)} className="sr-only" />
-              {providerLabels[p].label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      {provider === "MERCADO_PAGO" ? <p className="mt-5 text-[0.88rem] text-muted">{copy.renewMercadoPago}</p> : (
-      <fieldset className="mt-5">
-        <legend className="mb-2 text-[0.88rem] font-semibold">{copy.renewMethod}</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {CHECKOUT_PAYMENT_METHODS.map((m) => (
-            <label key={m} className="cursor-pointer rounded-xl border border-line px-4 py-3 font-medium has-[:checked]:border-navy has-[:checked]:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand">
-              <input type="radio" name="method" value={m} checked={method === m} onChange={() => setMethod(m)} className="sr-only" />
-              {copy.methods[m]}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      )}
+      <p className="mt-5 text-[0.88rem] text-muted">{copy.renewMercadoPago}</p>
       <label className="mt-5 flex items-start gap-3 text-[0.88rem]">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 size-4 accent-brand" />
         <span>

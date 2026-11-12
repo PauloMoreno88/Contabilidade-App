@@ -34,7 +34,6 @@ export const createCheckoutSchema = z.object({
   plan: z.enum(PLAN_IDS),
   period: z.enum(BILLING_PERIODS),
   method: z.enum(CHECKOUT_PAYMENT_METHODS),
-  provider: z.enum(PAYMENT_PROVIDERS).default("STRIPE"),
   customer: z.object({
     name: z.string().min(2).max(120),
     email: z.string().email(),

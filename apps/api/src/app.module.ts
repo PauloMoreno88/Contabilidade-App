@@ -11,9 +11,7 @@ import { ExpiryJob } from './contracts/expiry.job.js';
 import { WebhookController } from './contracts/webhook.controller.js';
 import { LeadRetentionJob } from './lead-retention.job.js';
 import { LeadsController } from './leads.controller.js';
-import { PaymentProvider } from './payments/payment-provider.js';
 import { MercadoPagoProvider } from './payments/mercado-pago.provider.js';
-import { StripeProvider } from './payments/stripe.provider.js';
 import { AccountController } from './portal/account.controller.js';
 import { AdminPortalController } from './portal/admin-portal.controller.js';
 import { PortalController } from './portal/portal.controller.js';
@@ -23,7 +21,7 @@ import { createStorage, useLocalStorage } from './storage/storage.module.js';
 import { StorageProvider } from './storage/storage-provider.js';
 
 @Module({
-  // rawBody keeps req.rawBody for Stripe signature verification. CORS is set in setup-app.ts.
+  // rawBody keeps req.rawBody for the webhook signatures (Mercado Pago, Resend). CORS is set in setup-app.ts.
   imports: [AuthModule.forRoot({ auth, bodyParser: { rawBody: true }, disableTrustedOriginsCors: true }), ScheduleModule.forRoot()],
   controllers: [
     AppController,
@@ -40,7 +38,6 @@ import { StorageProvider } from './storage/storage-provider.js';
     ...(useLocalStorage() ? [LocalStorageController] : []),
   ],
   providers: [
-    { provide: PaymentProvider, useClass: StripeProvider },
     MercadoPagoProvider,
     { provide: StorageProvider, useFactory: createStorage },
     ExpiryJob,

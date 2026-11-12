@@ -76,17 +76,21 @@ export async function sendWebhook(paymentId: string, opts: { secret?: string } =
 
 export type Checkout = { contractId: string; statusToken: string; checkoutUrl: string };
 
-/** Fills the site's checkout with Mercado Pago and returns the link, without opening the Mercado Pago page. */
+/** Fills the site's checkout and returns the Mercado Pago link, without opening the Mercado Pago page. */
 export async function createCheckout(page: Page, name: string, email: string): Promise<Checkout> {
-  // Mercado Pago blocks automated browsers: the buyer pays in a real browser instead.
-  await page.route(/mercadopago\.com/, (route) => route.abort());
   await page.goto("/checkout");
-  await page.locator("label").filter({ has: page.locator('input[value="MERCADO_PAGO"]') }).click();
   await page.locator("#co-name").fill(name);
   await page.locator("#co-email").fill(email);
   await page.locator("#co-phone").fill("11987654321");
   await page.locator("#co-document").fill(cpf());
   await page.locator('input[name="consent"]').check();
+  return submitCheckout(page);
+}
+
+/** Clicks "Ir para o pagamento" on a filled checkout and returns what the API created; the Mercado Pago page is not opened. */
+export async function submitCheckout(page: Page): Promise<Checkout> {
+  // Mercado Pago blocks automated browsers: the buyer pays in a real browser instead.
+  await page.route(/mercadopago\.com/, (route) => route.abort());
   // Read the API answer before the page leaves for Mercado Pago (the body is gone after navigation).
   let status = 0;
   let body = "";

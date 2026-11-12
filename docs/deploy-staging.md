@@ -1,6 +1,6 @@
 # Deploy do ambiente de testes (staging) no Render
 
-> Issue #28. Ambiente publicado para testes e para o cliente aprovar o protótipo. Usa o **Neon `dev`** e o **Stripe em modo teste**: não há cobrança real.
+> Issue #28. Ambiente publicado para testes e para o cliente aprovar o protótipo. Usa o **Neon `dev`** e o **Mercado Pago com credenciais de teste**: não há cobrança real.
 > A configuração fica em `render.yaml` (Blueprint), na raiz do repositório. **Nenhum segredo vai para o repositório**: você digita os valores no painel do Render.
 
 ## 1. O que o Blueprint cria
@@ -22,7 +22,7 @@
 
 - [ ] Conta no Render com o GitHub conectado (acesso ao repositório `Contabilidade-App`).
 - [ ] Neon: o projeto com a branch `dev`. As migrations já estão aplicadas e o admin já existe.
-- [ ] Stripe em **modo teste** (chave começando com `sk_test_`).
+- [ ] Aplicação do Mercado Pago com as **credenciais de teste** e as contas de teste (vendedor e comprador).
 - [ ] Resend com a chave de API.
 - [ ] **Decidir os domínios** (veja o item 6):
   - `*.onrender.com`: funciona para o site, o simulador e o checkout, mas **o login do admin não funciona**;
@@ -45,8 +45,8 @@
 | `BETTER_AUTH_URL` | URL pública da API, sem barra no fim | Render → `exactra-api-staging` (topo da página) ou o seu subdomínio |
 | `WEB_ORIGIN` | URL pública do site; se houver mais de uma, separe por vírgula | Render → `exactra-web-staging` ou o seu subdomínio |
 | `AUTH_COOKIE_DOMAIN` | Com subdomínios da Exactra: `.exactracontabilidade.com.br`. Com `*.onrender.com`: deixe **vazio** | — |
-| `STRIPE_SECRET_KEY` | `sk_test_…` | Stripe (modo teste) → Developers → API keys → Secret key |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_…` **do endpoint do item 4** (o do `stripe listen` local não serve) | Stripe → webhook criado no item 4 → Signing secret |
+| `MERCADO_PAGO_ACCESS_TOKEN` | Access token **de teste** da aplicação | Mercado Pago → Suas integrações → aplicação → Credenciais de teste |
+| `MERCADO_PAGO_WEBHOOK_SECRET` | Assinatura secreta das notificações (item 4) | Mercado Pago → aplicação → Webhooks → Assinatura secreta |
 | `RESEND_API_KEY` | `re_…` | Resend → API Keys |
 | `EMAIL_FROM` | Sem domínio verificado: `Exactra <onboarding@resend.dev>`. Com domínio: `Exactra <contato@exactracontabilidade.com.br>` | Resend → Domains |
 | `ADMIN_NOTIFY_EMAIL` | E-mail que recebe o aviso de nova contratação | — |
@@ -55,7 +55,7 @@
 Já definidas no `render.yaml`:
 
 - `NODE_ENV=production`.
-- `CHECKOUT_ENABLED=false`: a API só aceita chave **de teste** do Stripe.
+- `CHECKOUT_ENABLED=false` e `MERCADO_PAGO_MODE=test`: com `live`, o checkout só abre se a flag for `true`.
 - `BETTER_AUTH_SECRET`: gerado pelo Render, novo e diferente do local.
 
 ### Variáveis do site (`exactra-web-staging`)
@@ -66,24 +66,18 @@ Já definidas no `render.yaml`:
 
 Já definidas:
 
-- `NEXT_PUBLIC_CHECKOUT_ENABLED=true`: checkout ligado para testar com o cartão 4242. A cobrança é de teste, porque a API só aceita `sk_test_`.
+- `NEXT_PUBLIC_CHECKOUT_ENABLED=true`: checkout ligado para pagar com o comprador de teste do Mercado Pago. Não há cobrança, porque a API usa credenciais de teste.
 - `NEXT_PUBLIC_USE_MOCK=false`.
 
 > As variáveis `NEXT_PUBLIC_*` são gravadas no build. Mudou alguma? Faça **Manual Deploy → Deploy latest commit** no `exactra-web-staging`.
 
-## 4. Webhook do Stripe (modo teste)
+## 4. Notificações do Mercado Pago (teste)
 
-1. Stripe Dashboard em **modo teste** → **Developers → Webhooks** (no Workbench: **Event destinations**) → **Add destination / Add endpoint**.
-2. URL: `https://<URL pública da API>/webhooks/stripe`.
-3. Eventos (exatamente estes 7):
-   - `checkout.session.completed`
-   - `checkout.session.async_payment_succeeded`
-   - `checkout.session.async_payment_failed`
-   - `checkout.session.expired`
-   - `invoice.paid`
-   - `invoice.payment_failed`
-   - `customer.subscription.deleted`
-4. Salve. Depois copie o **Signing secret** (`whsec_…`) para `STRIPE_WEBHOOK_SECRET` no Render (`exactra-api-staging` → Environment → Save). O Render reinicia a API sozinho.
+1. Mercado Pago → **Suas integrações** → aplicação → **Webhooks** → **Configurar notificações**, na aba **Modo de teste**.
+2. URL: `https://<URL pública da API>/webhooks/mercado-pago`.
+3. Evento: **Pagamentos**.
+4. Salve. Copie a **assinatura secreta** para `MERCADO_PAGO_WEBHOOK_SECRET` no Render (`exactra-api-staging` → Environment → Save). O Render reinicia a API sozinho.
+5. Não use `notification_url` na preferência: a URL do painel é a que tem o segredo usado na assinatura `x-signature`.
 
 ## 5. Conferir URLs e ajustar
 
@@ -91,7 +85,7 @@ Depois do primeiro deploy, confira se as URLs reais batem com o que você preenc
 
 - **API:** `BETTER_AUTH_URL`, `WEB_ORIGIN` e `EMAIL_ASSET_BASE_URL`. Ao salvar, a API reinicia.
 - **Site:** `NEXT_PUBLIC_API_URL`, seguido de **novo deploy** do site.
-- **Stripe:** a URL do webhook.
+- **Mercado Pago:** a URL das notificações.
 
 ## 6. Domínios e login do admin
 
@@ -105,7 +99,7 @@ Para o admin funcionar, use subdomínios da Exactra (depende do DNS, #23):
    - `AUTH_COOKIE_DOMAIN=.exactracontabilidade.com.br`;
    - `BETTER_AUTH_URL` e `NEXT_PUBLIC_API_URL` com `https://api-teste…`;
    - `WEB_ORIGIN` e `EMAIL_ASSET_BASE_URL` com `https://teste…`.
-4. Faça novo deploy do site e atualize a URL do webhook no Stripe.
+4. Faça novo deploy do site e atualize a URL das notificações no Mercado Pago.
 
 ## 7. Seed do admin (manual)
 
@@ -128,11 +122,10 @@ Saída esperada: `Admin … created` ou `Admin … already exists`. O seed não 
 2. `https://<API>/health/db` → `{"ok":true,"db":true}`.
 3. Abra o site. As páginas `/checkout`, `/checkout/status` e `/admin/login` devem abrir sem 404.
 4. Simulador: preencha até o fim e envie nome e WhatsApp. O lead aparece no admin (**Leads**), se o admin estiver ativo (item 6).
-5. Checkout com cartão:
-   - escolha um plano e pague com **4242 4242 4242 4242** (validade futura e CVC quaisquer);
+5. Checkout: rode `pnpm --filter e2e mercado-pago` (instruções em `e2e/README.md`). O teste cria o checkout e mostra o link; você paga numa janela anônima, logado com o **comprador de teste**, com os cartões de teste do Mercado Pago (nome do titular `APRO` aprova, `OTHE` recusa). O Mercado Pago bloqueia navegador automatizado.
    - a página `/checkout/status` deve passar de "aguardando" para "ativo";
-   - no Stripe → Webhooks → endpoint, as entregas devem aparecer com **200**.
-6. Pix e boleto (modo teste): na página do Stripe Checkout, use as opções de simulação de pagamento do modo teste. O boleto fica "aguardando" até o evento `async_payment_succeeded`.
+   - no painel da aplicação, as notificações devem aparecer com **200**.
+6. Boleto: gerado, fica "aguardando"; o job diário cancela o contrato depois de 8 dias. Pix só aparece se o vendedor tiver chave Pix cadastrada (o vendedor de teste não tem).
 7. E-mails:
    - boas-vindas para o cliente e aviso interno para o `ADMIN_NOTIFY_EMAIL`;
    - sem domínio verificado no Resend, **só chegam ao e-mail dono da conta Resend**;

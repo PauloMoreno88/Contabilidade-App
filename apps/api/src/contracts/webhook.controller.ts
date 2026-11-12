@@ -3,7 +3,7 @@ import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import type { Request } from 'express';
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
-import { PaymentProvider, type PaymentEvent, type VerifiedWebhook } from '../payments/payment-provider.js';
+import type { PaymentEvent, VerifiedWebhook } from '../payments/payment-provider.js';
 import { InvalidMercadoPagoNotification, MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
 import { notifyActivation, sendPaymentAlert, type PaymentAlert } from '../notifications.js';
 import { applyPaymentEvent } from './contract-lifecycle.js';
@@ -11,20 +11,7 @@ import { applyPaymentEvent } from './contract-lifecycle.js';
 @AllowAnonymous()
 @Controller('webhooks')
 export class WebhookController {
-  constructor(private readonly payments: PaymentProvider, private readonly mercadoPago: MercadoPagoProvider) {}
-
-  @Post('stripe')
-  @HttpCode(200)
-  async stripe(@Req() req: Request & { rawBody?: Buffer }, @Headers('stripe-signature') signature?: string) {
-    let hook: VerifiedWebhook;
-    try {
-      hook = await this.payments.verifyWebhook(req.rawBody ?? Buffer.alloc(0), signature ?? '');
-    } catch {
-      throw new BadRequestException('Invalid signature');
-    }
-
-    return this.process(hook);
-  }
+  constructor(private readonly mercadoPago: MercadoPagoProvider) {}
 
   @Post('mercado-pago')
   @HttpCode(200)
@@ -47,7 +34,8 @@ export class WebhookController {
   private async process(hook: VerifiedWebhook) {
     const { apply, alert } = hook.event ? await this.review(hook.event) : { apply: false, alert: null };
     // Recording the event and applying it share one transaction: a duplicate delivery skips on the
-    // unique stripeEventId and changes nothing; a failure rolls back so the provider retries.
+    // unique event id (column stripeEventId until the decision 40 migration) and changes nothing;
+    // a failure rolls back so Mercado Pago retries.
     const result = await prisma.$transaction(async (tx) => {
       const { count } = await tx.webhookEvent.createMany({
         data: { stripeEventId: hook.id, type: hook.type, payload: hook.payload as Prisma.InputJsonObject },
@@ -72,19 +60,13 @@ export class WebhookController {
       const reason = paid ? ev.reason : 'REVERSAL_NOT_APPLIED';
       return { apply: Boolean(paid), alert: { reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId } };
     }
-    if (ev.type !== 'prepaid.paid') return { apply: true, alert: null };
-
     const contract = await prisma.contract.findUnique({ where: { id: ev.contractId } });
     const matches = contract?.provider === ev.provider && contract.amountCents === ev.amountCents;
-    if (ev.provider !== 'MERCADO_PAGO') {
-      if (!matches) throw new BadRequestException('Payment does not match contract');
-      return { apply: true, alert: null };
-    }
     // The money is already in: a 4xx would only make Mercado Pago retry, so warn a person instead.
     const reason = !matches ? 'PAYMENT_MISMATCH' : contract.status !== 'PENDING_PAYMENT' ? 'PAYMENT_NOT_NEEDED' : null;
     return {
       apply: !reason,
-      alert: reason && { reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId ?? '', amountCents: ev.amountCents },
+      alert: reason && { reason, contractId: ev.contractId, paymentId: ev.mercadoPagoPaymentId, amountCents: ev.amountCents },
     };
   }
 }

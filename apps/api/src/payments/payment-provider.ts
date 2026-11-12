@@ -13,26 +13,12 @@ export interface CheckoutRequest {
 
 /** Provider-agnostic payment events that drive the contract lifecycle. */
 export type PaymentEvent =
-  /** Prepaid contract (card, Pix or boleto): money is in (immediately or after async confirmation). */
-  | { type: 'prepaid.paid'; contractId: string; provider: PaymentProviderId; customerId?: string; paymentIntentId?: string; mercadoPagoPaymentId?: string; method?: PaymentMethod; amountCents: number }
-  /** Async payment failed or the checkout expired before paying. */
-  | { type: 'checkout.failed'; contractId: string }
+  /** One-year contract paid (card, Pix or boleto), immediately or after async confirmation. */
+  | { type: 'prepaid.paid'; contractId: string; provider: PaymentProviderId; mercadoPagoPaymentId: string; method?: PaymentMethod; amountCents: number }
   /** Full refund or chargeback of a Mercado Pago payment: cancels the contract that payment activated. */
   | { type: 'payment.reversed'; contractId: string; mercadoPagoPaymentId: string; reason: 'REFUND' | 'CHARGEBACK' }
   /** Needs a person, the contract does not change. */
-  | { type: 'payment.attention'; contractId: string; mercadoPagoPaymentId: string; reason: 'PARTIAL_REFUND' | 'DISPUTE' | 'CHARGEBACK_REVERSED' }
-  /** Legacy monthly card subscriptions (sold before decision 22) keep sending these events. */
-  | { type: 'subscription.started'; contractId: string; subscriptionId: string; customerId?: string }
-  | {
-      type: 'invoice.paid';
-      contractId?: string;
-      subscriptionId: string;
-      invoiceId: string;
-      amountCents: number;
-      periodEnd: Date;
-    }
-  | { type: 'invoice.failed'; subscriptionId: string }
-  | { type: 'subscription.canceled'; subscriptionId: string };
+  | { type: 'payment.attention'; contractId: string; mercadoPagoPaymentId: string; reason: 'PARTIAL_REFUND' | 'DISPUTE' | 'CHARGEBACK_REVERSED' };
 
 export interface VerifiedWebhook {
   id: string;

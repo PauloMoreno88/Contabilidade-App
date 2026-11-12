@@ -57,16 +57,17 @@ Outras origens não recebem `Access-Control-Allow-Origin`. O front deve usar `cr
 - `/api/auth/*` — Better Auth (login, 2FA, reset de senha, plugin admin). Cadastro público desligado. Use o client do Better Auth com `twoFactorClient()` e `adminClient()`.
 - `POST /leads` — body `CreateLeadInput`. **201** `{ id: string, result: SimulatorResult }`. O resultado é recalculado no servidor (o enviado pelo front é ignorado).
 - `POST /checkout/sessions` — body `CreateCheckoutInput`. **201** `CheckoutResponse` = `{ contractId, checkoutUrl, statusToken }` → redirecione para `checkoutUrl`.
-  - **400** se o período não combina com a forma de pagamento (cartão = `MONTHLY`; Pix/boleto = `QUARTERLY | SEMIANNUAL | ANNUAL`).
-  - **503** se o checkout estiver indisponível (sem chave Stripe, ou chave live com `CHECKOUT_ENABLED=false`).
-  - Retorno do Stripe: sucesso **ou pendente** (boleto/Pix gerado) → `WEB_ORIGIN/checkout/status?contract=<id>&token=<statusToken>`; desistência → `WEB_ORIGIN/checkout?cancelado=1&plan=<plano>`.
-- `GET /contracts/:id/status?token=<statusToken>` → **200** `ContractStatusResponse` = `{ contractId, status, method, plan, period }`; **404** sem token ou com token errado. Faça polling enquanto `status = PENDING_PAYMENT` (boleto leva 1–3 dias úteis).
-- `POST /webhooks/stripe` — só para o Stripe (ver "Webhook do Stripe").
+  - Sempre cria uma preferência do Mercado Pago (o campo `provider` da requisição é ignorado).
+  - **400** se o plano não está à venda ou o período não é `ANNUAL`.
+  - **503** se o checkout estiver indisponível (Mercado Pago sem credenciais ou modo, ou `MERCADO_PAGO_MODE=live` com `CHECKOUT_ENABLED=false`).
+  - Retorno do Mercado Pago: sucesso **ou pendente** (boleto/Pix gerado) → `WEB_ORIGIN/checkout/status?contract=<id>&token=<statusToken>`; falha → `WEB_ORIGIN/checkout?cancelado=1&plan=<plano>`.
+- `GET /contracts/:id/status?token=<statusToken>` → **200** `ContractStatusResponse` = `{ contractId, status, method, provider, plan, period }`; **404** sem token ou com token errado. Faça polling enquanto `status = PENDING_PAYMENT` (boleto leva 1–3 dias úteis).
+- `POST /webhooks/mercado-pago` — só para o Mercado Pago (ver "Pagamentos e ciclo do contrato").
 
 ### Admin
 
 Todas exigem sessão com papel `admin`: sem sessão **401**, outro papel **403**. Datas em ISO 8601 (UTC), valores em centavos.
-Query e respostas usam os schemas de `@exactra/shared` (`packages/shared/src/admin.ts`). A API valida a query com eles e passa a resposta pelo schema, o que remove campos internos como `statusToken` e ids do Stripe.
+Query e respostas usam os schemas de `@exactra/shared` (`packages/shared/src/admin.ts`). A API valida a query com eles e passa a resposta pelo schema, o que remove campos internos como `statusToken` e ids do provedor de pagamento.
 
 | Rota | Query (schema) | Resposta 200 (schema) |
 |---|---|---|
@@ -125,7 +126,7 @@ Admin da área do cliente (`src/portal/admin-portal.controller.ts`, papel `admin
 |---|---|
 | `GET /admin/month?competence&filter&q&page` | visão do mês: documentos, guias vencidas, acesso (`adminMonthPageSchema`; filtros `late`, `rejected`, `unpaid`, `no_access`) |
 | `GET /admin/customers`, `GET /admin/customers/:id` | lista e ficha (membros, convites, contratos, checklist que se aplica) |
-| `POST /admin/customers` | cliente manual: empresa + contrato `MANUAL` (sem Stripe) + login + convite |
+| `POST /admin/customers` | cliente manual: empresa + contrato `MANUAL` (sem pagamento online) + login + convite |
 | `PATCH /admin/customers/:id` | lembretes, perfil e itens do checklist desligados |
 | `POST /admin/customers/:id/invite` | cria o login se faltar e reenvia o convite (**409** se já ativou) |
 | `GET /admin/customers/:id/documents?competence=` / `POST /admin/document-requests/:id/reject` | documentos do cliente e recusa com motivo (e-mail ao cliente) |
@@ -144,11 +145,11 @@ Job diário da área do cliente (07h, `src/portal/portal.job.ts`), cada e-mail u
 
 ## Pagamentos e ciclo do contrato
 
-### Mercado Pago em teste (branch `feat/mercado-pago-checkout`)
+### Mercado Pago
 
-O Checkout Pro coexiste com a Stripe. O comprador escolhe o provedor em `/checkout` ou na renovação do plano. No Mercado Pago ele escolhe o meio de pagamento e vê as condições de até 12 parcelas antes de confirmar. Como o Checkout Pro por preferências não permite ocultar saldo em conta, o método registrado é atualizado com o meio efetivo informado na API de pagamentos (`OTHER` para saldo/outros meios). O valor anual continua vindo de `@exactra/shared` e é PLACEHOLDER.
+O Checkout Pro do Mercado Pago é o único provedor desde 11/11/2026 (a Stripe saiu do código; `docs/specs/remover-stripe.md`). No site o comprador só informa os dados; no Mercado Pago ele escolhe o meio de pagamento e vê as condições de até 12 parcelas antes de confirmar. Como o Checkout Pro por preferências não permite ocultar saldo em conta, o método registrado é atualizado com o meio efetivo informado na API de pagamentos (`OTHER` para saldo/outros meios). O valor anual continua vindo de `@exactra/shared` e é PLACEHOLDER.
 
-Para habilitar o teste, crie a aplicação da Exactra em **Suas integrações** do Mercado Pago e configure no API: `MERCADO_PAGO_ACCESS_TOKEN` (credencial de teste), `MERCADO_PAGO_WEBHOOK_SECRET` (assinatura secreta de Webhooks) e `MERCADO_PAGO_MODE=test`. Sem os dois segredos ou o modo explícito, a opção Mercado Pago responde 503; a Stripe continua funcionando. Configure a notificação **Pagamentos** para `https://<api>/webhooks/mercado-pago` no painel, nas abas Teste e depois Produção. Não defina `notification_url` na preferência: a URL central do painel fornece o segredo usado para validar `x-signature`. Mantenha `CHECKOUT_ENABLED=false` até validar os preços; `MERCADO_PAGO_MODE=live` só permite cobranças se a flag for `true`. Access tokens de teste e produção podem começar com `APP_USR`, portanto confirme o modo e a credencial no painel antes de habilitar o ambiente real.
+Para habilitar o teste, crie a aplicação da Exactra em **Suas integrações** do Mercado Pago e configure no API: `MERCADO_PAGO_ACCESS_TOKEN` (credencial de teste), `MERCADO_PAGO_WEBHOOK_SECRET` (assinatura secreta de Webhooks) e `MERCADO_PAGO_MODE=test`. Sem os dois segredos ou o modo explícito, o checkout e a renovação respondem 503. Configure a notificação **Pagamentos** para `https://<api>/webhooks/mercado-pago` no painel, nas abas Teste e depois Produção. Não defina `notification_url` na preferência: a URL central do painel fornece o segredo usado para validar `x-signature`. Mantenha `CHECKOUT_ENABLED=false` até validar os preços; `MERCADO_PAGO_MODE=live` só permite cobranças se a flag for `true`. Access tokens de teste e produção podem começar com `APP_USR`, portanto confirme o modo e a credencial no painel antes de habilitar o ambiente real.
 
 O webhook valida a assinatura, sem limite de idade do `ts` (a unidade varia na documentação e o reenvio pode manter o valor original; reenviar é inofensivo porque os eventos são idempotentes e o estado vem da API). Depois consulta `/v1/payments/{id}` com o access token, confere referência do contrato e valor, e só ativa pagamentos `approved`. Duplicatas não geram segundo pagamento.
 
@@ -162,70 +163,15 @@ O que cada estado do pagamento faz:
 | `approved` com valor diferente, sem contrato, ou em contrato que não está pendente | Não muda (responde 200) | Sim |
 | `rejected` ou `cancelled` | Continua pendente: o comprador pode tentar de novo no mesmo link | Não |
 
-O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos Mercado Pago pendentes há mais de 8 dias (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Depois disso, e até o job cancelar o contrato pendente, a API responde 409 (decisão 39). O comprador paga os juros do parcelado (decisão 38). Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
+O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos do checkout pendentes há mais de 8 dias, de qualquer provedor (inclusive os antigos de teste da Stripe), (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Depois disso, e até o job cancelar o contrato pendente, a API responde 409 (decisão 39). O comprador paga os juros do parcelado (decisão 38). Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
 
-Na documentação da integração por preferências, pagamentos feitos com credenciais de teste podem não disparar notificações automaticamente: simule **Pagamentos** no painel com o ID do pagamento de teste e confira a ativação; repita o fluxo real após receber as credenciais. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
+Em 11/11/2026 o Mercado Pago entregou a notificação de um pagamento de teste e o contrato ativou em 2 segundos (`docs/specs/mercado-pago-e2e.md`). A simulação do painel com um ID que não existe responde 500, de propósito: a API não acha o pagamento e o Mercado Pago tenta de novo. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
 
 Fontes: [preferências e parcelas](https://www.mercadopago.com.br/developers/en/docs/checkout-pro-preferences/additional-settings/payment-methods), [webhooks e simulação](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-preferences/payment-notifications).
 
-Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`); `StripeProvider` e `MercadoPagoProvider` coexistem no teste. Os eventos verificados viram eventos neutros, e `src/contracts/contract-lifecycle.ts` aplica:
+Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`), implementada por `MercadoPagoProvider`. O pagamento verificado vira um evento neutro (`prepaid.paid`, `payment.reversed` ou `payment.attention`), e `src/contracts/contract-lifecycle.ts` aplica: `PENDING_PAYMENT → ACTIVE` com `endsAt = início + 12 meses` (renovação começa quando o contrato atual termina) ou `→ CANCELED` no reembolso total e no chargeback.
 
-| Evento Stripe | Efeito |
-|---|---|
-| `checkout.session.completed` (pago, modo payment) / `async_payment_succeeded` | Pix/boleto: `ACTIVE`, `endsAt = início + 3/6/12 meses`, registra pagamento |
-| `checkout.session.completed` (unpaid) | boleto/Pix gerado: segue `PENDING_PAYMENT` |
-| `checkout.session.completed` (modo subscription) | cartão: `ACTIVE`, guarda a assinatura |
-| `invoice.paid` | cartão: registra pagamento, `endsAt` = fim do período, volta para `ACTIVE` |
-| `invoice.payment_failed` | `ACTIVE → PAST_DUE` |
-| `checkout.session.async_payment_failed` / `checkout.session.expired` | `PENDING_PAYMENT → CANCELED` |
-| `customer.subscription.deleted` | `CANCELED` |
-
-## Webhook do Stripe
-
-- **Verificação:** a assinatura é verificada sobre os **bytes crus** do corpo. O `AuthModule` sobe com `bodyParser: { rawBody: true }`, que guarda `req.rawBody` antes do parse do JSON, e o `StripeProvider` chama `stripe.webhooks.constructEvent(req.rawBody, <stripe-signature>, STRIPE_WEBHOOK_SECRET)`.
-- **Respostas:** assinatura inválida → **400**; evento repetido → **200** `{ received: true, duplicate: true }`, sem efeito.
-- **Teste e2e** (`test/checkout.e2e-spec.ts`): um payload com formatação própria, assinado, dá 200 e ativa o contrato. O mesmo JSON re-serializado, com a assinatura original, dá 400. Isso prova que a verificação usa `req.rawBody`, e não o corpo parseado.
-- **Validado contra o Stripe real** (04/10, modo teste):
-  - `POST /checkout/sessions` criou sessões aceitas pelo Stripe para cartão, Pix e boleto (`allowed_payment_method_types` = `card` / `pix` / `boleto`, `success_url` em `/checkout/status`).
-  - Os eventos reais `checkout.session.expired` dessas sessões foram reenviados ao endpoint, assinados com o `STRIPE_WEBHOOK_SECRET` do `.env`. Resultado: 200, e os contratos foram para `CANCELED`.
-## Teste manual com o Stripe (modo teste)
-
-Pré-requisitos: `STRIPE_SECRET_KEY` (`sk_test_…`) e `STRIPE_WEBHOOK_SECRET` no `.env`, API rodando (`pnpm --filter api start:dev`, porta 3001) e, em outro terminal:
-
-```
-stripe listen --forward-to localhost:3001/webhooks/stripe
-```
-
-O `whsec_…` impresso pelo `listen` precisa ser o `STRIPE_WEBHOOK_SECRET` do `.env`. Se usar `--events`, inclua pelo menos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed` e `customer.subscription.deleted`.
-
-**1. Webhook chegando (`stripe trigger`)**
-
-```
-stripe trigger checkout.session.completed
-```
-
-- Esperado no terminal do `listen`: `<-- [200] POST http://localhost:3001/webhooks/stripe`.
-- O evento fica gravado em `WebhookEvent`. O contrato não muda, porque a sessão do trigger não tem `metadata.contractId`.
-- Para o trigger ativar um contrato real: crie um contrato Pix (`POST /checkout/sessions` com `method: "PIX"`) e rode `stripe trigger checkout.session.completed --add checkout_session:metadata.contractId=<contractId>`. O trigger cria uma sessão já paga, então o contrato vai para `ACTIVE`.
-
-**2. Fluxo real com pagamento**
-
-```
-pnpm --filter api stripe:flow            # cartão, plano essencial
-pnpm --filter api stripe:flow PIX profissional
-```
-
-O script (`scripts/checkout-flow.mjs`) faz o seguinte:
-
-1. cria a sessão por `POST /checkout/sessions`;
-2. imprime a URL do Stripe Checkout;
-3. acompanha `GET /contracts/:id/status` até `ACTIVE`.
-
-Abra a URL e pague com o cartão **4242 4242 4242 4242**, validade futura e CVC quaisquer. Esperado: `status: PENDING_PAYMENT` → `status: ACTIVE` em poucos segundos. O pagamento aparece em `GET /admin/contracts/<id>`.
-
-**3. Idempotência**
-
-- `stripe events resend <evt_…>` (id do evento no terminal do `listen`) → 200 com `{ received: true, duplicate: true }`, sem novo pagamento.
+O `WebhookEvent` guarda a chave do evento na coluna `stripeEventId` (com prefixo `mp:`); a coluna e as outras `stripe*` saem na migration da decisão 40, antes do primeiro deploy de produção.
 
 ## E-mails (Resend) e job diário
 
@@ -237,7 +183,7 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 | Aviso interno de nova contratação (para `ADMIN_NOTIFY_EMAIL`) | idem; inclui origem do lead (UTM) e link `WEB_ORIGIN/admin/contrato?id=…` | `renderNewContractNotice` | `src/notifications.ts` |
 | Redefinição de senha | `POST /api/auth/request-password-reset` | `renderPasswordResetEmail` (link expira em 60 min) | `src/auth.ts` |
 | Código 2FA por e-mail | `POST /api/auth/two-factor/send-otp` | `renderTwoFactorCodeEmail` (código expira em 3 min) | `src/auth.ts` |
-| Lembrete de vencimento | job diário, 7 dias antes (Pix/boleto); não sai se já houver renovação paga | `renderExpiryReminderEmail` (renovação em `/app/plano` para quem tem login) | `src/notifications.ts` |
+| Lembrete de vencimento | job diário, 7 dias antes; não sai se já houver renovação paga | `renderExpiryReminderEmail` (renovação em `/app/plano` para quem tem login) | `src/notifications.ts` |
 | Convite da área do cliente | boas-vindas (link junto) ou cliente manual / reenvio | `renderWelcomeEmail({ activation })`, `renderPortalInviteEmail` | `src/notifications.ts`, `src/portal/invites.ts` |
 | Link de acesso sem senha | `POST /api/auth/sign-in/magic-link` (só papel `customer` sem 2FA) | `renderMagicLinkEmail` (15 min) | `src/auth.ts` |
 | Guia nova, guia vencendo, documentos do mês, lembrete, recusa, retenção | admin publica/recusa; job diário | `renderGuidePublishedEmail`, `renderGuideDueEmail`, `renderDocumentsOpenEmail`, `renderDocumentsReminderEmail`, `renderDocumentRejectedEmail`, `renderRetentionNoticeEmail` | `src/portal/` |
@@ -247,7 +193,7 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 - **`EMAIL_ASSET_BASE_URL`:** origem do site público, usada para o logo (`{base}/email/logo.png`) e para o link de renovação. Em dev é `http://localhost:3000`; em produção, `https://www.exactracontabilidade.com.br`.
 - **Textos:** ficam em `packages/emails/src/copy.ts`.
 - **Escape:** nomes e dados do usuário são escapados pelo React. O e2e (`test/notifications.e2e-spec.ts`) confere `subject`, `html` e `text` de cada e-mail e que um nome com `<script>` sai escapado.
-- **Job diário** (09h, horário de Brasília, `src/contracts/expiry.job.ts`), só para Pix/boleto: avisa 7 dias antes do vencimento (uma vez) e marca como `EXPIRED` o que já venceu. Cartão segue os webhooks do Stripe.
+- **Job diário** (09h, horário de Brasília, `src/contracts/expiry.job.ts`): avisa 7 dias antes do vencimento (uma vez), marca como `EXPIRED` o que já venceu e cancela checkouts pendentes há mais de 8 dias.
 
 ## Autenticação (admin e cliente)
 
@@ -263,15 +209,13 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 ## O que falta configurar (externo)
 
 - [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
-- [x] Stripe (teste): chave de teste configurada; cartão, Pix e boleto aceitos na criação de sessão (04/10).
-- [x] `stripe listen` encaminhando para `localhost:3001/webhooks/stripe`: validado em 04/10 (trigger, Pix, assinatura real com `invoice.paid`, cancelamento e reenvio duplicado).
-- [x] Sessão de cartão paga no navegador com 4242 (`pnpm --filter api stripe:flow`): contrato `ACTIVE` (04/10).
+- [x] Mercado Pago (teste): aplicação, credenciais e webhook no staging; pagamentos de teste validados em 11/11 (`docs/specs/mercado-pago-e2e.md`).
 - [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
 - [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`; `WEB_ORIGIN` com os domínios do site.
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
 - [ ] DNS do subdomínio `api.` apontando para o Render.
-- [ ] Stripe: conta definitiva da Exactra com **Pix e boleto habilitados** (o checkout usa `allowed_payment_method_types`, que só filtra métodos ativos).
-- [ ] Stripe: endpoint de webhook `https://api.exactracontabilidade.com.br/webhooks/stripe` com os eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed` e `customer.subscription.deleted`; segredo em `STRIPE_WEBHOOK_SECRET`.
+- [ ] Mercado Pago (produção): credenciais da conta da Exactra, chave Pix cadastrada, notificação **Pagamentos** em `https://api.exactracontabilidade.com.br/webhooks/mercado-pago` (aba Produção), `MERCADO_PAGO_MODE=live` e `CHECKOUT_ENABLED=true` só depois dos preços validados. Antes de lançar: uma compra real em 12x com reembolso.
+- [ ] Migration da decisão 40 (colunas `stripe*` e padrão `STRIPE` de `provider`) antes do primeiro deploy de produção.
 - [ ] Cloudflare R2: bucket, token de API (Object Read & Write só nesse bucket) e as variáveis `R2_*`; regra de CORS do bucket liberando `PUT`, `GET` e `HEAD` para as origens do `WEB_ORIGIN`, com o header `Content-Type`.
 - [ ] Resend: domínio verificado (DNS) para o `EMAIL_FROM` de produção (`RESEND_API_KEY`, `EMAIL_FROM` e `ADMIN_NOTIFY_EMAIL` já estão no `.env` de dev).
 - [ ] `EMAIL_ASSET_BASE_URL=https://www.exactracontabilidade.com.br` em produção (o logo precisa estar publicado em `/email/logo.png`).

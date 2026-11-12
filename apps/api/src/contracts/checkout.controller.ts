@@ -23,19 +23,18 @@ import {
 } from '@exactra/shared';
 import { prisma } from '../db.js';
 import { webOrigin } from '../web-origin.js';
-import { PaymentProvider } from '../payments/payment-provider.js';
 import { MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
 import { ZodPipe } from '../zod.pipe.js';
 
 @AllowAnonymous()
 @Controller()
 export class CheckoutController {
-  constructor(private readonly payments: PaymentProvider, private readonly mercadoPago: MercadoPagoProvider) {}
+  constructor(private readonly mercadoPago: MercadoPagoProvider) {}
 
   @Post('checkout/sessions')
   @HttpCode(201)
   async create(@Body(new ZodPipe(createCheckoutSchema)) input: CreateCheckoutInput): Promise<CheckoutResponse> {
-    const provider = input.provider === 'MERCADO_PAGO' ? this.mercadoPago : this.payments;
+    const provider = this.mercadoPago;
     if (!provider.configured || (provider.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
       throw new ServiceUnavailableException('Contratação online indisponível no momento.');
     }
@@ -57,7 +56,7 @@ export class CheckoutController {
         plan: input.plan,
         period: input.period,
         method: input.method,
-        provider: input.provider,
+        provider: 'MERCADO_PAGO',
         amountCents: totalPriceCents(input.plan),
         statusToken: randomBytes(24).toString('base64url'),
         customer: returning
@@ -80,7 +79,7 @@ export class CheckoutController {
         successUrl: `${webOrigin()}/checkout/status?${query}`,
         cancelUrl: `${webOrigin()}/checkout?cancelado=1&plan=${contract.plan}`,
       });
-      await prisma.contract.update({ where: { id: contract.id }, data: input.provider === 'STRIPE' ? { stripeSessionId: session.sessionId } : { mercadoPagoPreferenceId: session.sessionId } });
+      await prisma.contract.update({ where: { id: contract.id }, data: { mercadoPagoPreferenceId: session.sessionId } });
       return { contractId: contract.id, checkoutUrl: session.url, statusToken: contract.statusToken };
     } catch (err) {
       await prisma.contract.delete({ where: { id: contract.id } });

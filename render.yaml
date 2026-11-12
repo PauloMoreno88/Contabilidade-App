@@ -35,7 +35,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Até o contador validar os preços: só aceita chave de TESTE do Stripe (sk_test_).
+      # Até o contador validar os preços: com MERCADO_PAGO_MODE=live o checkout só abre com true.
       - key: CHECKOUT_ENABLED
         value: "false"
       - key: BETTER_AUTH_SECRET
@@ -50,12 +50,6 @@ services:
         sync: false
       - key: WEB_ORIGIN # URL(s) públicas do site, separadas por vírgula
         sync: false
-      - key: STRIPE_SECRET_KEY # sk_test_...
-        sync: false
-      - key: STRIPE_WEBHOOK_SECRET # whsec_... do endpoint criado no Dashboard (não o do stripe listen)
-        sync: false
-      - key: STRIPE_CARD_INSTALLMENTS # true = parcelamento no cartão; só depois de testar no Stripe
-        value: "false"
       - key: MERCADO_PAGO_MODE # test até validar preço e fluxos; live requer CHECKOUT_ENABLED=true
         value: test
       - key: MERCADO_PAGO_ACCESS_TOKEN
@@ -102,14 +96,14 @@ services:
     staticPublishPath: apps/web/out
     # NEXT_PUBLIC_* entram no build: mudou o valor, faça um novo deploy do site.
     envVars:
-      # Staging: mostra a faixa 'Ambiente de testes', os cartões de teste e põe noindex nas páginas.
+      # Staging: mostra a faixa 'Ambiente de testes' e põe noindex nas páginas.
       - key: NEXT_PUBLIC_APP_ENV
         value: staging
       - key: NEXT_PUBLIC_SITE_URL # URL pública do site (robots.txt, sitemap e metadados)
         sync: false
       - key: NEXT_PUBLIC_API_URL # URL pública da API (exactra-api-staging)
         sync: false
-      # Staging usa Stripe em modo teste: checkout ligado para testar com 4242 4242 4242 4242.
+      # Staging usa o Mercado Pago em modo teste: checkout ligado para pagar com o comprador de teste.
       - key: NEXT_PUBLIC_CHECKOUT_ENABLED
         value: "true"
       - key: NEXT_PUBLIC_USE_MOCK

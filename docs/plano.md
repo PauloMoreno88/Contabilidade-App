@@ -76,6 +76,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 39 | Renovação pendente no Mercado Pago | Em 07/11/2026: enquanto o contrato estiver pendente (até o job cancelar, depois de 8 dias), o cliente não cria outra renovação, para um boleto atrasado não somar um segundo ano. Nos 3 dias do link ele retoma o mesmo checkout; depois, recebe a orientação de falar com a Exactra no WhatsApp. |
 | 40 | Colunas `stripe*` no banco | Em 07/11/2026: mantidas ao tirar a Stripe do código. A limpeza (renomear `stripeEventId`, trocar o padrão de `provider`, tirar as colunas sem uso) fica numa migration própria, **obrigatória antes do primeiro deploy de produção**, que ainda não tem nenhum checkout. |
 | 41 | Criar administrador pelo painel | Em `/admin/clientes`, o botão **"Criar usuário"** abre um drawer lateral de 600 px com o select **Cliente** ou **Administrador** (substitui a página `/admin/clientes/novo`). O administrador é criado com **senha inicial digitada no formulário**, repassada por quem cadastra por canal seguro, pelo endpoint `admin/create-user` do Better Auth (só admins); sem convite por e-mail. Spec em `docs/specs/drawer-criar-usuario.md`. Número 41 para não colidir com as decisões 38 a 40 da branch do Mercado Pago. Decisão de 10/11/2026 |
+| 42 | Só Mercado Pago | Em 11/11/2026, depois do teste no staging (`docs/specs/mercado-pago-e2e.md`): **a Stripe sai do código**. Checkout e renovação usam só o Checkout Pro do Mercado Pago, sem escolha de provedor nem de forma de pagamento no site (o comprador escolhe cartão, Pix ou boleto no Mercado Pago). O job diário cancela checkout pendente há mais de 8 dias de qualquer provedor. As colunas `stripe*` ficam até a migration da decisão 40. Antes de lançar: compra real em 12x com reembolso e chave Pix na conta da Exactra. Spec em `docs/specs/remover-stripe.md`. |
 
 ## 3. Arquitetura alvo
 
@@ -159,7 +160,10 @@ Hoje é 04/10; o roadmap termina em 20/10.
 - [x] Webhook pelo `stripe listen` (04/10): trigger gravado em `WebhookEvent`; Pix → `ACTIVE`; assinatura real (`invoice.paid`) → `ACTIVE`; cancelamento → `CANCELED`; reenvio → `duplicate`
 - [x] Pagamento no Checkout hospedado com 4242 pelo navegador (`pnpm --filter api stripe:flow`): contrato `ACTIVE` (04/10)
 - [x] Staging no Render: `render.yaml` (API `0.5c-512mb` + static site, branch `feat/app-v2`, migrations no pre-deploy), `/health/db` e guia `docs/deploy-staging.md` (05/10)
-- [ ] Criar o Blueprint no Render, preencher as variáveis e o webhook do Stripe (usuário; ver `docs/deploy-staging.md`)
+- [x] Criar o Blueprint no Render e preencher as variáveis (usuário; ver `docs/deploy-staging.md`)
+- [x] Mercado Pago no staging: credenciais de teste e notificações; pagamentos de teste validados em 11/11 (`docs/specs/mercado-pago-e2e.md`)
+- [x] Stripe removida do código (decisão 42, 11/11; `docs/specs/remover-stripe.md`)
+- [ ] Migration da decisão 40 (colunas `stripe*`) antes do primeiro deploy de produção
 
 **Integração e testes (14–17/10):** trocar mock pelo API real, testar fluxo completo com Stripe em modo teste, deploy e domínio.
 
