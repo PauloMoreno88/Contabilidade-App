@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { createLeadSchema, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
+import { createLeadSchema, SIMULATOR_SHOWS_ESTIMATE, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
 import { simulatorCopy } from "@/config/simulator";
 import { api } from "@/lib/api";
 import { readUtm } from "@/lib/utm";
@@ -65,13 +65,17 @@ export function LeadGate({ answers, result, onSending, onUnlocked }: Props) {
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,.85fr)_minmax(0,1.6fr)] md:gap-9">
       <div>
-        <h3 className="font-serif text-[1.4rem] leading-[1.2] font-semibold md:text-[1.7rem]">{copy.title}</h3>
-        <p className="mt-2 text-faint">{copy.text}</p>
-        <dl className="mt-[18px] overflow-hidden rounded-[14px] border border-line">
-          <Row label={copy.regimeLabel}>{result.suggestedRegime}</Row>
-          <Row label={copy.taxLabel} hidden>{copy.hidden}</Row>
-          <Row label={copy.netLabel} hidden>{copy.hidden}</Row>
-        </dl>
+        <h3 className="font-serif text-[1.4rem] leading-[1.2] font-semibold md:text-[1.7rem]">
+          {SIMULATOR_SHOWS_ESTIMATE ? copy.title : simulatorCopy.prelaunch.gateTitle}
+        </h3>
+        <p className="mt-2 text-faint">{SIMULATOR_SHOWS_ESTIMATE ? copy.text : simulatorCopy.prelaunch.gateText}</p>
+        {SIMULATOR_SHOWS_ESTIMATE && (
+          <dl className="mt-[18px] overflow-hidden rounded-[14px] border border-line">
+            <Row label={copy.regimeLabel}>{result.suggestedRegime}</Row>
+            <Row label={copy.taxLabel} hidden>{copy.hidden}</Row>
+            <Row label={copy.netLabel} hidden>{copy.hidden}</Row>
+          </dl>
+        )}
       </div>
 
       <form id={LEAD_FORM_ID} onSubmit={submit} onInput={() => setErrors({})} noValidate>

@@ -12,6 +12,13 @@ export const RULES_VERSION = "placeholder-1";
 export const SIMULATOR_DISCLAIMER =
   "Esta é uma estimativa. O enquadramento tributário definitivo depende da análise do contador.";
 
+/**
+ * Pre-launch mode (docs/plano.md, decision 44): while the rules above are PLACEHOLDER,
+ * the site collects profile and contact without showing any tax value. Set to true
+ * only together with the accountant's real rules.
+ */
+export const SIMULATOR_SHOWS_ESTIMATE = false;
+
 export const simulatorAnswersSchema = z.object({
   profile: z.enum(["servicos", "liberal", "comercio", "empresa", "primeiro-cnpj"]),
   monthlyRevenue: z.number().min(0).max(10_000_000),

@@ -26,7 +26,7 @@ export { company, contact, onboarding, phoneLink, whatsappLink } from "@exactra/
 export const seo = {
   title: "Exactra Contabilidade | A contabilidade que mostra quanto sobra para você",
   description:
-    "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Simule grátis em 1 minuto quanto você pagaria em cada regime.",
+    "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Faça o diagnóstico grátis em 1 minuto e fale com um contador.",
 };
 
 export const nav = {
@@ -55,7 +55,7 @@ export const images = {
 export const hero = {
   badge: "Contabilidade online para todo o Brasil",
   title: "A contabilidade que mostra quanto sobra para você.",
-  lede: "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Antes de contratar, você simula grátis e vê quanto pagaria em cada regime.",
+  lede: "A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Antes de contratar, faça o diagnóstico grátis: um contador analisa o seu caso e mostra o melhor regime.",
   primaryCta: { href: "#simulador", label: "Fazer a simulação" },
   secondaryCta: { label: "Falar com um contador" },
 };
@@ -150,14 +150,14 @@ export const planSection = {
   perYear: "por ano",
   upfront: (monthly: string, n: number) => `Equivale a ${monthly} por mês. À vista no cartão, Pix ou boleto, ou em até ${n}x no cartão, com juros.`,
   cta: "Contratar o Plano Exactra",
-  simulate: { href: "#simulador", label: "Antes, simular quanto vou pagar de imposto" },
+  simulate: { href: "#simulador", label: "Antes, fazer o diagnóstico grátis" },
   includedTitle: "O que está incluso",
   payment: ["Contrato anual", "Cartão à vista ou parcelado com juros, Pix ou boleto", "Sem taxa de adesão", "O valor não sobe se você faturar mais"],
 };
 
 export const band = {
-  title: "Comece pela simulação. É grátis e leva 1 minuto.",
-  text: "Você vê quanto pagaria de imposto em cada regime e quanto sobra por mês, já pagando a Exactra.",
+  title: "Comece pelo diagnóstico. É grátis e leva 1 minuto.",
+  text: "Responda 5 perguntas e um contador fala com você pelo WhatsApp para mostrar o melhor regime e quanto pagaria de imposto.",
   cta: { href: "#simulador", label: "Simular agora" },
 };
 
@@ -166,7 +166,7 @@ export const faq: { kicker: string; title: string; sub: string; items: { q: stri
   title: "Perguntas frequentes",
   sub: "Não achou a sua? Fale com a gente.",
   items: [
-    { q: "A simulação é confiável?", a: "Ela usa as regras gerais de cada regime para dar uma boa ideia do seu caso. Antes de qualquer decisão, um contador confere sua atividade e sua cidade." },
+    { q: "Como funciona o diagnóstico?", a: "Você responde 5 perguntas sobre a sua atividade e o seu faturamento. Um contador analisa as respostas e fala com você pelo WhatsApp, sem compromisso." },
     { q: "Como funciona a troca de contador?", a: "Depois que você contrata, pedimos seus documentos ao contador atual e fazemos a transição, sem custo." },
     { q: "O valor sobe se eu faturar mais?", a: "Não. O valor do plano é o mesmo durante todo o contrato, mesmo que você fature mais." },
     { q: "Como funciona o pagamento?", a: "O contrato é anual. No cartão, você paga à vista ou parcelado, com juros mostrados antes de confirmar. No Pix ou no boleto, o valor anual é pago à vista. Não há taxa de adesão." },

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { calculateSimulation, simulatorAnswersSchema, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
+import { calculateSimulation, SIMULATOR_SHOWS_ESTIMATE, simulatorAnswersSchema, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
 import { revenueInput, simulatorCopy as copy, simulatorSteps as steps } from "@/config/simulator";
 import { ChoiceStep } from "./ChoiceStep";
 import { Disclaimer } from "./Disclaimer";
@@ -23,6 +23,11 @@ const slide = {
 } as const;
 
 const initialAnswers: Partial<SimulatorAnswers> = { monthlyRevenue: revenueInput.initial };
+
+// Pre-launch mode swaps the labels that promise tax values (decision 44).
+const labels = SIMULATOR_SHOWS_ESTIMATE
+  ? { title: copy.title, finish: copy.finish, submit: copy.gate.submit, restart: copy.result.restart }
+  : { title: copy.prelaunch.title, finish: copy.prelaunch.finish, submit: copy.prelaunch.submit, restart: copy.prelaunch.restart };
 
 /** Simulator card that overlaps the bottom of the hero. */
 export function Simulator() {
@@ -67,14 +72,14 @@ export function Simulator() {
       <div className="container-x">
         <div className="overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_rgba(15,33,51,.22),0_2px_6px_rgba(15,33,51,.06)]">
           <div className="flex flex-wrap items-center gap-x-[18px] gap-y-2 border-b border-line px-[18px] py-5 sm:px-[30px]">
-            <h2 className="font-serif text-[1.35rem] font-semibold">{copy.title}</h2>
+            <h2 className="font-serif text-[1.35rem] font-semibold">{labels.title}</h2>
             <span className="rounded-full bg-ok-tint px-2.5 py-1 text-[0.8rem] font-bold text-ok">{copy.badge}</span>
             <span className="w-full text-[0.9rem] text-faint sm:ml-auto sm:w-auto">{progress.label}</span>
           </div>
           <div
             className="h-1 bg-surface-2"
             role="progressbar"
-            aria-label={copy.title}
+            aria-label={labels.title}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress.pct)}
@@ -130,7 +135,7 @@ export function Simulator() {
                     </button>
                   )}
                   <button type="button" className="btn btn-primary flex-1 sm:flex-none" disabled={!answered} onClick={next}>
-                    {isLast ? copy.finish : copy.next}
+                    {isLast ? labels.finish : copy.next}
                   </button>
                 </>
               )}
@@ -140,13 +145,13 @@ export function Simulator() {
                     {copy.back}
                   </button>
                   <button type="submit" form={LEAD_FORM_ID} className="btn btn-primary flex-1 sm:flex-none" aria-busy={sending} disabled={sending}>
-                    {sending ? copy.gate.submitting : copy.gate.submit}
+                    {sending ? copy.gate.submitting : labels.submit}
                   </button>
                 </>
               )}
               {phase === "result" && (
                 <button type="button" className="px-1 py-2 font-semibold text-muted hover:text-ink" onClick={restart}>
-                  {copy.result.restart}
+                  {labels.restart}
                 </button>
               )}
             </div>
