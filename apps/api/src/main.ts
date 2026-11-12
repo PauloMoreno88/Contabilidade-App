@@ -1,3 +1,6 @@
+// Sentry starts from `node --import dist/instrument.mjs` (render*.yaml, package.json) so it loads before
+// every dependency; this import only covers a start without the flag (same module, runs once).
+import './instrument.js';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';

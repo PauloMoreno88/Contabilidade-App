@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import * as Sentry from '@sentry/nestjs';
 import { prisma } from '../db.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { sendExpiryNotice } from '../notifications.js';
@@ -44,6 +45,7 @@ export class ExpiryJob {
         notified++;
       } catch (err) {
         this.log.error(`Expiry notice failed for contract ${c.id}`, err as Error); // retried next day
+        Sentry.captureException(err);
       }
     }
 

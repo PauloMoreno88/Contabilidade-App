@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "build": "prisma generate && tsdown",
-    "start": "node --env-file-if-exists=.env dist/main.mjs",
+    "start": "node --env-file-if-exists=.env --import ./dist/instrument.mjs dist/main.mjs",
     "start:dev": "tsdown --watch --on-success \"node --env-file-if-exists=.env dist/main.mjs\"",
     "seed": "node --env-file-if-exists=.env dist/seed.mjs",
     "db:migrate": "prisma migrate dev",
@@ -26,6 +26,7 @@
     "@nestjs/schedule": "^12.0.2",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@sentry/nestjs": "11.12.0",
     "@thallesp/nestjs-better-auth": "^2.8.0",
     "aws4fetch": "^1.0.20",
     "better-auth": "^1.7.7",

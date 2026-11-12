@@ -24,6 +24,7 @@ import {
 import { prisma } from '../db.js';
 import { webOrigin } from '../web-origin.js';
 import { MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
+import { CHECKOUT_LIMIT, RateLimit } from '../rate-limit.js';
 import { ZodPipe } from '../zod.pipe.js';
 
 @AllowAnonymous()
@@ -31,6 +32,7 @@ import { ZodPipe } from '../zod.pipe.js';
 export class CheckoutController {
   constructor(private readonly mercadoPago: MercadoPagoProvider) {}
 
+  @RateLimit(CHECKOUT_LIMIT)
   @Post('checkout/sessions')
   @HttpCode(201)
   async create(@Body(new ZodPipe(createCheckoutSchema)) input: CreateCheckoutInput): Promise<CheckoutResponse> {

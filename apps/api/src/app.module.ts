@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { AdminController } from './admin.controller.js';
 import { BulkEmailController } from './bulk-email.controller.js';
@@ -22,7 +24,11 @@ import { StorageProvider } from './storage/storage-provider.js';
 
 @Module({
   // rawBody keeps req.rawBody for the webhook signatures (Mercado Pago, Resend). CORS is set in setup-app.ts.
-  imports: [AuthModule.forRoot({ auth, bodyParser: { rawBody: true }, disableTrustedOriginsCors: true }), ScheduleModule.forRoot()],
+  imports: [
+    SentryModule.forRoot(), // no-op until instrument.ts initialises Sentry (SENTRY_DSN)
+    AuthModule.forRoot({ auth, bodyParser: { rawBody: true }, disableTrustedOriginsCors: true }),
+    ScheduleModule.forRoot(),
+  ],
   controllers: [
     AppController,
     AdminController,
@@ -38,6 +44,9 @@ import { StorageProvider } from './storage/storage-provider.js';
     ...(useLocalStorage() ? [LocalStorageController] : []),
   ],
   providers: [
+    // Reports errors that are not HttpExceptions to Sentry, then answers like Nest's default filter.
+    // Errors swallowed by the jobs are reported where they are caught.
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
     MercadoPagoProvider,
     { provide: StorageProvider, useFactory: createStorage },
     ExpiryJob,

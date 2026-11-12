@@ -42,7 +42,9 @@ describe('Mercado Pago checkout and webhook (e2e)', () => {
   beforeEach(() => sent.mockClear());
 
   const http = () => request(app.getHttpServer());
-  const checkout = () => http().post('/checkout/sessions').send({ plan: 'exactra', period: 'ANNUAL', method: 'CARD', provider: 'MERCADO_PAGO', customer, consent: true });
+  // A different client per call: this suite creates more checkouts than the rate limit allows per IP.
+  let client = 0;
+  const checkout = () => http().post('/checkout/sessions').set('X-Forwarded-For', `198.51.100.${++client}`).send({ plan: 'exactra', period: 'ANNUAL', method: 'CARD', provider: 'MERCADO_PAGO', customer, consent: true });
   const webhook = (id: string, valid = true, ts = String(Date.now())) => {
     const requestId = 'request-1';
     const hash = createHmac('sha256', secret).update(`id:${id};request-id:${requestId};ts:${ts};`).digest('hex');
