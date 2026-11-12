@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Check, MessageCircle } from "lucide-react";
-import { CURRENT_PLAN, estimateRegimes, monthlyEquivalentCents, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
+import { CURRENT_PLAN, estimateRegimes, monthlyEquivalentCents, SIMULATOR_SHOWS_ESTIMATE, type SimulatorAnswers, type SimulatorResult } from "@exactra/shared";
 import { simulatorCopy } from "@/config/simulator";
 import { whatsappLink } from "@/config/site";
 import { formatBRL } from "@/lib/format";
@@ -12,7 +12,42 @@ const copy = simulatorCopy.result;
 
 type Props = { answers: SimulatorAnswers; result: SimulatorResult; lead?: { id: string; firstName: string } };
 
-export function ResultView({ answers, result, lead }: Props) {
+export function ResultView(props: Props) {
+  return SIMULATOR_SHOWS_ESTIMATE ? <EstimateView {...props} /> : <PrelaunchView lead={props.lead} />;
+}
+
+/** Pre-launch mode (decision 44): no tax values; a person gets in touch, and the plan is one click away. */
+function PrelaunchView({ lead }: Pick<Props, "lead">) {
+  const pre = simulatorCopy.prelaunch;
+  const plan = CURRENT_PLAN;
+  const checkoutHref = `/checkout?plan=${plan.id}${lead ? `&lead=${lead.id}` : ""}`;
+  return (
+    <div className="grid gap-[30px] lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div>
+        <h3 className="font-serif text-[1.4rem] leading-[1.2] font-semibold md:text-[1.7rem]">{pre.resultTitle(lead?.firstName ?? "")}</h3>
+        <p className="mt-3 max-w-[56ch] text-muted">{pre.resultText}</p>
+        <a href={whatsappLink(pre.whatsappMessage)} target="_blank" rel="noopener" className="btn btn-primary mt-[22px]">
+          <MessageCircle size={18} aria-hidden="true" />
+          {pre.whatsapp}
+        </a>
+      </div>
+      <div className="rounded-[18px] bg-navy p-[26px] text-on-navy">
+        <p className="font-serif text-[1.4rem] font-semibold text-white">{plan.name}</p>
+        <ul className="mt-3.5 grid gap-2">
+          {plan.features.slice(0, 4).map((f) => (
+            <li key={f} className="flex gap-2.5">
+              <Check size={18} className="mt-[3px] shrink-0 text-[#7fd3a4]" aria-hidden="true" />
+              {f}
+            </li>
+          ))}
+        </ul>
+        <Link href={checkoutHref} className="btn btn-ghost-dark mt-[18px] w-full">{copy.planCta(plan.name)}</Link>
+      </div>
+    </div>
+  );
+}
+
+function EstimateView({ answers, result, lead }: Props) {
   // Bars grow from zero once mounted: the one motion that shows the comparison.
   const [grown, setGrown] = useState(false);
   useEffect(() => {

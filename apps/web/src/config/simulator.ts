@@ -144,4 +144,17 @@ export const simulatorCopy = {
     reviewWhatsapp: "Olá! Fiz a simulação no site e queria revisar o resultado com um contador.",
     restart: "Refazer simulação",
   },
+  /** Pre-launch mode (SIMULATOR_SHOWS_ESTIMATE = false): no tax values, a person gets in touch. */
+  prelaunch: {
+    title: "Diagnóstico gratuito do seu CNPJ",
+    finish: "Continuar",
+    gateTitle: "Falta só o seu contato",
+    gateText: "Um contador da Exactra analisa as suas respostas e fala com você pelo WhatsApp, sem compromisso.",
+    submit: "Quero falar com um contador",
+    resultTitle: (name: string) => (name ? `Pronto, ${name}!` : "Pronto!"),
+    resultText: "Recebemos as suas respostas. Um contador da Exactra vai falar com você pelo WhatsApp para mostrar o melhor regime e quanto você pagaria de imposto.",
+    whatsapp: "Falar agora pelo WhatsApp",
+    whatsappMessage: "Olá! Fiz o diagnóstico no site e queria falar com um contador.",
+    restart: "Refazer o diagnóstico",
+  },
 };

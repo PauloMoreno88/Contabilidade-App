@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import * as Sentry from '@sentry/nestjs';
 import {
   renderDocumentsOpenEmail,
   renderDocumentsReminderEmail,
@@ -148,6 +149,7 @@ export class PortalJob {
         filesDeleted++;
       } catch (err) {
         this.log.error(`Retention: could not delete file ${f.id}`, err as Error); // retried next day
+        Sentry.captureException(err);
       }
     }
     await prisma.documentRequest.deleteMany({ where: { competence: { lt: keepFrom } } });

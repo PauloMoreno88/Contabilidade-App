@@ -30,7 +30,7 @@ services:
     # Migrations antes de cada deploy. Prisma usa DIRECT_URL (conexão direta do Neon, sem -pooler).
     # Binário local em vez de `pnpm --filter api db:deploy`: não depende do pnpm do runtime.
     preDeployCommand: cd apps/api && ./node_modules/.bin/prisma migrate deploy
-    startCommand: node apps/api/dist/main.mjs
+    startCommand: node --import ./apps/api/dist/instrument.mjs apps/api/dist/main.mjs # Sentry antes de tudo
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -77,6 +77,10 @@ services:
         sync: false
       - key: R2_BUCKET
         sync: false
+      - key: SENTRY_DSN # vazio = sem rastreio de erros
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: staging
 
   # ---------------------------------------------------------------- Site (Next.js, export estático)
   - type: web
@@ -108,6 +112,8 @@ services:
         value: "true"
       - key: NEXT_PUBLIC_USE_MOCK
         value: "false"
+      - key: NEXT_PUBLIC_SENTRY_DSN # vazio = sem rastreio de erros
+        sync: false
     # Ambiente de testes: fora dos buscadores.
     headers:
       - path: /*

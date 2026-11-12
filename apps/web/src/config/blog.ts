@@ -40,14 +40,14 @@ export const blogCopy = {
   related: "Continue lendo",
   backToBlog: "Ver todos os artigos",
   cta: {
-    title: "Quer saber quanto você pagaria de imposto?",
-    text: "Responda 5 perguntas e veja, em 1 minuto, quanto pagaria em cada regime e quanto sobra por mês.",
-    simulate: { href: "/#simulador", label: "Fazer a simulação grátis" },
+    title: "Quer saber qual regime é melhor para você?",
+    text: "Responda 5 perguntas em 1 minuto e um contador mostra o melhor regime para o seu caso.",
+    simulate: { href: "/#simulador", label: "Fazer o diagnóstico grátis" },
     whatsapp: "Falar com um contador",
   },
   inlineCta: {
-    title: "Simule o seu caso",
-    text: "Veja quanto você pagaria de imposto em cada regime, grátis e sem compromisso.",
-    label: "Simular agora",
+    title: "Diagnóstico grátis do seu caso",
+    text: "Um contador analisa as suas respostas e mostra o melhor regime, grátis e sem compromisso.",
+    label: "Fazer o diagnóstico",
   },
 };

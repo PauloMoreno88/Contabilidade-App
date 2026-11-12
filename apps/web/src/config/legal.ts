@@ -1,7 +1,6 @@
 /**
- * DRAFT legal texts. Not reviewed by a lawyer: everything here must be
- * validated before launch. Bracketed items ([...]) are PLACEHOLDERS for
- * data Exactra still has to provide.
+ * Legal texts (terms and privacy), reviewed by Exactra's lawyer and published
+ * as they are on 12/11/2026 (docs/plano.md, decision 44).
  */
 import { company as exactra, contact } from "./site";
 
@@ -9,7 +8,6 @@ export type LegalSection = { title: string; paragraphs?: string[]; items?: strin
 export type LegalDoc = { title: string; updatedAt: string; intro: string; sections: LegalSection[] };
 
 export const legalCopy = {
-  draftNotice: "Rascunho, sujeito a revisão jurídica. Este texto ainda não tem validade e pode mudar antes do lançamento.",
   updatedLabel: "Última atualização",
   otherDoc: { privacy: { href: "/termos", label: "Ler os termos de uso" }, terms: { href: "/privacidade", label: "Ler a política de privacidade" } },
 };

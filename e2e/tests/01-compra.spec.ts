@@ -28,25 +28,25 @@ test.describe(FLOW, () => {
     await expect(sim.getByRole("button", { name: /^Nenhum/ })).toHaveAttribute("aria-pressed", "true");
     await sim.getByRole("button", { name: "Continuar" }).click();
     await sim.getByRole("button", { name: /Simples Nacional/ }).click();
-    await sim.getByRole("button", { name: "Ver meu resultado" }).click();
+    await sim.getByRole("button", { name: "Continuar" }).click();
 
-    // Gate: values hidden until the lead is sent; errors without consent.
-    await expect(sim).toContainText("Sua estimativa está pronta");
-    await sim.getByRole("button", { name: "Ver meu resultado" }).click();
+    // Gate (pre-launch mode, decision 44): contact first; errors without consent.
+    await expect(sim).toContainText("Falta só o seu contato");
+    await sim.getByRole("button", { name: "Quero falar com um contador" }).click();
     await expect(sim).toContainText("Informe seu nome.");
     await expect(sim).toContainText("Precisamos do seu consentimento para continuar.");
     await sim.getByLabel("Nome").fill(name);
     await sim.getByLabel("WhatsApp").fill("119");
     await sim.locator('input[name="consent"]').check();
-    await sim.getByRole("button", { name: "Ver meu resultado" }).click();
+    await sim.getByRole("button", { name: "Quero falar com um contador" }).click();
     await expect(sim).toContainText("Informe um WhatsApp com DDD.");
     await sim.getByLabel("WhatsApp").fill("(11) 98765-4321");
     await sim.getByLabel("E-mail (opcional)").fill(email);
-    await sim.getByRole("button", { name: "Ver meu resultado" }).click();
+    await sim.getByRole("button", { name: "Quero falar com um contador" }).click();
 
-    await expect(sim).toContainText("E2E, este é o seu cenário");
-    await expect(sim).toContainText("melhor opção");
-    await expect(sim).toContainText("Quanto sobra por mês, já pagando a Exactra");
+    // No tax values in pre-launch mode.
+    await expect(sim).toContainText("Pronto, E2E!");
+    await expect(sim).not.toContainText("Imposto estimado");
     await expect(sim).toContainText("Esta é uma estimativa");
 
     await sim.getByRole("link", { name: "Contratar o Plano Exactra" }).click();

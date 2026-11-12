@@ -1,0 +1,142 @@
+# Render Blueprint — PRODUÇÃO (docs/specs/lancamento-producao.md, REQ-005; passo a passo em docs/lancamento-producao.md).
+# Arquivo separado do render.yaml (staging): o Blueprint de produção é criado no workspace da Exactra,
+# apontando para este arquivo em "Blueprint Path", e não cria nada na conta do staging.
+# Nenhum segredo aqui: segredos usam `sync: false` (o Render pede o valor ao criar) ou `generateValue`.
+# Build e pnpm: mesmas regras do render.yaml (ver o cabeçalho de lá).
+
+services:
+  # ---------------------------------------------------------------- API (NestJS)
+  - type: web
+    name: exactra-api
+    runtime: node
+    plan: 0.5c-512mb # Starter (0,5 CPU / 512 MB). Subir para Standard se a memória passar de ~70%
+    region: virginia # o Neon de produção fica em us-east-1, na mesma região
+    branch: master
+    autoDeployTrigger: commit
+    # Uma instância só: os jobs diários e o rate limit ficam em memória. Não ligar autoscale.
+    numInstances: 1
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .node-version
+    buildCommand: npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build
+    preDeployCommand: cd apps/api && ./node_modules/.bin/prisma migrate deploy
+    startCommand: node --import ./apps/api/dist/instrument.mjs apps/api/dist/main.mjs # Sentry antes de tudo
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Cobrança real desligada até o dia do lançamento (docs/lancamento-producao.md).
+      - key: CHECKOUT_ENABLED
+        value: "false"
+      - key: MERCADO_PAGO_MODE
+        value: live
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL # Neon de produção, conexão POOLED (host com -pooler)
+        sync: false
+      - key: DIRECT_URL # Neon de produção, conexão DIRETA (migrations)
+        sync: false
+      - key: BETTER_AUTH_URL # https://api.exactracontabilidade.com.br (antes do DNS: a URL onrender.com)
+        sync: false
+      - key: AUTH_COOKIE_DOMAIN # .exactracontabilidade.com.br (vazio enquanto usar *.onrender.com)
+        sync: false
+      - key: WEB_ORIGIN # https://www.exactracontabilidade.com.br,https://exactracontabilidade.com.br
+        sync: false
+      - key: MERCADO_PAGO_ACCESS_TOKEN # credencial de PRODUÇÃO da conta da Exactra
+        sync: false
+      - key: MERCADO_PAGO_WEBHOOK_SECRET # assinatura secreta das notificações de produção
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_REPLY_TO
+        sync: false
+      - key: ADMIN_NOTIFY_EMAIL
+        sync: false
+      - key: EMAIL_ASSET_BASE_URL # https://www.exactracontabilidade.com.br
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: SENTRY_DSN # vazio = sem rastreio de erros
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production
+
+  # ---------------------------------------------------------------- Site (Next.js, export estático)
+  - type: web
+    name: exactra-web
+    runtime: static
+    branch: master
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/shared/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .node-version
+    buildCommand: npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "web..." build
+    staticPublishPath: apps/web/out
+    # NEXT_PUBLIC_* entram no build: mudou o valor, faça um novo deploy do site.
+    envVars:
+      - key: NEXT_PUBLIC_APP_ENV # production: sem faixa de testes e sem noindex
+        value: production
+      - key: NEXT_PUBLIC_SITE_URL # https://www.exactracontabilidade.com.br
+        sync: false
+      - key: NEXT_PUBLIC_API_URL # https://api.exactracontabilidade.com.br (antes do DNS: a URL onrender.com)
+        sync: false
+      - key: NEXT_PUBLIC_CHECKOUT_ENABLED # true só no ensaio a R$ 10 e a partir do lançamento
+        value: "false"
+      - key: NEXT_PUBLIC_USE_MOCK
+        value: "false"
+      - key: NEXT_PUBLIC_SENTRY_DSN # vazio = sem rastreio de erros
+        sync: false
+    # Sem X-Robots-Tag: produção aparece nos buscadores.
+    # O export do Next gera /admin.html etc.: serve as URLs sem extensão (mesma lista do render.yaml).
+    routes:
+      - { type: rewrite, source: /admin, destination: /admin.html }
+      - { type: rewrite, source: /admin/checklist, destination: /admin/checklist.html }
+      - { type: rewrite, source: /admin/cliente, destination: /admin/cliente.html }
+      - { type: rewrite, source: /admin/clientes, destination: /admin/clientes.html }
+      - { type: rewrite, source: /admin/contrato, destination: /admin/contrato.html }
+      - { type: rewrite, source: /admin/emails, destination: /admin/emails.html }
+      - { type: rewrite, source: /admin/emails/envio, destination: /admin/emails/envio.html }
+      - { type: rewrite, source: /admin/emails/historico, destination: /admin/emails/historico.html }
+      - { type: rewrite, source: /admin/esqueci-senha, destination: /admin/esqueci-senha.html }
+      - { type: rewrite, source: /admin/guias/nova, destination: /admin/guias/nova.html }
+      - { type: rewrite, source: /admin/leads, destination: /admin/leads.html }
+      - { type: rewrite, source: /admin/login, destination: /admin/login.html }
+      - { type: rewrite, source: /admin/mes, destination: /admin/mes.html }
+      - { type: rewrite, source: /admin/redefinir-senha, destination: /admin/redefinir-senha.html }
+      - { type: rewrite, source: /admin/seguranca, destination: /admin/seguranca.html }
+      - { type: rewrite, source: /app, destination: /app.html }
+      - { type: rewrite, source: /app/boas-vindas, destination: /app/boas-vindas.html }
+      - { type: rewrite, source: /app/documentos, destination: /app/documentos.html }
+      - { type: rewrite, source: /app/empresa, destination: /app/empresa.html }
+      - { type: rewrite, source: /app/empresa/seguranca, destination: /app/empresa/seguranca.html }
+      - { type: rewrite, source: /app/guias, destination: /app/guias.html }
+      - { type: rewrite, source: /app/plano, destination: /app/plano.html }
+      - { type: rewrite, source: /blog, destination: /blog.html }
+      - { type: rewrite, source: /checkout, destination: /checkout.html }
+      - { type: rewrite, source: /checkout/status, destination: /checkout/status.html }
+      - { type: rewrite, source: /entrar, destination: /entrar.html }
+      - { type: rewrite, source: /entrar/ativar, destination: /entrar/ativar.html }
+      - { type: rewrite, source: /entrar/esqueci-senha, destination: /entrar/esqueci-senha.html }
+      - { type: rewrite, source: /entrar/redefinir-senha, destination: /entrar/redefinir-senha.html }
+      - { type: rewrite, source: /privacidade, destination: /privacidade.html }
+      - { type: rewrite, source: /termos, destination: /termos.html }
