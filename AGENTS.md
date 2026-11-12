@@ -13,7 +13,7 @@ Repositório: https://github.com/PauloMoreno88/Contabilidade-App
 
 ## 2. Estado atual (atualize esta seção quando mudar)
 
-- **Stripe removida em 11/11/2026** (branch `feat/remove-stripe`, decisão 42, `docs/specs/remover-stripe.md`): depois do teste no staging (`docs/specs/mercado-pago-e2e.md`), checkout e renovação usam só o Mercado Pago, sem escolha de provedor nem de forma de pagamento no site. Saíram `StripeProvider`, `POST /webhooks/stripe`, os eventos de assinatura mensal, o pacote `stripe` e as variáveis `STRIPE_*`. O job diário cancela checkout pendente há mais de 8 dias de qualquer provedor. O fluxo 1 do Playwright para no link do Mercado Pago (o pagamento fica na suíte assistida `pnpm --filter e2e mercado-pago`). Colunas `stripe*` continuam no banco até a migration da decisão 40.
+- **Stripe removida em 11/11/2026** (branch `feat/remove-stripe`, decisão 42, `docs/specs/remover-stripe.md`): depois do teste no staging (`docs/specs/mercado-pago-e2e.md`), checkout e renovação usam só o Mercado Pago, sem escolha de provedor nem de forma de pagamento no site. Saíram `StripeProvider`, `POST /webhooks/stripe`, os eventos de assinatura mensal, o pacote `stripe` e as variáveis `STRIPE_*`. O job diário cancela checkout pendente há mais de 8 dias de qualquer provedor. O fluxo 1 do Playwright para no link do Mercado Pago (o pagamento fica na suíte assistida `pnpm --filter e2e mercado-pago`). A migration `20261111000000_drop_stripe_columns` (decisão 40) renomeia `WebhookEvent.stripeEventId` para `eventId`, tira as colunas `stripe*` e troca o padrão de `provider` para `MERCADO_PAGO`; o valor `STRIPE` do enum fica para os contratos antigos de teste.
 
 - **Criar usuário em 10/11/2026** (branch `feat/admin-new-user-drawer`, decisão 41, `docs/specs/drawer-criar-usuario.md`): em `/admin/clientes`, drawer lateral (`components/admin/portal/NewUserDrawer.tsx`) com select Cliente ou Administrador; admin nasce com senha inicial pelo `authClient.admin.createUser`. A rota `/admin/clientes/novo` foi removida.
 
@@ -72,7 +72,7 @@ docs/           plano.md, perguntas-contador.md, prompt.md, roadmap-entrega.html
 - **Nunca** armazenar dado de cartão. O Checkout Pro hospedado do Mercado Pago cuida disso.
 - **Nunca** inventar regra fiscal ou preço real. Tudo que depender do contador é `PLACEHOLDER`, concentrado em `packages/shared` (`plans.config.ts` e regras do simulador). Perguntas pendentes: `docs/perguntas-contador.md`.
 - O simulador sempre mostra: "Esta é uma estimativa. O enquadramento tributário definitivo depende da análise do contador."
-- Contrato só ativa por **webhook verificado** do provedor escolhido. Nunca pela página de sucesso do front. Webhooks são **idempotentes** (tabela `WebhookEvent`; IDs do Mercado Pago usam prefixo `mp:` no campo único atual).
+- Contrato só ativa por **webhook verificado** do provedor escolhido. Nunca pela página de sucesso do front. Webhooks são **idempotentes** (tabela `WebhookEvent`; chave única `eventId`, com prefixo `mp:` no Mercado Pago).
 - Boleto é assíncrono (1–3 dias úteis): contrato nasce `PENDING_PAYMENT`.
 - Status do contrato: `PENDING_PAYMENT → ACTIVE → PAST_DUE | CANCELED | EXPIRED`.
 - Contratos pré-pagos (todos os novos, anuais) não renovam sozinhos: um job diário avisa o vencimento e marca contratos vencidos.

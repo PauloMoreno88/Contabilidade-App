@@ -171,7 +171,7 @@ Fontes: [preferências e parcelas](https://www.mercadopago.com.br/developers/en/
 
 Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`), implementada por `MercadoPagoProvider`. O pagamento verificado vira um evento neutro (`prepaid.paid`, `payment.reversed` ou `payment.attention`), e `src/contracts/contract-lifecycle.ts` aplica: `PENDING_PAYMENT → ACTIVE` com `endsAt = início + 12 meses` (renovação começa quando o contrato atual termina) ou `→ CANCELED` no reembolso total e no chargeback.
 
-O `WebhookEvent` guarda a chave do evento na coluna `stripeEventId` (com prefixo `mp:`); a coluna e as outras `stripe*` saem na migration da decisão 40, antes do primeiro deploy de produção.
+O `WebhookEvent` guarda a chave do evento em `eventId` (prefixo `mp:`), única. A migration `20261111000000_drop_stripe_columns` (decisão 40) renomeou a antiga `stripeEventId`, tirou as colunas `stripe*` e trocou o padrão de `provider` para `MERCADO_PAGO`; o valor `STRIPE` do enum fica só para os contratos antigos de teste do staging.
 
 ## E-mails (Resend) e job diário
 
@@ -215,7 +215,6 @@ Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, qu
 - [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
 - [ ] DNS do subdomínio `api.` apontando para o Render.
 - [ ] Mercado Pago (produção): credenciais da conta da Exactra, chave Pix cadastrada, notificação **Pagamentos** em `https://api.exactracontabilidade.com.br/webhooks/mercado-pago` (aba Produção), `MERCADO_PAGO_MODE=live` e `CHECKOUT_ENABLED=true` só depois dos preços validados. Antes de lançar: uma compra real em 12x com reembolso.
-- [ ] Migration da decisão 40 (colunas `stripe*` e padrão `STRIPE` de `provider`) antes do primeiro deploy de produção.
 - [ ] Cloudflare R2: bucket, token de API (Object Read & Write só nesse bucket) e as variáveis `R2_*`; regra de CORS do bucket liberando `PUT`, `GET` e `HEAD` para as origens do `WEB_ORIGIN`, com o header `Content-Type`.
 - [ ] Resend: domínio verificado (DNS) para o `EMAIL_FROM` de produção (`RESEND_API_KEY`, `EMAIL_FROM` e `ADMIN_NOTIFY_EMAIL` já estão no `.env` de dev).
 - [ ] `EMAIL_ASSET_BASE_URL=https://www.exactracontabilidade.com.br` em produção (o logo precisa estar publicado em `/email/logo.png`).

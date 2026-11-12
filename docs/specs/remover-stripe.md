@@ -17,9 +17,11 @@ O Mercado Pago passou nos testes do staging (11/11/2026) e substitui a Stripe. C
 - Job diário: contrato do checkout pendente há mais de 8 dias é cancelado, de qualquer provedor (os pendentes antigos da Stripe não recebem mais o evento de expiração).
 - Variáveis, `render.yaml`, textos legais (rascunho) e documentação.
 
+- Banco (decisão 40), migration `20261111000000_drop_stripe_columns`: `WebhookEvent.stripeEventId` vira `eventId`; saem `Customer.stripeCustomerId`, `Contract.stripeSessionId`, `Contract.stripeSubscriptionId`, `Payment.stripePaymentIntentId` e `Payment.stripeInvoiceId`; o padrão de `Contract.provider` passa a `MERCADO_PAGO`. O valor `STRIPE` do enum fica para os contratos antigos do staging. Só o staging perde dados (ids de pagamentos de teste da Stripe); a produção não tem nenhum checkout.
+
 ## Não escopo
 
-- Colunas `stripe*` e o padrão `STRIPE` de `provider` no banco: ficam para a migration da decisão 40, obrigatória antes do primeiro deploy de produção.
+- Tirar o valor `STRIPE` do enum (exigiria apagar ou converter os contratos antigos do staging).
 - Pagamento real, preços, Pix na conta da Exactra e 12x com cartão real.
 
 ## Requisitos
@@ -31,7 +33,8 @@ O Mercado Pago passou nos testes do staging (11/11/2026) e substitui a Stripe. C
 | REQ-S03 | Ativação, renovação e e-mails continuam iguais. | CA: os testes de notificação e da área do cliente passam ativando pelo webhook do Mercado Pago. | e2e da API |
 | REQ-S04 | Pendente abandonado é cancelado em qualquer provedor. | CA: contrato do checkout pendente há 9 dias vira `CANCELED`; contrato manual não é tocado. | e2e da API |
 | REQ-S05 | Telas sem Stripe. | CA: checkout e renovação não mostram escolha de provedor nem a palavra "Stripe"; build e testes do front passam. | build + unitários |
-| REQ-S06 | Nenhuma referência ativa à Stripe. | CA: `git grep -i stripe` só encontra histórico (migrations, docs de decisão, spec antiga) e as colunas mantidas pela decisão 40. | revisão |
+| REQ-S06 | Nenhuma referência ativa à Stripe. | CA: `git grep -i stripe` só encontra histórico (migrations, docs de decisão, spec antiga) e o valor `STRIPE` do enum. | revisão |
+| REQ-S07 | A migration deixa o banco igual ao schema. | CA: com todas as migrations aplicadas, `prisma migrate diff` contra `schema.prisma` sai vazio. | diff em PGlite |
 
 ## Rastreabilidade
 
@@ -43,5 +46,6 @@ O Mercado Pago passou nos testes do staging (11/11/2026) e substitui a Stripe. C
 | REQ-S04 | `apps/api/src/contracts/expiry.job.ts` | `test/notifications.e2e-spec.ts` ("from any provider, nothing else") |
 | REQ-S05 | `apps/web/src/components/checkout/CheckoutForm.tsx`, `components/portal/Plan.tsx`, `config/checkout.ts`, `config/env.ts`, `config/legal.ts` | `pnpm --filter web lint`, `test` e build de staging |
 | REQ-S06 | `render.yaml`, `.env.example`, docs | `git grep -i stripe` (ver resultado no PR) |
+| REQ-S07 | `apps/api/prisma/migrations/20261111000000_drop_stripe_columns`, `schema.prisma` | `prisma migrate diff --from-config-datasource --to-schema` contra PGlite com as migrations: "empty migration"; testes da API aplicam todas as migrations |
 
 Fora do código, o fluxo 1 do Playwright (`e2e/tests/01-compra.spec.ts`) passou a parar no link do Mercado Pago; ele só pode rodar no staging depois do merge.

@@ -7,7 +7,7 @@ Leia primeiro o `AGENTS.md` da raiz e o `docs/plano.md`. Este arquivo só traz o
 - Stack: NestJS, Prisma, Postgres (Neon), Better Auth, Mercado Pago, Resend.
 - O contrato (schemas zod, DTOs, planos, simulador) vem de `@exactra/shared`. Valide as entradas com esses schemas; não redefina tipos.
 - Better Auth: e-mail+senha, cadastro público desligado, plugin `admin`, 2FA e reset de senha. A integração com Nest depende de pacote da comunidade e de ajuste no body parser: **confira a documentação atual** antes de implementar.
-- Mercado Pago (Checkout Pro) atrás da interface `PaymentProvider`; a Stripe saiu em 11/11/2026. Contrato anual pago na contratação (cartão em até 12x, Pix ou boleto, escolhidos no Mercado Pago). Webhooks com assinatura verificada e idempotência (`WebhookEvent.stripeEventId` único, nome mantido até a migration da decisão 40). Contrato só ativa por webhook.
+- Mercado Pago (Checkout Pro) atrás da interface `PaymentProvider`; a Stripe saiu em 11/11/2026. Contrato anual pago na contratação (cartão em até 12x, Pix ou boleto, escolhidos no Mercado Pago). Webhooks com assinatura verificada e idempotência (`WebhookEvent.eventId` único). Contrato só ativa por webhook.
 - `CHECKOUT_ENABLED=false` por padrão. Use somente credenciais de **teste** do Mercado Pago (`MERCADO_PAGO_MODE=test`) até o contador validar preços.
 - Nunca logue nem persista dado de cartão. Nunca commite `.env`.
 - Cookies de sessão devem funcionar entre `www.` e `api.` do domínio da Exactra (cookies cross-subdomain). Em dev local, use `localhost`.

@@ -88,7 +88,7 @@ describe('Mercado Pago checkout and webhook (e2e)', () => {
     expect(contract.status).toBe('ACTIVE');
     expect(contract.provider).toBe('MERCADO_PAGO');
     expect(contract.payments).toMatchObject([{ mercadoPagoPaymentId: '123456', method: 'CARD', amountCents: totalPriceCents('exactra') }]);
-    expect(await prisma.webhookEvent.count({ where: { stripeEventId: 'mp:123456:approved' } })).toBe(1);
+    expect(await prisma.webhookEvent.count({ where: { eventId: 'mp:123456:approved' } })).toBe(1);
   });
 
   const price = totalPriceCents('exactra') / 100;

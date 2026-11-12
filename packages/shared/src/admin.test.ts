@@ -12,13 +12,13 @@ describe("admin schemas", () => {
     };
     const detail = adminContractDetailSchema.parse({
       id: "c1", customerId: "cu1", plan: "profissional", period: "MONTHLY", method: "CARD", amountCents: 39900, status: "ACTIVE",
-      statusToken: "secret", stripeSessionId: "cs_1", stripeSubscriptionId: null, expiryNoticeSentAt: null,
+      statusToken: "secret", mercadoPagoPreferenceId: "pref_1", expiryNoticeSentAt: null,
       startsAt: "2026-10-02T00:00:00.000Z", endsAt: null, createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-02T00:00:00.000Z",
       customer: {
-        id: "cu1", name: "Ana", email: "ana@x.com", phone: "21999990000", document: "12345678909", stripeCustomerId: null,
+        id: "cu1", name: "Ana", email: "ana@x.com", phone: "21999990000", document: "12345678909",
         consentAt: "2026-10-01T00:00:00.000Z", leadId: "l1", createdAt: "2026-10-01T00:00:00.000Z", lead,
       },
-      payments: [{ id: "p1", contractId: "c1", amountCents: 39900, status: "PAID", method: "CARD", stripePaymentIntentId: null, stripeInvoiceId: "in_1", paidAt: "2026-10-02T00:00:00.000Z", createdAt: "2026-10-02T00:00:00.000Z" }],
+      payments: [{ id: "p1", contractId: "c1", amountCents: 39900, status: "PAID", method: "CARD", mercadoPagoPaymentId: "123", paidAt: "2026-10-02T00:00:00.000Z", createdAt: "2026-10-02T00:00:00.000Z" }],
     });
     expect(detail).not.toHaveProperty("statusToken");
     expect(detail.customer.lead?.answers.monthlyRevenue).toBe(15_000);

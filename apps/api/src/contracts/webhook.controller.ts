@@ -34,11 +34,11 @@ export class WebhookController {
   private async process(hook: VerifiedWebhook) {
     const { apply, alert } = hook.event ? await this.review(hook.event) : { apply: false, alert: null };
     // Recording the event and applying it share one transaction: a duplicate delivery skips on the
-    // unique event id (column stripeEventId until the decision 40 migration) and changes nothing;
+    // unique eventId and changes nothing;
     // a failure rolls back so Mercado Pago retries.
     const result = await prisma.$transaction(async (tx) => {
       const { count } = await tx.webhookEvent.createMany({
-        data: { stripeEventId: hook.id, type: hook.type, payload: hook.payload as Prisma.InputJsonObject },
+        data: { eventId: hook.id, type: hook.type, payload: hook.payload as Prisma.InputJsonObject },
         skipDuplicates: true,
       });
       if (count === 0) return { duplicate: true, activated: null };
