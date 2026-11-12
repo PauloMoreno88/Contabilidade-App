@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "staging": "playwright test",
+    "mercado-pago": "playwright test --config mercado-pago.config.ts",
     "report": "playwright show-report",
     "emails": "node lib/print-emails.mjs",
     "platform-videos": "node platform-videos.mjs"

@@ -52,3 +52,26 @@ Os testes rodam em série (um navegador por vez): os fluxos usam a mesma conta d
 ## Vídeos da plataforma na landing
 
 `pnpm --filter e2e platform-videos` regrava os 5 vídeos de `apps/web/public/video/plataforma`, em formato de celular e de computador e em velocidade 1.5x, usando o modo mock do front (empresa fictícia, sem dado real). Precisa do ffmpeg com libx264 e do front rodando na porta 3100: os comandos estão no início de `platform-videos.mjs`. Para gravar um fluxo: `pnpm --filter e2e platform-videos guias`. Em um só formato: `pnpm --filter e2e platform-videos desktop guias`.
+
+## Pagamentos no Mercado Pago (teste)
+
+`pnpm --filter e2e mercado-pago` cria checkouts reais no staging com as credenciais de **teste** e confere o que a API faz com cada pagamento. Roda separado dos fluxos, porque precisa de uma pessoa: o Mercado Pago bloqueia navegador automatizado, então o pagamento é feito à mão.
+
+Antes, preencha no `e2e/.env` `E2E_MP_ACCESS_TOKEN` e `E2E_MP_WEBHOOK_SECRET` com as credenciais de teste (as mesmas do Render). O teste para se o token não for de usuário de teste.
+
+O Mercado Pago notifica os pagamentos de teste (conferido em 11/11/2026), mas o teste também envia cada notificação, assinada com o segredo da aplicação, para não depender do tempo de entrega. Notificação repetida não muda nada, e a API sempre lê o pagamento real no Mercado Pago. A entrega pelo Mercado Pago se confere pela simulação do painel (Webhooks, modo de teste): resposta 500 para o id fictício `123456` mostra que a URL e o segredo estão certos.
+
+Durante a rodada, o terminal mostra cada link e o que fazer (também salvo em `results/mercado-pago.txt`). Abra o link numa janela anônima, entre com o **comprador de teste** e siga os passos. O teste espera até 15 minutos por pagamento.
+
+| Cenário | Quem faz o quê | O que o teste confere |
+|---|---|---|
+| Assinatura inválida | automático | webhook responde 400 |
+| Cartão recusado e nova tentativa em 12x | você paga (titular `OTHE`, depois `APRO`) | recusa não ativa; aprovado ativa; `transaction_amount` é o preço sem juros. O cartão de teste só oferece 1x: o 12x fica para o teste com cartão real |
+| Notificação repetida | automático | resposta `duplicate`, nada muda |
+| Reembolso parcial | você devolve R$ 1 no painel do vendedor de teste (a API recusa reembolso com credenciais de teste) | contrato continua ativo; alerta à equipe |
+| Reembolso total | você devolve o restante no painel do vendedor de teste | contrato cancelado; alerta à equipe |
+| Pix e boleto gerados | você gera, sem pagar | pagamento `pending`, contrato pendente |
+
+O Pix não aparece no checkout de teste (o vendedor de teste não tem chave Pix); para rodar só o resto: `pnpm --filter e2e mercado-pago -g "assinatura|cartão|repetida|reembolso|boleto"`.
+
+Ficam para o teste manual: chargeback e disputa (o Mercado Pago de teste não simula), Pix ou boleto pagos, expiração do link e cancelamento pelo job (dependem de datas) e a renovação pela área do cliente.
