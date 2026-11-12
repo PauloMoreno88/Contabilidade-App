@@ -37,8 +37,9 @@ Deixar o código e a documentação prontos para subir site, área do cliente e 
 
 ## Premissas e questões abertas
 - O texto atual de termos e privacidade é o final (resposta de 12/11/2026); basta tirar o aviso de rascunho.
-- **Aberto:** com `PRICES_ARE_PLACEHOLDER = true`, o checkout mostra "Valores de exemplo, ainda em validação.". Com cobrança real ligada, isso precisa sair ou mudar (decidir antes da onda 5).
-- **Aberto:** a decisão D1 original mantinha o checkout desligado no pré-lançamento. Confirmar se a cobrança liga no lançamento mesmo com o simulador em pré-lançamento.
+- O aviso "Valores de exemplo, ainda em validação." continua no checkout até a troca do preço (`PRICES_ARE_PLACEHOLDER` vira `false` junto com o REQ-008). Decidido por Paulo em 12/11/2026.
+- A cobrança liga no lançamento mesmo com o simulador em pré-lançamento (diferente da D1 original). Decidido por Paulo em 12/11/2026.
+- Os termos continuam citando a estimativa do simulador: mantido como está, por decisão de Paulo em 12/11/2026.
 - O Mercado Pago tem valor mínimo por parcela; com R$ 10 o parcelado deve oferecer 1 ou 2 parcelas. O teste em 12x com o valor cheio fica fora do ensaio, a critério da Exactra (juros pagos pelo comprador).
 - Para o ensaio, o webhook de produção do Mercado Pago aponta temporariamente para a URL `onrender.com` da API. A preferência não envia `notification_url`; vale a URL do painel.
 - No ensaio o site roda em `*.onrender.com`, então `AUTH_COOKIE_DOMAIN` fica vazio e `WEB_ORIGIN` precisa incluir essa URL. Depois da virada, os dois mudam para o domínio final.
@@ -88,7 +89,7 @@ Revisão independente por subagente em 12/11/2026, sobre o diff da `feat/launch-
 | Erros engolidos pelos jobs não chegavam ao Sentry | `captureException` nos `catch` de `expiry.job.ts` e `portal.job.ts`; comentário do filtro corrigido. 5xx de `HttpException` (ex.: `/health/db`) ficam com o monitor de uptime. |
 | Mensagens de erro podiam levar e-mail, CPF ou CNPJ | `scrubEvent` remove `extra` e contextos extras e mascara e-mail e números de 11 a 14 dígitos (teste). |
 | Boleto de R$ 10 podia ativar depois do revert | Passo a passo espera a compensação e confere que nada ficou ativo. |
-| Termos ainda falam da estimativa do simulador | Levado ao usuário: o texto foi dado como final. |
+| Termos ainda falam da estimativa do simulador | Mantido por decisão do usuário (12/11/2026). |
 | Promessa de valor no blog | Título do CTA trocado; rótulos "Simular" mantidos. |
 | Documentação desalinhada | Roadmap atualizado e ordem DNS → webhooks igual ao passo a passo. |
 
