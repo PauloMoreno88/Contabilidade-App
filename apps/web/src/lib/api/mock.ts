@@ -15,7 +15,7 @@ import { mockPortalApi } from "./mock-portal";
 /**
  * In-browser stand-in for apps/api, enabled with NEXT_PUBLIC_USE_MOCK=true.
  * Validates input with the same zod schemas the API uses. Contracts live in
- * sessionStorage so the status page can read them after the fake "Stripe" redirect.
+ * sessionStorage so the status page can read them after the fake Mercado Pago redirect.
  */
 
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
@@ -24,9 +24,8 @@ const id = (prefix: string) => `${prefix}_${Math.random().toString(36).slice(2, 
 type MockContract = { input: CreateCheckoutInput; token: string; polls: number };
 const contractKey = (contractId: string) => `mock-contract:${contractId}`;
 
-/** Fake webhook: card and Pix confirm after a couple of polls; boleto stays pending. */
+/** Fake webhook: confirms after a couple of polls. */
 function mockStatus(c: MockContract): ContractStatus {
-  if (c.input.method === "BOLETO") return "PENDING_PAYMENT";
   return c.polls >= 2 ? "ACTIVE" : "PENDING_PAYMENT";
 }
 
@@ -43,7 +42,7 @@ const baseMockApi = {
     const contractId = id("ctr");
     const token = id("tok");
     sessionStorage.setItem(contractKey(contractId), JSON.stringify({ input, token, polls: 0 } satisfies MockContract));
-    // The real API returns the Stripe Checkout URL; Stripe then redirects to this same status page.
+    // The real API returns the Mercado Pago link, which then redirects to this same status page.
     const checkoutUrl = `${window.location.origin}/checkout/status?contract=${contractId}&token=${token}`;
     return { contractId, checkoutUrl, statusToken: token };
   },
@@ -56,7 +55,7 @@ const baseMockApi = {
     c.polls++;
     sessionStorage.setItem(contractKey(contractId), JSON.stringify(c));
     const { plan, period, method } = c.input;
-    return { contractId, status: mockStatus(c), plan, period, method, provider: c.input.provider };
+    return { contractId, status: mockStatus(c), plan, period, method, provider: "MERCADO_PAGO" as const };
   },
 
   async adminMetrics() {

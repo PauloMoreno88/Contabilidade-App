@@ -9,7 +9,6 @@
     "start": "node --env-file-if-exists=.env dist/main.mjs",
     "start:dev": "tsdown --watch --on-success \"node --env-file-if-exists=.env dist/main.mjs\"",
     "seed": "node --env-file-if-exists=.env dist/seed.mjs",
-    "stripe:flow": "node scripts/checkout-flow.mjs",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "lint": "tsc --noEmit && oxlint --type-aware src/ test/",
@@ -35,7 +34,6 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^6.32.0",
     "rxjs": "^7.8.1",
-    "stripe": "^23.0.0",
     "unpdf": "^1.9.1",
     "zod": "^3.25.76"
   },

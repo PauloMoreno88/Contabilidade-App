@@ -8,9 +8,8 @@ import { MERCADO_PAGO_PENDING_DAYS } from '../payments/mercado-pago.provider.js'
 export const EXPIRY_NOTICE_DAYS = 7;
 
 /**
- * Daily job for prepaid contracts (every contract since decision 22, plus legacy Pix/boleto),
- * which do not renew by themselves: warns EXPIRY_NOTICE_DAYS before the end and marks
- * ended contracts as EXPIRED. Legacy card subscriptions are handled by Stripe webhooks.
+ * Daily job for the one-year prepaid contracts, which do not renew by themselves: warns
+ * EXPIRY_NOTICE_DAYS before the end, marks ended contracts as EXPIRED and cancels abandoned checkouts.
  */
 @Injectable()
 export class ExpiryJob {
@@ -24,7 +23,7 @@ export class ExpiryJob {
   }
 
   async run(now = new Date()) {
-    const prepaid = { stripeSubscriptionId: null, status: 'ACTIVE' } satisfies Prisma.ContractWhereInput;
+    const prepaid = { status: 'ACTIVE' } satisfies Prisma.ContractWhereInput;
 
     const { count: expired } = await prisma.contract.updateMany({
       where: { ...prepaid, endsAt: { lte: now } },
@@ -49,8 +48,9 @@ export class ExpiryJob {
     }
 
     // Mercado Pago has no "checkout expired" event. A payment that still arrives later warns the team (webhook.controller.ts).
+    // Any provider: old Stripe test checkouts left pending no longer get Stripe's expiry event.
     const { count: abandoned } = await prisma.contract.updateMany({
-      where: { provider: 'MERCADO_PAGO', status: 'PENDING_PAYMENT', createdAt: { lte: new Date(now.getTime() - MERCADO_PAGO_PENDING_DAYS * 86400_000) } },
+      where: { source: 'CHECKOUT', status: 'PENDING_PAYMENT', createdAt: { lte: new Date(now.getTime() - MERCADO_PAGO_PENDING_DAYS * 86400_000) } },
       data: { status: 'CANCELED' },
     });
     return { expired, notified, abandoned };

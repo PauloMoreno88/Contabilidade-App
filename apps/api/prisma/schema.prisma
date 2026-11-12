@@ -155,6 +155,7 @@ enum PaymentMethod {
 }
 
 enum PaymentProviderId {
+  /// Only on old staging test contracts (decision 42).
   STRIPE
   MERCADO_PAGO
 }
@@ -200,7 +201,6 @@ model Customer {
   email            String
   phone            String
   document         String
-  stripeCustomerId String?
   consentAt        DateTime
   leadId           String?
   lead             Lead?             @relation(fields: [leadId], references: [id])
@@ -221,7 +221,6 @@ model Customer {
   notifications    NotificationLog[]
 
   @@index([email])
-  @@index([stripeCustomerId])
 }
 
 model Contract {
@@ -231,16 +230,14 @@ model Contract {
   plan                 PlanId
   period               BillingPeriod
   method               PaymentMethod
-  provider             PaymentProviderId @default(STRIPE)
+  provider             PaymentProviderId @default(MERCADO_PAGO)
   amountCents          Int
   status               ContractStatus @default(PENDING_PAYMENT)
   source               ContractSource @default(CHECKOUT)
   statusToken          String         @unique
   startsAt             DateTime?
   endsAt               DateTime?
-  stripeSessionId      String?        @unique
   mercadoPagoPreferenceId String?      @unique
-  stripeSubscriptionId String?        @unique
   expiryNoticeSentAt   DateTime?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
@@ -257,9 +254,7 @@ model Payment {
   amountCents           Int
   status                PaymentStatus
   method                PaymentMethod
-  stripePaymentIntentId String?
   mercadoPagoPaymentId   String?       @unique
-  stripeInvoiceId       String?       @unique
   paidAt                DateTime?
   createdAt             DateTime      @default(now())
 
@@ -268,7 +263,7 @@ model Payment {
 
 model WebhookEvent {
   id            String   @id @default(cuid())
-  stripeEventId String   @unique
+  eventId       String   @unique
   type          String
   payload       Json
   processedAt   DateTime @default(now())

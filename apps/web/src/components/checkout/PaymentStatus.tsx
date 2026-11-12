@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { CURRENT_PLAN, planInfo, type ContractStatusResponse } from "@exactra/shared";
-import { methodLabels, periodLabels, providerLabels, statusCopy as copy } from "@/config/checkout";
+import { MERCADO_PAGO, methodLabels, periodLabels, statusCopy as copy } from "@/config/checkout";
 import { onboarding, whatsappLink } from "@/config/site";
 import { api } from "@/lib/api";
 
@@ -59,7 +59,7 @@ export function PaymentStatus() {
     );
   }
 
-  const summary = copy.summary(planInfo(data.plan).name, periodLabels[data.period], data.provider === "MERCADO_PAGO" && data.status === "PENDING_PAYMENT" ? providerLabels.MERCADO_PAGO.label : methodLabels[data.method].label);
+  const summary = copy.summary(planInfo(data.plan).name, periodLabels[data.period], data.provider === "MERCADO_PAGO" && data.status === "PENDING_PAYMENT" ? MERCADO_PAGO : methodLabels[data.method].label);
 
   if (data.status === "ACTIVE") {
     return (

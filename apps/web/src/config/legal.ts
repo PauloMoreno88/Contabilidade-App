@@ -18,7 +18,7 @@ const company = `${exactra.legalName}, CNPJ ${exactra.cnpj}, com sede na ${conta
 
 export const privacyPolicy: LegalDoc = {
   title: "Política de privacidade",
-  updatedAt: "24/10/2026",
+  updatedAt: "11/11/2026",
   intro: `Esta política explica quais dados pessoais a Exactra Contabilidade (${company}) coleta no site, para que usa e quais são os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).`,
   sections: [
     {
@@ -26,7 +26,7 @@ export const privacyPolicy: LegalDoc = {
       items: [
         "No simulador: nome, WhatsApp, e-mail (opcional) e as respostas sobre o seu negócio, como perfil, faturamento estimado e número de funcionários.",
         "Na contratação: nome completo, e-mail, telefone e CPF ou CNPJ.",
-        "Dados de pagamento, como número do cartão, são informados direto no ambiente da Stripe ou do Mercado Pago. A Exactra não recebe nem guarda esses dados.",
+        "Dados de pagamento, como número do cartão, são informados direto no ambiente do Mercado Pago. A Exactra não recebe nem guarda esses dados.",
         "Dados de navegação: origem da visita (parâmetros de campanha, como utm_source) e registros técnicos de acesso.",
       ],
     },
@@ -49,8 +49,7 @@ export const privacyPolicy: LegalDoc = {
       title: "Com quem compartilhamos",
       paragraphs: ["Compartilhamos dados só com empresas que nos ajudam a operar o serviço, e só o necessário:"],
       items: [
-        "Stripe: processamento de pagamentos (cartão, Pix e boleto).",
-        "Mercado Pago: processamento de pagamentos escolhidos nesse ambiente.",
+        "Mercado Pago: processamento de pagamentos (cartão, Pix e boleto).",
         "Resend: envio de e-mails.",
         "Render e Neon: hospedagem do site e do banco de dados.",
         "Autoridades públicas, quando a lei exigir.",

@@ -3,26 +3,19 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { FlaskConical, Info, ShieldCheck } from "lucide-react";
+import { Info, ShieldCheck } from "lucide-react";
 import {
   CONTRACT_PERIOD,
-  CHECKOUT_PAYMENT_METHODS,
   createCheckoutSchema,
   CURRENT_PLAN,
-  installmentCents,
   normalizeTaxId,
-  PAYMENT_PROVIDERS,
   PRICES_ARE_PLACEHOLDER,
   totalPriceCents,
-  type CheckoutPaymentMethod,
-  type PaymentProviderId,
 } from "@exactra/shared";
-import { CHECKOUT_ENABLED, checkoutCopy as copy, methodLabels, providerLabels } from "@/config/checkout";
-import { IS_STAGING, stagingCopy } from "@/config/env";
+import { CHECKOUT_ENABLED, checkoutCopy as copy, MERCADO_PAGO } from "@/config/checkout";
 import { whatsappLink } from "@/config/site";
 import { api } from "@/lib/api";
 import { formatBRL, formatBRLExact } from "@/lib/format";
-import { ChoiceGroup } from "./ChoiceGroup";
 
 type Field = keyof typeof copy.errors;
 
@@ -33,14 +26,11 @@ export function CheckoutForm() {
 
   // A single plan on sale (docs/plano.md, decision 20); ?plan= in old links is ignored.
   const plan = CURRENT_PLAN;
-  const [method, setMethod] = useState<CheckoutPaymentMethod>("CARD");
-  const [provider, setProvider] = useState<PaymentProviderId>("STRIPE");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [sending, setSending] = useState(false);
 
   // One-year contract paid upfront (docs/plano.md, decision 22): the price is the same for every method.
   const total = totalPriceCents(plan.id);
-  const installments = plan.maxInstallments > 1 && method === "CARD" && provider === "STRIPE";
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,8 +39,8 @@ export function CheckoutForm() {
     const parsed = createCheckoutSchema.safeParse({
       plan: plan.id,
       period: CONTRACT_PERIOD,
-      method: provider === "MERCADO_PAGO" ? "CARD" : method,
-      provider,
+      // The buyer picks card, Pix or boleto at Mercado Pago; the webhook records the real method.
+      method: "CARD",
       customer: {
         name: text("name"),
         email: text("email"),
@@ -110,12 +100,10 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <ChoiceGroup name="provider" legend={copy.providerTitle} value={provider} onChange={setProvider} columns={2}
-          options={PAYMENT_PROVIDERS.map((p) => ({ value: p, ...providerLabels[p] }))} />
-        {provider === "STRIPE" ? (
-          <ChoiceGroup name="method" legend={copy.methodTitle} value={method} onChange={setMethod}
-            options={CHECKOUT_PAYMENT_METHODS.map((m) => ({ value: m, label: methodLabels[m].label, hint: methodLabels[m].hint(plan.maxInstallments) }))} />
-        ) : <p className="mb-8 text-[0.9rem] text-muted">{copy.mercadoPagoMethod}</p>}
+        <section aria-labelledby="checkout-method" className="mb-8">
+          <h2 id="checkout-method" className="mb-3 text-[1.02rem] font-semibold">{copy.methodTitle}</h2>
+          <p className="text-[0.9rem] text-muted">{copy.mercadoPagoMethod}</p>
+        </section>
 
         <fieldset className="mb-6">
           <legend className="mb-3 text-[1.02rem] font-semibold">{copy.customerTitle}</legend>
@@ -141,18 +129,13 @@ export function CheckoutForm() {
       <aside className="rounded-[20px] border border-line bg-surface p-6 lg:sticky lg:top-6">
         <h2 className="mb-4 font-semibold">{copy.summaryTitle}</h2>
         <p className="text-[0.9rem] text-muted">
-          {plan.name}, {copy.contract.toLowerCase()}, {provider === "STRIPE" ? methodLabels[method].label.toLowerCase() : providerLabels.MERCADO_PAGO.label}
+          {plan.name}, {copy.contract.toLowerCase()}, {MERCADO_PAGO}
         </p>
         <div className="mt-4 border-t border-line pt-4">
           <div className="text-[0.78rem] text-faint">{copy.totalNow}</div>
           <div className="mt-1 font-mono text-[1.9rem] font-semibold tabular-nums">{formatBRLExact(total)}</div>
-          {installments && (
-            <div className="text-[0.84rem] text-muted">{copy.installments(plan.maxInstallments, formatBRLExact(installmentCents(plan.id)))}</div>
-          )}
           <p className="mt-3 text-[0.84rem] text-muted">{copy.annualNote}</p>
         </div>
-
-        {IS_STAGING && provider === "STRIPE" && <TestCards />}
 
         {CHECKOUT_ENABLED ? (
           <>
@@ -173,7 +156,7 @@ export function CheckoutForm() {
 
         <p className="mt-4 flex gap-2 text-[0.78rem] text-faint">
           <ShieldCheck size={16} className="shrink-0" aria-hidden="true" />
-          {copy.secureNote(provider)}
+          {copy.secureNote}
         </p>
         {PRICES_ARE_PLACEHOLDER && <p className="mt-2 text-[0.78rem] text-faint">{copy.placeholderNote}</p>}
       </aside>
@@ -196,30 +179,6 @@ function Input({ name, error, ...rest }: { name: keyof typeof copy.fields; error
         {...rest}
       />
       {error && <p id={`co-${name}-error`} className="mt-1 text-[0.8rem] text-brand">{error}</p>}
-    </div>
-  );
-}
-
-/** Staging only: Stripe test-mode data, right where the visitor decides to pay. */
-function TestCards() {
-  const t = stagingCopy.checkout;
-  return (
-    <div className="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4 text-[0.84rem]">
-      <p className="flex items-center gap-2 font-semibold">
-        <FlaskConical size={16} className="shrink-0 text-amber-700" aria-hidden="true" />
-        {t.title}
-      </p>
-      <p className="mb-2 mt-1 text-muted">{t.text}</p>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-        {t.cards.map((c) => (
-          <div key={c.number} className="contents">
-            <dt className="text-muted">{c.label}</dt>
-            <dd className="select-all font-mono tabular-nums">{c.number}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="mt-2 text-muted">{t.details}</p>
-      <p className="mt-1 text-muted">{t.other}</p>
     </div>
   );
 }

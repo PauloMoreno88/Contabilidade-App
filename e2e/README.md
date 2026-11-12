@@ -1,6 +1,6 @@
 # Testes de fluxo completo (Playwright)
 
-Percorrem os fluxos de `docs/fluxos.html` no **ambiente de testes publicado** (`https://teste.exactracontabilidade.com.br`), com a Stripe em modo teste.
+Percorrem os fluxos de `docs/fluxos.html` no **ambiente de testes publicado** (`https://teste.exactracontabilidade.com.br`), com o Mercado Pago em modo teste. O Mercado Pago bloqueia navegador automatizado: estes fluxos param no link de pagamento, e o pagamento é conferido pela suíte assistida (seção "Pagamentos no Mercado Pago (teste)").
 
 ## Preparar
 
@@ -23,7 +23,7 @@ pnpm --filter e2e emails                      # e-mails que deveriam ter chegado
 
 | Arquivo | Fluxo |
 |---|---|
-| `01-compra` | 1. Da simulação ao primeiro acesso (simulador, checkout, Stripe, painel) |
+| `01-compra` | 1. Da simulação ao primeiro acesso (simulador, checkout até o link do Mercado Pago, painel) |
 | `02-cliente-manual` | 2. Cliente que já é da Exactra (cadastro, convite, reenvio) |
 | `03-mes` | 3. Rotina do mês: documentos e guias |
 | `04-renovacao` | 4. Renovação e fim do contrato (o que dá para conferir sem mexer em datas) |

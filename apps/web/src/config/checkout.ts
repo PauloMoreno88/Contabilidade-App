@@ -1,20 +1,18 @@
-import type { BillingPeriod, PaymentMethod, PaymentProviderId } from "@exactra/shared";
+import type { BillingPeriod, PaymentMethod } from "@exactra/shared";
 
 /** Online checkout is on only when NEXT_PUBLIC_CHECKOUT_ENABLED=true (see .env.example). */
 export const CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === "true";
 
 /** Every method pays the one-year contract upfront (docs/plano.md, decision 22). */
-export const methodLabels: Record<PaymentMethod, { label: string; hint: (maxInstallments: number) => string }> = {
-  CARD: { label: "Cartão de crédito", hint: (n) => (n > 1 ? `À vista ou em até ${n}x` : "Pagamento à vista") },
-  PIX: { label: "Pix", hint: () => "Valor anual à vista, confirmação na hora" },
-  BOLETO: { label: "Boleto", hint: () => "Valor anual à vista. Compensa em 1 a 3 dias úteis" },
-  OTHER: { label: "Saldo ou outro meio", hint: () => "Forma escolhida no Mercado Pago" },
+export const methodLabels: Record<PaymentMethod, { label: string }> = {
+  CARD: { label: "Cartão de crédito" },
+  PIX: { label: "Pix" },
+  BOLETO: { label: "Boleto" },
+  OTHER: { label: "Saldo ou outro meio" },
 };
 
-export const providerLabels: Record<PaymentProviderId, { label: string; hint: string }> = {
-  STRIPE: { label: "Stripe", hint: "Escolha cartão, Pix ou boleto aqui." },
-  MERCADO_PAGO: { label: "Mercado Pago", hint: "Escolha a forma de pagamento no Mercado Pago. Cartão em até 12x, com juros, conforme as condições exibidas lá." },
-};
+/** The only payment provider since 11/11/2026 (docs/specs/remover-stripe.md). */
+export const MERCADO_PAGO = "Mercado Pago";
 
 export const periodLabels: Record<BillingPeriod, string> = {
   MONTHLY: "Mensal",
@@ -25,18 +23,17 @@ export const periodLabels: Record<BillingPeriod, string> = {
 
 export const checkoutCopy = {
   title: "Contratar a Exactra",
-  /** Stripe cancel_url: /checkout?cancelado=1 */
+  /** Mercado Pago failure back_url: /checkout?cancelado=1 */
   canceled: {
     title: "Pagamento não concluído",
-    text: "Escolha onde quer pagar e tente de novo quando quiser.",
+    text: "Você pode tentar de novo quando quiser.",
   },
   back: "Voltar para o site",
   planTitle: "Plano",
   perYear: "contrato anual",
   contract: "Contrato anual",
   methodTitle: "Forma de pagamento",
-  providerTitle: "Onde quer pagar",
-  mercadoPagoMethod: "A forma de pagamento, o valor das parcelas e os juros serão mostrados no Mercado Pago antes de confirmar.",
+  mercadoPagoMethod: "Você escolhe cartão de crédito (em até 12x, com juros), Pix ou boleto no Mercado Pago. O valor das parcelas e os juros aparecem lá antes de confirmar.",
   customerTitle: "Seus dados",
   fields: {
     name: { label: "Nome completo", placeholder: "Seu nome" },
@@ -50,11 +47,10 @@ export const checkoutCopy = {
   consentLink: { href: "/privacidade", label: "política de privacidade" },
   summaryTitle: "Resumo",
   totalNow: "Total agora",
-  installments: (n: number, v: string) => `ou ${n}x de ${v} no cartão`,
   annualNote: "Contrato de 12 meses. Você pode desistir em até 7 dias após a contratação, com reembolso integral.",
   submit: "Ir para o pagamento",
   submitting: "Abrindo pagamento...",
-  secureNote: (provider: PaymentProviderId) => `O pagamento é feito no ambiente seguro ${provider === "STRIPE" ? "da Stripe" : "do Mercado Pago"}. Não guardamos dados de cartão.`,
+  secureNote: "O pagamento é feito no ambiente seguro do Mercado Pago. Não guardamos dados de cartão.",
   placeholderNote: "Valores de exemplo, ainda em validação.", // PLACEHOLDER
   errors: {
     name: "Informe seu nome completo.",

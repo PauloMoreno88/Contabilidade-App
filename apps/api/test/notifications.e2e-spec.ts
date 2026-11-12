@@ -4,11 +4,9 @@ import { prisma } from '../src/db.js';
 import { sendEmail, type Email } from '../src/email.js';
 import { ExpiryJob } from '../src/contracts/expiry.job.js';
 import { notifyActivation } from '../src/notifications.js';
-import { PaymentProvider } from '../src/payments/payment-provider.js';
-import type { StripeProvider } from '../src/payments/stripe.provider.js';
 import { seedAdmin } from '../src/seed-admin.js';
 import { createApp } from './app.js';
-import { checkoutCompleted, sign } from './stripe-fixtures.js';
+import { mpPay, stubMercadoPago } from './mercado-pago-fixtures.js';
 
 vi.mock('../src/email.js', () => ({ sendEmail: vi.fn(async () => {}) }));
 const sent = vi.mocked(sendEmail);
@@ -28,14 +26,12 @@ function expectRendered(e: Email) {
 }
 
 let n = 0;
-/** `subscription`: a legacy monthly card contract, renewed by Stripe instead of the daily job. */
-async function contract(data: { method: 'PIX' | 'BOLETO' | 'CARD'; endsAt: Date; subscription?: boolean }) {
+async function contract(data: { method: 'PIX' | 'BOLETO' | 'CARD'; endsAt: Date }) {
   return prisma.contract.create({
     data: {
       plan: 'essencial',
-      period: data.subscription ? 'MONTHLY' : 'QUARTERLY',
+      period: 'QUARTERLY',
       method: data.method,
-      stripeSubscriptionId: data.subscription ? `sub_${n + 1}` : undefined,
       amountCents: 59700,
       status: 'ACTIVE',
       statusToken: `tok_${++n}`,
@@ -55,11 +51,13 @@ describe('e-mails and expiry job (e2e)', () => {
   beforeAll(async () => {
     process.env.ADMIN_NOTIFY_EMAIL = 'equipe@exactra.test';
     process.env.EMAIL_ASSET_BASE_URL = 'https://www.exactra.test';
+    stubMercadoPago();
     app = await createApp();
-    const stripe = (app.get(PaymentProvider) as StripeProvider).stripe;
-    vi.spyOn(stripe.checkout.sessions, 'create').mockResolvedValue({ id: 'cs_n', url: 'https://checkout.stripe.com/x' } as never);
   });
-  afterAll(() => app.close());
+  afterAll(async () => {
+    await app.close();
+    vi.unstubAllGlobals();
+  });
   beforeEach(() => sent.mockClear());
 
   it('activation: welcome e-mail + internal notice with real contract data, names escaped', async () => {
@@ -85,8 +83,7 @@ describe('e-mails and expiry job (e2e)', () => {
         customer: { name: `${EVIL} Ana`, email: 'ana@ex.com', phone: '11977776666', document: '123.456.789-09' },
       })
       .expect(201);
-    const payload = JSON.stringify(checkoutCompleted(body.contractId, { mode: 'payment', paid: true }));
-    await http().post('/webhooks/stripe').set('stripe-signature', sign(payload)).set('content-type', 'application/json').send(payload).expect(200);
+    await mpPay(http, body.contractId, { type: 'bank_transfer' });
 
     const [welcome, notice] = mails();
     expect(mails().map((e) => e.to)).toEqual(['ana@ex.com', 'equipe@exactra.test']);
@@ -167,24 +164,22 @@ describe('e-mails and expiry job (e2e)', () => {
     expect(otp.text).toContain('3 minutos');
   });
 
-  it('daily job: reminder e-mail before the end, expires ended prepaid contracts, ignores card subscriptions', async () => {
+  it('daily job: reminder e-mail before the end, expires ended contracts', async () => {
     const now = new Date();
     const soon = await contract({ method: 'BOLETO', endsAt: new Date(now.getTime() + 3 * DAY) });
     const later = await contract({ method: 'PIX', endsAt: new Date(now.getTime() + 30 * DAY) });
     const ended = await contract({ method: 'PIX', endsAt: new Date(now.getTime() - DAY) });
     const annualCard = await contract({ method: 'CARD', endsAt: new Date(now.getTime() - DAY) });
-    const card = await contract({ method: 'CARD', endsAt: new Date(now.getTime() - DAY), subscription: true });
     const job = app.get(ExpiryJob);
 
     await job.run(now);
     const status = async (id: string) => (await prisma.contract.findUniqueOrThrow({ where: { id } })).status;
     expect(await status(ended.id)).toBe('EXPIRED');
     expect(await status(annualCard.id)).toBe('EXPIRED');
-    expect(await status(card.id)).toBe('ACTIVE');
     expect(await status(later.id)).toBe('ACTIVE');
 
     const reminders = mails();
-    expect(reminders.map((e) => e.to)).toEqual([`ana${n - 4}@ex.com`]); // only "soon"
+    expect(reminders.map((e) => e.to)).toEqual([`ana${n - 3}@ex.com`]); // only "soon"
     expectRendered(reminders[0]);
     expect(reminders[0].html).toContain('https://www.exactra.test/checkout?plan=essencial');
     expect((await prisma.contract.findUniqueOrThrow({ where: { id: soon.id } })).expiryNoticeSentAt).not.toBeNull();
@@ -194,20 +189,23 @@ describe('e-mails and expiry job (e2e)', () => {
     expect(sent).not.toHaveBeenCalled();
   });
 
-  it('daily job: cancels Mercado Pago contracts still waiting after the deadline, nothing else', async () => {
-    const pending = async (provider: 'MERCADO_PAGO' | 'STRIPE', days: number) => {
+  it('daily job: cancels checkouts still waiting after the deadline, from any provider, nothing else', async () => {
+    const pending = async (provider: 'MERCADO_PAGO' | 'STRIPE', days: number, source: 'CHECKOUT' | 'MANUAL' = 'CHECKOUT') => {
       const c = await contract({ method: 'CARD', endsAt: new Date(Date.now() + 365 * DAY) });
-      return prisma.contract.update({ where: { id: c.id }, data: { provider, status: 'PENDING_PAYMENT', startsAt: null, endsAt: null, createdAt: new Date(Date.now() - days * DAY) } });
+      return prisma.contract.update({ where: { id: c.id }, data: { provider, source, status: 'PENDING_PAYMENT', startsAt: null, endsAt: null, createdAt: new Date(Date.now() - days * DAY) } });
     };
     const old = await pending('MERCADO_PAGO', 9);
     const recent = await pending('MERCADO_PAGO', 7);
+    // Old Stripe test checkouts no longer get Stripe's expiry event.
     const stripe = await pending('STRIPE', 9);
+    const manual = await pending('MERCADO_PAGO', 9, 'MANUAL');
 
     const { abandoned } = await app.get(ExpiryJob).run();
-    expect(abandoned).toBe(1);
+    expect(abandoned).toBe(2);
     const status = async (id: string) => (await prisma.contract.findUniqueOrThrow({ where: { id } })).status;
     expect(await status(old.id)).toBe('CANCELED');
+    expect(await status(stripe.id)).toBe('CANCELED');
     expect(await status(recent.id)).toBe('PENDING_PAYMENT');
-    expect(await status(stripe.id)).toBe('PENDING_PAYMENT');
+    expect(await status(manual.id)).toBe('PENDING_PAYMENT');
   });
 });

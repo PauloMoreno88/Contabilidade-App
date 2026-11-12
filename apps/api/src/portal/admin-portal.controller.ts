@@ -274,7 +274,7 @@ export class AdminPortalController {
     };
   }
 
-  /** A customer who pays outside the site: company + MANUAL contract (no Stripe) + login and invite. */
+  /** A customer who pays outside the site: company + MANUAL contract (no online payment) + login and invite. */
   @Post('customers')
   @HttpCode(201)
   async createCustomer(@Body(new ZodPipe(createManualCustomerSchema)) input: z.output<typeof createManualCustomerSchema>) {

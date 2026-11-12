@@ -22,11 +22,9 @@ import { prisma } from '../src/db.js';
 import { MercadoPagoProvider } from '../src/payments/mercado-pago.provider.js';
 import { sendEmail } from '../src/email.js';
 import { PortalJob } from '../src/portal/portal.job.js';
-import { PaymentProvider } from '../src/payments/payment-provider.js';
-import type { StripeProvider } from '../src/payments/stripe.provider.js';
 import { seedAdmin } from '../src/seed-admin.js';
 import { createApp } from './app.js';
-import { checkoutCompleted, sign } from './stripe-fixtures.js';
+import { mpPay, stubMercadoPago } from './mercado-pago-fixtures.js';
 
 vi.mock('../src/email.js', () => ({ sendEmail: vi.fn(async () => {}) }));
 const sent = vi.mocked(sendEmail);
@@ -94,15 +92,14 @@ describe('customer area (e2e)', () => {
 
   beforeAll(async () => {
     process.env.STORAGE_LOCAL_DIR = `.storage-test-${process.pid}`;
+    stubMercadoPago();
     app = await createApp();
-    const stripe = (app.get(PaymentProvider) as StripeProvider).stripe;
-    let k = 0;
-    vi.spyOn(stripe.checkout.sessions, 'create').mockImplementation(async () => ({ id: `cs_portal_${++k}`, url: 'https://checkout.stripe.com/p' }) as never);
     await seedAdmin(admin.email, admin.password);
     adminCookie = await signIn(admin.email, admin.password);
   });
   afterAll(async () => {
     await app.close();
+    vi.unstubAllGlobals();
     const { rm } = await import('node:fs/promises');
     await rm(process.env.STORAGE_LOCAL_DIR!, { recursive: true, force: true });
   });
@@ -119,8 +116,7 @@ describe('customer area (e2e)', () => {
         consent: true,
       })
       .expect(201);
-    const body = JSON.stringify(checkoutCompleted(res.body.contractId, { mode: 'payment', paid: true }));
-    await http().post('/webhooks/stripe').set('stripe-signature', sign(body)).set('content-type', 'application/json').send(body).expect(200);
+    await mpPay(http, res.body.contractId, { type: 'bank_transfer' });
 
     const user = await prisma.user.findUniqueOrThrow({ where: { email: 'marina@cliente.test' }, include: { memberships: true } });
     expect(user.role).toBe('customer');
@@ -322,7 +318,7 @@ describe('customer area (e2e)', () => {
     ).body;
     expect(mails()[0]).toMatchObject({ to: 'dono@padaria.test', subject: 'Ative seu acesso à área do cliente da Exactra' });
     const c = await prisma.customer.findUniqueOrThrow({ where: { id }, include: { contracts: true } });
-    expect(c.contracts[0]).toMatchObject({ source: 'MANUAL', status: 'ACTIVE', stripeSessionId: null });
+    expect(c.contracts[0]).toMatchObject({ source: 'MANUAL', status: 'ACTIVE', mercadoPagoPreferenceId: null });
 
     await as(adminCookie).post(`/admin/customers/${id}/invite`).expect(200);
     const token = tokenFrom(mails().at(-1)!.text);
@@ -347,10 +343,10 @@ describe('customer area (e2e)', () => {
     expect(plan.canRenew).toBe(true);
 
     const renew = await as(customerCookie).post('/app/plan/renew', { method: 'PIX', consent: true }).expect(201);
-    // A second renewal while the first one waits for payment would charge (and add) another year.
-    await as(customerCookie).post('/app/plan/renew', { method: 'CARD', consent: true }).expect(409);
-    const body = JSON.stringify(checkoutCompleted(renew.body.contractId, { mode: 'payment', paid: true }));
-    await http().post('/webhooks/stripe').set('stripe-signature', sign(body)).set('content-type', 'application/json').send(body).expect(200);
+    // A second renewal while the first one waits for payment resumes it instead of charging another year.
+    const again = await as(customerCookie).post('/app/plan/renew', { method: 'CARD', consent: true }).expect(201);
+    expect(again.body.contractId).toBe(renew.body.contractId);
+    await mpPay(http, renew.body.contractId, { type: 'bank_transfer' });
     const renewed = await prisma.contract.findUniqueOrThrow({ where: { id: renew.body.contractId } });
     expect(renewed).toMatchObject({ customerId, status: 'ACTIVE' });
     expect(renewed.startsAt!.getTime()).toBe(endsAt.getTime());
@@ -363,11 +359,10 @@ describe('customer area (e2e)', () => {
 
   it('plan: a renewal left on Mercado Pago can be resumed while the link is valid', async () => {
     const mp = app.get(MercadoPagoProvider);
-    Object.defineProperty(mp, 'configured', { value: true });
     const create = vi.spyOn(mp, 'createCheckout').mockImplementation(async () => ({ sessionId: `pref_${create.mock.calls.length}`, url: 'https://mp.test/new' }));
     const resume = vi.spyOn(mp, 'checkoutUrl').mockResolvedValue('https://mp.test/resume');
     await prisma.contract.updateMany({ where: { customerId, status: 'ACTIVE' }, data: { endsAt: new Date(Date.now() + 20 * DAY) } });
-    const renew = () => as(customerCookie).post('/app/plan/renew', { method: 'CARD', provider: 'MERCADO_PAGO', consent: true });
+    const renew = () => as(customerCookie).post('/app/plan/renew', { method: 'CARD', consent: true });
 
     const first = await renew().expect(201);
     expect(first.body.checkoutUrl).toBe('https://mp.test/new');
@@ -391,7 +386,6 @@ describe('customer area (e2e)', () => {
     await prisma.contract.updateMany({ where: { customerId, status: 'PENDING_PAYMENT' }, data: { status: 'CANCELED' } });
     create.mockRestore();
     resume.mockRestore();
-    Object.defineProperty(mp, 'configured', { value: false });
   });
 
   it('read-only after the end: history stays, writing is refused', async () => {

@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 import { ADMIN_STATE, cpf } from "../lib/data";
-import { expectEmail } from "../lib/emails";
-import { alias, RUN_ID, TEAM_INBOX } from "../lib/env";
-import { payWithCard } from "../lib/pages";
+import { alias, RUN_ID } from "../lib/env";
+import { contractStatus, submitCheckout } from "../lib/mercado-pago";
 
 // Fluxo 1: Da simulação ao primeiro acesso.
-// Stops before "Cria a senha": the activation link only exists in the welcome e-mail.
+// Stops at the Mercado Pago link: Mercado Pago blocks automated browsers, so paying, activation and the
+// welcome e-mail are checked by the assisted suite (`pnpm --filter e2e mercado-pago`).
 const FLOW = "Fluxo 1: Da simulação ao primeiro acesso";
 const name = `E2E Compra ${RUN_ID}`;
 const email = alias("compra");
 
 test.describe(FLOW, () => {
-  test("simula, deixa o contato, contrata e paga com cartão", async ({ page }) => {
+  test("simula, deixa o contato e abre o pagamento no Mercado Pago", async ({ page }) => {
     await page.goto("/");
     const sim = page.locator("#simulador");
 
@@ -66,33 +66,14 @@ test.describe(FLOW, () => {
     await expect(page.getByText("Informe um CPF ou CNPJ válido.")).toBeVisible();
 
     await page.locator("#co-document").fill(cpf());
-    await page.getByRole("button", { name: "Ir para o pagamento" }).click();
 
-    // Stripe page: leave once ("Voltar"), nothing is charged.
-    await page.waitForURL(/checkout\.stripe\.com/);
-    await expect(page.getByText("R$ 3.588,00").first()).toBeVisible();
-    await page.getByRole("link", { name: /Voltar/ }).first().click();
-    await page.waitForURL(/\/checkout\?cancelado=1/);
+    // The contract waits for the payment; only the Mercado Pago webhook activates it.
+    const checkout = await submitCheckout(page);
+    expect(await contractStatus(checkout)).toBe("PENDING_PAYMENT");
+
+    // Back from Mercado Pago without paying.
+    await page.goto("/checkout?cancelado=1&plan=exactra");
     await expect(page.getByText("Pagamento não concluído")).toBeVisible();
-
-    // Again: declined card first, then the approved one.
-    await page.locator("#co-name").fill(name);
-    await page.locator("#co-email").fill(email);
-    await page.locator("#co-phone").fill("11987654321");
-    await page.locator("#co-document").fill(cpf());
-    await page.locator('input[name="consent"]').check();
-    await page.getByRole("button", { name: "Ir para o pagamento" }).click();
-    await payWithCard(page, "4000 0000 0000 0002", name);
-    await expect(page.getByText(/recusado|declined/i).first()).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("textbox", { name: "Número do cartão" }).fill("4242 4242 4242 4242");
-    await page.getByRole("button", { name: "Pagar" }).click();
-
-    // Back on the site: the status only changes when Stripe confirms (webhook).
-    await page.waitForURL(/\/checkout\/status/, { timeout: 60_000 });
-    await expect(page.getByRole("heading", { name: "Pagamento confirmado" })).toBeVisible({ timeout: 90_000 });
-
-    expectEmail(FLOW, email, "Boas-vindas à Exactra, E2E", "Com o botão para ativar o acesso (vale 7 dias).");
-    expectEmail(FLOW, TEAM_INBOX, `Nova contratação: ${name} (Plano Exactra)`);
   });
 
   test("checkout recusa CPF com dígitos verificadores errados", async ({ page }) => {
@@ -106,7 +87,7 @@ test.describe(FLOW, () => {
     await expect(page.getByText("Informe um CPF ou CNPJ válido.")).toBeVisible({ timeout: 10_000 });
   });
 
-  test("a equipe vê o lead, o contrato ativo e o cliente sem senha criada", async ({ browser }) => {
+  test("a equipe vê o lead e o contrato aguardando pagamento", async ({ browser }) => {
     const context = await browser.newContext({ storageState: ADMIN_STATE });
     const page = await context.newPage();
 
@@ -116,15 +97,7 @@ test.describe(FLOW, () => {
 
     await page.goto("/admin");
     await page.getByPlaceholder("Buscar por nome, e-mail ou documento").fill(email);
-    const row = page.getByRole("row").filter({ hasText: name }).filter({ hasText: "Ativo" });
-    await expect(row.first()).toBeVisible();
-    await row.first().getByRole("link", { name }).click();
-    await expect(page.getByText("Histórico de pagamentos")).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Pago" }).first()).toBeVisible();
-
-    await page.goto("/admin/clientes");
-    await page.getByPlaceholder("Buscar por nome, e-mail ou CPF/CNPJ").fill(email);
-    await expect(page.getByRole("row").filter({ hasText: name }).filter({ hasText: "Convite enviado" })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: name }).filter({ hasText: "Aguardando pagamento" }).first()).toBeVisible();
     await context.close();
   });
 });
