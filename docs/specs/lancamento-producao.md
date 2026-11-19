@@ -62,18 +62,18 @@ Deixar o código e a documentação prontos para subir site, área do cliente e 
 | Unitários e e2e do API | `pnpm --filter api test`, `pnpm --filter api lint` | 12/11/2026: 25 unitários e 73 e2e passando; lint sem erros |
 | Shared | `pnpm --filter shared test` | 12/11/2026: 41 passando (sem mudança no shared) |
 | Web | `pnpm --filter web lint`, `test` e `build` | 12/11/2026: lint limpo, 23 testes, build de staging ok |
-| Fluxo 1 no staging | `pnpm --filter e2e staging` (com override) | — |
+| Fluxo 1 no staging | `pnpm --filter e2e staging` (com override) | 12/11/2026: `tests/01-compra.spec.ts` 5 de 5 passando no staging, já em pré-lançamento |
 | Ensaio a R$ 10 | registro em `docs/lancamento-producao.md` | — |
 
 ## Rastreabilidade final
 | Requisito | Arquivo / símbolo | Teste / evidência |
 |---|---|---|
-| REQ-001 | PR #81, integrado em 12/11/2026 | fluxo 1 no staging pendente |
+| REQ-001 | PR #81, integrado em 12/11/2026 | fluxo 1 no staging: 5 de 5 em 12/11/2026 |
 | REQ-002 | `apps/web/src/config/legal.ts` (sem `draftNotice`), `components/legal/LegalPage.tsx` | build do web |
 | REQ-003 | `apps/api/src/rate-limit.ts` (`RateLimit`, `clientKey`, `LEAD_LIMIT` 30 e `CHECKOUT_LIMIT` 20 a cada 10 min), `leads.controller.ts`, `contracts/checkout.controller.ts` | `test/rate-limit.e2e-spec.ts`, `src/rate-limit.test.ts` |
 | REQ-004 | `apps/api/src/instrument.ts` (`scrubEvent`), `main.ts`, `app.module.ts` (`SentryModule`, `SentryGlobalFilter`); `apps/web/src/instrumentation-client.ts`; `.env.example` dos dois apps | `src/instrument.test.ts`; envio real pendente de DSN |
 | REQ-005 | `render.production.yaml`; `render.yaml` ganhou as variáveis do Sentry | leitura; validação no Render pendente |
-| REQ-006 | `packages/shared/src/simulator.ts` (`SIMULATOR_SHOWS_ESTIMATE`), `apps/web/src/components/simulator/{Simulator,LeadGate,ResultView}.tsx`, `config/simulator.ts` (`prelaunch`), `config/site.ts`, `config/blog.ts` | lint, build; `e2e/tests/01-compra.spec.ts` atualizado (não executado) |
+| REQ-006 | `packages/shared/src/simulator.ts` (`SIMULATOR_SHOWS_ESTIMATE`), `apps/web/src/components/simulator/{Simulator,LeadGate,ResultView}.tsx`, `config/simulator.ts` (`prelaunch`), `config/site.ts`, `config/blog.ts` | lint, build; `e2e/tests/01-compra.spec.ts` atualizado e passando no staging |
 | REQ-007 | `docs/lancamento-producao.md` | revisão do usuário pendente |
 | REQ-008 | `packages/shared/src/plans.config.ts` | — |
 | REQ-009 | commit `TEMPORARY` e seu revert | — |
@@ -99,3 +99,4 @@ Revisão independente por subagente em 12/11/2026, sobre o diff da `feat/launch-
 - 1.0 (12/11/2026): versão inicial, a partir do artefato "Lançamento Exactra". Aprovada.
 - 1.1 (12/11/2026): jurídico mudou o texto (REQ-002 espera o texto final); simulador com regras reais (REQ-006 reescrito); Sentry aprovado; renovação fora do rate limit; produção em `render.production.yaml`.
 - 1.2 (12/11/2026): texto jurídico atual é o final; simulador em modo pré-lançamento; preço real adiado, sem bloquear o lançamento; PR #81 integrado. Achados da revisão independente tratados (ver Auditoria).
+- 1.3 (18/11/2026): fluxo 1 passou no staging; contas da onda 2 prontas; área do cliente lança com as regras atuais (decisão 45).

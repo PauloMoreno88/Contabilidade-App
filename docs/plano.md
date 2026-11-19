@@ -79,6 +79,7 @@ Por isso o front é construído em componentes pequenos, com textos e preços em
 | 42 | Só Mercado Pago | Em 11/11/2026, depois do teste no staging (`docs/specs/mercado-pago-e2e.md`): **a Stripe sai do código**. Checkout e renovação usam só o Checkout Pro do Mercado Pago, sem escolha de provedor nem de forma de pagamento no site (o comprador escolhe cartão, Pix ou boleto no Mercado Pago). O job diário cancela checkout pendente há mais de 8 dias de qualquer provedor. A migration da decisão 40 sai junto (`20261111000000_drop_stripe_columns`). Antes de lançar: compra real em 12x com reembolso e chave Pix na conta da Exactra. Spec em `docs/specs/remover-stripe.md`. |
 | 43 | Preparação do lançamento | Em 12/11/2026 (`docs/specs/lancamento-producao.md`, roadmap em `docs/roadmap-lancamento.md`): (simulador e termos revistos na decisão 44); **Sentry** (grátis) na API e no site, desligado sem DSN e sem dados pessoais; **rate limit em memória** (30 leads e 20 checkouts por cliente a cada 10 min; IPv6 por /64) em `POST /leads` e `POST /checkout/sessions`, possível porque a API roda com uma instância; produção em **`render.production.yaml`**, Blueprint separado no workspace da Exactra; ensaio de compra e reembolso a **R$ 10 antes da virada do DNS**, em `*.onrender.com`, com commit temporário revertido em seguida. Passo a passo em `docs/lancamento-producao.md`. |
 | 44 | Lançar em pré-lançamento | Em 12/11/2026, revendo a 43: o simulador lança em **modo pré-lançamento** (D1 do `docs/plano-sem-contador.md`): coleta perfil e contato, não mostra regime nem valores, e diz que um contador entra em contato. Chave `SIMULATOR_SHOWS_ESTIMATE` em `packages/shared/src/simulator.ts`; volta a `true` com as regras reais. Landing e blog deixam de prometer valores de imposto. Termos e privacidade saem do rascunho com o texto atual. **Preço real adiado**: produção pode subir com o valor atual. |
+| 45 | Área do cliente com as regras atuais | Em 18/11/2026: a área do cliente lança com as regras atuais (`PORTAL_RULES`, PLACEHOLDER) e é ajustada depois com o contador; a #62 continua aberta e deixa de bloquear o lançamento. Produção envia de `Exactra Contabilidade <contato@exactracontabilidade.com.br>`, com respostas e avisos internos em `contato@exactracontabilidade.com.br`. A chave Pix fica com a Exactra e não bloqueia: sem ela, o checkout oferece cartão e boleto. |
 
 ## 3. Arquitetura alvo
 
@@ -215,8 +216,8 @@ Padrão visual: spinner discreto na identidade da Exactra, acompanhado de texto 
 
 ## 10. Pendências externas
 
-- Conta Stripe da Exactra (CNPJ), com Pix e boleto habilitados.
-- Acesso ao DNS do domínio (subdomínio `api.` e verificação de domínio no Resend).
+- Chave Pix na conta Mercado Pago da Exactra (cadastrada pela Exactra; não bloqueia o lançamento).
+- DNS do domínio na UOL: domínio já verificado no Resend em 12/11/2026; falta o subdomínio `api.` e a virada do `www` (onda 5).
 - Respostas do contador: `docs/perguntas-contador.md`.
 - Aprovação final do protótipo pelo cliente.
-- Cloudflare R2 para a área do cliente (ver `docs/pendencias-area-do-cliente.md`).
+- Contas de produção da onda 2 prontas em 18/11/2026 (Render, Neon, Resend, R2, Sentry, Mercado Pago); estado no artefato "Lançamento Exactra" e em `docs/roadmap-lancamento.md`.

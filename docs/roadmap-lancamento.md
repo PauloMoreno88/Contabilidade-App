@@ -9,7 +9,8 @@ Spec que o agente segue: `docs/specs/lancamento-producao.md`.
 - `feat/app-v2` está mais de 117 commits à frente da `master` (site antigo).
 - PR #81 (Stripe fora do código) integrado em 12/11/2026.
 - Onda 1 implementada na branch `feat/launch-readiness`: rate limit, Sentry, `render.production.yaml`, termos sem rascunho, simulador em pré-lançamento e o passo a passo da virada (decisões 43 e 44).
-- Preço real adiado (lança com o atual); regras da área do cliente (#62) continuam `PLACEHOLDER`.
+- Preço real adiado (lança com o atual); regras da área do cliente (#62) continuam `PLACEHOLDER` e não bloqueiam mais (decisão 45).
+- **18/11/2026:** onda 1 integrada (PR #82) e fluxo 1 passando no staging. Onda 2 pronta, menos a chave Pix (Exactra, não bloqueia) e os webhooks (dependem da API de produção). Próximo: onda 3.
 
 ## Ondas
 
@@ -33,7 +34,7 @@ Cada onda só começa quando os bloqueios da anterior estão resolvidos. Trabalh
 |---|---|---|---|
 | 2.1 | Preço anual real (A1–A8, #24). Adiado: lança com o preço atual | Exactra | Não |
 | 2.2 | Simulador: regras reais do contador (B9–B15), para sair do pré-lançamento | Exactra | Não |
-| 2.3 | Regras reais da área do cliente (#62) | Exactra | Sim |
+| 2.3 | Regras reais da área do cliente (#62). Lança com as atuais (decisão 45) | Exactra | Não |
 | 2.4 | Mercado Pago: conta no CNPJ, chave Pix, credenciais e webhook de produção, juros pelo comprador, prazo do cartão | Exactra e Paulo | Sim |
 | 2.5 | Neon de produção (Launch, `us-east-1`) | Paulo | Sim |
 | 2.6 | Resend com domínio verificado (SPF, DKIM; DMARC só com aval) | Paulo e Exactra | Sim |

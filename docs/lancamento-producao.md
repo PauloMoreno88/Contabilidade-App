@@ -5,7 +5,7 @@ Nenhum segredo neste arquivo: os valores ficam só no Render.
 
 ## 0. Antes de começar
 
-- Bloqueios do roadmap resolvidos: regras da área do cliente (#62) e contas da onda 2. O preço atual e o simulador em pré-lançamento podem ir para produção (decisão 44).
+- Contas da onda 2 prontas (18/11/2026). O preço atual, o simulador em pré-lançamento (decisão 44) e as regras atuais da área do cliente (decisão 45) podem ir para produção. A chave Pix não bloqueia.
 - `feat/app-v2` integrada na `master` por PR aprovado pela Exactra.
 - Contas no nome da Exactra, com 2FA: Render (workspace Hobby), Neon (Launch, `us-east-1`), Resend (domínio verificado), Cloudflare R2 (bucket, token restrito e CORS), Mercado Pago (CNPJ, chave Pix, credenciais de produção), Sentry (dois projetos: API e site).
 
@@ -22,9 +22,10 @@ Nenhum segredo neste arquivo: os valores ficam só no Render.
 | | `WEB_ORIGIN` | por enquanto a URL `https://exactra-web….onrender.com` |
 | | `MERCADO_PAGO_ACCESS_TOKEN` / `MERCADO_PAGO_WEBHOOK_SECRET` | credencial e assinatura de **produção** |
 | | `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` | conta da Exactra |
-| | `EMAIL_FROM`, `EMAIL_REPLY_TO`, `ADMIN_NOTIFY_EMAIL` | endereços da Exactra |
+| | `EMAIL_FROM` | `Exactra Contabilidade <contato@exactracontabilidade.com.br>` (domínio verificado no Resend; não usar o subdomínio `envio.`) |
+| | `EMAIL_REPLY_TO`, `ADMIN_NOTIFY_EMAIL` | `contato@exactracontabilidade.com.br` |
 | | `EMAIL_ASSET_BASE_URL` | `https://www.exactracontabilidade.com.br` |
-| | `R2_*` | bucket de produção |
+| | `R2_*` | bucket `exactra-prod` (`R2_BUCKET`), token restrito a ele |
 | | `SENTRY_DSN` | DSN do projeto da API |
 | `exactra-web` | `NEXT_PUBLIC_SITE_URL` | `https://www.exactracontabilidade.com.br` |
 | | `NEXT_PUBLIC_API_URL` | por enquanto a URL `onrender.com` da API |
@@ -33,6 +34,7 @@ Nenhum segredo neste arquivo: os valores ficam só no Render.
 Já vêm do arquivo: `CHECKOUT_ENABLED=false`, `MERCADO_PAGO_MODE=live`, `NEXT_PUBLIC_CHECKOUT_ENABLED=false`, `BETTER_AUTH_SECRET` gerado.
 
 3. O primeiro deploy roda as migrations (`preDeployCommand`). Confira `GET /health/db` da API.
+4. No R2, acrescente ao CORS do bucket `exactra-prod` a URL `https://exactra-web….onrender.com`, para o upload funcionar antes do DNS.
 
 ## 2. Primeiro admin
 
