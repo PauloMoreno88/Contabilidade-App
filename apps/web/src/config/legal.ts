@@ -1,0 +1,161 @@
+/**
+ * Legal texts (terms and privacy), reviewed by Exactra's lawyer and published
+ * as they are on 12/11/2026 (docs/plano.md, decision 44).
+ */
+import { company as exactra, contact } from "./site";
+
+export type LegalSection = { title: string; paragraphs?: string[]; items?: string[] };
+export type LegalDoc = { title: string; updatedAt: string; intro: string; sections: LegalSection[] };
+
+export const legalCopy = {
+  updatedLabel: "Última atualização",
+  otherDoc: { privacy: { href: "/termos", label: "Ler os termos de uso" }, terms: { href: "/privacidade", label: "Ler a política de privacidade" } },
+};
+
+const company = `${exactra.legalName}, CNPJ ${exactra.cnpj}, com sede na ${contact.address}`;
+
+export const privacyPolicy: LegalDoc = {
+  title: "Política de privacidade",
+  updatedAt: "11/11/2026",
+  intro: `Esta política explica quais dados pessoais a Exactra Contabilidade (${company}) coleta no site, para que usa e quais são os seus direitos, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).`,
+  sections: [
+    {
+      title: "Quais dados coletamos",
+      items: [
+        "No simulador: nome, WhatsApp, e-mail (opcional) e as respostas sobre o seu negócio, como perfil, faturamento estimado e número de funcionários.",
+        "Na contratação: nome completo, e-mail, telefone e CPF ou CNPJ.",
+        "Dados de pagamento, como número do cartão, são informados direto no ambiente do Mercado Pago. A Exactra não recebe nem guarda esses dados.",
+        "Dados de navegação: origem da visita (parâmetros de campanha, como utm_source) e registros técnicos de acesso.",
+      ],
+    },
+    {
+      title: "Para que usamos",
+      items: [
+        "Mostrar a estimativa do simulador e entrar em contato sobre ela, se você autorizar.",
+        "Prestar os serviços contratados, emitir cobranças e enviar avisos sobre o contrato, como confirmação de pagamento e vencimento.",
+        "Cumprir obrigações legais e fiscais.",
+        "Entender quais campanhas trazem visitantes, sem identificar você individualmente.",
+      ],
+    },
+    {
+      title: "Base legal",
+      paragraphs: [
+        "Usamos os dados do simulador com base no seu consentimento. Os dados da contratação são tratados para executar o contrato e cumprir obrigações legais. Você pode retirar o consentimento a qualquer momento, sem afetar o que já foi feito antes.",
+      ],
+    },
+    {
+      title: "Com quem compartilhamos",
+      paragraphs: ["Compartilhamos dados só com empresas que nos ajudam a operar o serviço, e só o necessário:"],
+      items: [
+        "Mercado Pago: processamento de pagamentos (cartão, Pix e boleto).",
+        "Resend: envio de e-mails.",
+        "Render e Neon: hospedagem do site e do banco de dados.",
+        "Autoridades públicas, quando a lei exigir.",
+      ],
+    },
+    {
+      title: "Por quanto tempo guardamos",
+      paragraphs: [
+        "Os dados do simulador ficam guardados por até 1 mês se você não contratar. Os dados da contratação ficam guardados enquanto o contrato durar e pelo prazo exigido pela legislação fiscal e contábil.",
+      ],
+    },
+    {
+      title: "Cookies",
+      paragraphs: [
+        "O site público não usa cookies de publicidade. O painel administrativo, usado só pela equipe da Exactra, usa um cookie de sessão para manter o login.",
+      ],
+    },
+    {
+      title: "Seus direitos",
+      paragraphs: ["Você pode pedir a qualquer momento:"],
+      items: [
+        "Confirmação de que tratamos seus dados e acesso a eles.",
+        "Correção de dados incompletos ou desatualizados.",
+        "Exclusão dos dados tratados com base no consentimento.",
+        "Portabilidade e informações sobre com quem compartilhamos.",
+        "Revogação do consentimento.",
+      ],
+    },
+    {
+      title: "Segurança",
+      paragraphs: [
+        "O acesso aos dados é restrito à equipe da Exactra, com login protegido por verificação em duas etapas. As conexões com o site são criptografadas.",
+      ],
+    },
+    {
+      title: "Contato",
+      paragraphs: [
+        `Para exercer seus direitos ou tirar dúvidas, escreva para ${contact.email}. Encarregado pelo tratamento de dados: Yann Farias, sócio da Exactra.`,
+      ],
+    },
+  ],
+};
+
+export const termsOfUse: LegalDoc = {
+  title: "Termos de uso",
+  updatedAt: "24/10/2026",
+  intro: `Estes termos valem para o uso do site e para a contratação online dos serviços da Exactra Contabilidade (${company}). Ao contratar, você declara que leu e concorda com eles.`,
+  sections: [
+    {
+      title: "O simulador",
+      paragraphs: [
+        "O simulador mostra uma estimativa com base nas respostas que você informa. Ele não substitui a análise de um contador: o enquadramento tributário definitivo depende da análise da Exactra depois da contratação.",
+      ],
+    },
+    {
+      title: "Planos e preços",
+      paragraphs: [
+        "Os serviços incluídos no plano e o preço são os informados no site no momento da contratação e valem durante todo o contrato, mesmo que o seu faturamento aumente. Mudanças de plano ou de preço só valem para novas contratações e renovações.",
+        "O plano inclui a abertura da empresa para quem ainda não tem CNPJ e a declaração do Imposto de Renda da pessoa física. As taxas cobradas por órgãos públicos na abertura (Junta Comercial, prefeitura e outros) são pagas por quem contrata e não fazem parte do preço do plano."
+      ],
+    },
+    {
+      title: "Pagamento",
+      items: [
+        "O contrato tem duração de 12 meses e é pago na contratação.",
+        "Cartão de crédito: à vista ou parcelado. No parcelado, os juros são pagos por você e aparecem no ambiente de pagamento antes de confirmar.",
+        "Pix ou boleto: valor anual à vista.",
+        "Não há taxa de adesão.",
+        "O contrato começa quando o pagamento é confirmado. No boleto, a confirmação leva de 1 a 3 dias úteis.",
+        "O contrato não renova sozinho: avisamos antes do vencimento para você decidir se quer continuar.",
+      ],
+    },
+    {
+      title: "Desistência e cancelamento",
+      paragraphs: [
+        "Você pode desistir em até 7 dias após a contratação, com reembolso integral do valor pago, como garante o Código de Defesa do Consumidor (art. 49) para compras feitas pela internet. Para desistir, escreva para o e-mail de contato da Exactra.",
+        "Depois desse prazo, o contrato vale pelos 12 meses contratados e o valor pago não é devolvido, exceto nos casos previstos em lei ou se a Exactra deixar de prestar os serviços contratados.",
+      ],
+    },
+    {
+      title: "Suas responsabilidades",
+      items: [
+        "Informar dados verdadeiros e mantê-los atualizados.",
+        "Enviar os documentos pedidos nos prazos combinados, para que a Exactra cumpra as obrigações do seu CNPJ em dia.",
+      ],
+    },
+    {
+      title: "Responsabilidades da Exactra",
+      paragraphs: [
+        "A Exactra presta os serviços contábeis descritos no plano contratado, seguindo as normas da profissão, e entrega as guias e declarações dentro dos prazos legais quando recebe as informações e os documentos a tempo.",
+        "Se uma multa ou juros forem cobrados por erro ou atraso da Exactra, a Exactra paga esse valor. Os impostos em si são sempre devidos pela sua empresa, mesmo quando a guia é calculada pela Exactra.",
+        "A Exactra não responde por:",
+      ],
+      items: [
+        "multas, juros ou cobranças causados por informações erradas, incompletas ou enviadas fora do prazo combinado;",
+        "guias que a Exactra entregou no prazo e que não foram pagas até o vencimento;",
+        "decisões de órgãos públicos, mudanças na lei e falhas ou atrasos em sistemas do governo, como a Receita Federal, a Junta Comercial e a prefeitura;",
+        "fatos anteriores ao início do contrato, como declarações e pagamentos de períodos em que outro contador cuidava da empresa, salvo se a correção fizer parte do serviço contratado;",
+        "decisões de negócio que você tomar com base nas informações contábeis, inclusive na estimativa do simulador.",
+      ],
+    },
+    {
+      title: "Dados pessoais",
+      paragraphs: ["O tratamento dos seus dados segue a nossa política de privacidade."],
+    },
+    {
+      title: "Foro",
+      paragraphs: [`Fica eleito o foro da comarca de ${exactra.forum} para resolver qualquer questão sobre estes termos.`],
+    },
+  ],
+};

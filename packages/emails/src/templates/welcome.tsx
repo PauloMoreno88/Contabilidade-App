@@ -1,0 +1,119 @@
+import { Column, Row, Section, Text } from "@react-email/components";
+import type { ReactNode } from "react";
+import { onboarding, PERIOD_MONTHS, planInfo, whatsappLink, type BillingPeriod, type PaymentMethod, type StoredPlanId } from "@exactra/shared";
+import { methodLabel, periodLabel, portalCopy, renewalCopy, welcomeCopy, isRecurring } from "../copy";
+import { firstName, formatBRL, formatDate, safeUrl, type DateInput } from "../format";
+import { color, H1, H2, Layout, Ledger, Mono, P, Panel, PrimaryButton, Signature, WhatsAppButton, mono } from "../ui";
+
+export type ContractSummary = {
+  plan: StoredPlanId;
+  period: BillingPeriod;
+  method: PaymentMethod;
+  /** What was charged: monthly price on card, the whole prepaid period on Pix/boleto. */
+  amountCents: number;
+  startsAt: DateInput;
+  /** Card: end of the current billing period (next charge). Pix/boleto: end of the prepaid period. */
+  endsAt?: DateInput | null;
+};
+
+export type WelcomeEmailProps = {
+  customerName: string;
+  contract: ContractSummary;
+  renewal?: boolean;
+  /** Link to create the customer area password (sent with the welcome so the customer gets one e-mail). */
+  activation?: { url: string; expiresInDays: number };
+};
+
+export function WelcomeEmail({ customerName, contract: c, activation, renewal }: WelcomeEmailProps) {
+  const copy = renewal ? renewalCopy : welcomeCopy;
+  const name = firstName(customerName);
+  const plan = planInfo(c.plan);
+  const card = isRecurring(c);
+  const months = PERIOD_MONTHS[c.period];
+
+  return (
+    <Layout preview={copy.preview}>
+      <H1>{copy.title(name)}</H1>
+      <P>{copy.lede}</P>
+      {activation && (
+        <Panel>
+          <Text className="x-text" style={{ margin: "0 0 6px", fontSize: 16, lineHeight: "22px", fontWeight: 600, color: color.text }}>{portalCopy.welcomeActivation.title}</Text>
+          <Text className="x-muted" style={{ margin: "0 0 14px", fontSize: 14, lineHeight: "21px", color: color.muted }}>{portalCopy.welcomeActivation.text}</Text>
+          <PrimaryButton href={safeUrl(activation.url)}>{portalCopy.welcomeActivation.cta}</PrimaryButton>
+          <Text className="x-faint" style={{ margin: "12px 0 0", fontSize: 12, lineHeight: "18px", color: color.faint }}>{portalCopy.welcomeActivation.expires(activation.expiresInDays)}</Text>
+        </Panel>
+      )}
+
+      <H2>{copy.summaryTitle}</H2>
+      <Ledger
+        rows={[
+          [copy.plan, plan.name, plan.tagline],
+          [copy.billing, card ? methodLabel.CARD : `${methodLabel[c.method]}, ${periodLabel[c.period].toLowerCase()}`],
+          [copy.amount, <Mono key="v">{formatBRL(c.amountCents)}</Mono>, card ? copy.amountPerMonth : copy.amountPrepaid(months)],
+          [copy.startsAt, <Mono key="s">{formatDate(c.startsAt)}</Mono>],
+          ...(c.endsAt ? [[card ? copy.nextCharge : copy.endsAt, <Mono key="e">{formatDate(c.endsAt)}</Mono>] as [string, ReactNode]] : []),
+        ]}
+      />
+      <P small style={{ margin: "10px 0 0" }}>{card ? copy.cardNote : copy.prepaidNote}</P>
+
+      {!renewal && <>
+      <H2>{copy.stepsTitle}</H2>
+      <Section>
+        {onboarding.steps.map((s, i) => {
+          const done = i === 0;
+          return (
+            <Row key={s.title}>
+              <Column style={{ width: 40, verticalAlign: "top", paddingTop: 2 }}>
+                <Text
+                  style={{
+                    margin: 0,
+                    width: 26,
+                    height: 26,
+                    lineHeight: "26px",
+                    textAlign: "center",
+                    borderRadius: 13,
+                    fontFamily: mono,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    backgroundColor: done ? color.red : color.soft,
+                    color: done ? "#FFFFFF" : color.faint,
+                  }}
+                  className={done ? undefined : "x-soft x-faint"}
+                >
+                  {done ? "✓" : i + 1}
+                </Text>
+              </Column>
+              <Column style={{ verticalAlign: "top", paddingBottom: 14 }}>
+                <Text className="x-text" style={{ margin: 0, fontSize: 15, lineHeight: "22px", fontWeight: 600, color: color.text }}>
+                  {s.title}
+                  {done && <span style={{ color: color.red, fontWeight: 500, fontSize: 13, paddingLeft: 8 }}>{copy.done}</span>}
+                </Text>
+                <Text className="x-muted" style={{ margin: 0, fontSize: 14, lineHeight: "21px", color: color.muted }}>{s.text}</Text>
+              </Column>
+            </Row>
+          );
+        })}
+      </Section>
+
+      <H2>{copy.docsTitle}</H2>
+      <Panel>
+        {onboarding.docGroups.map((g, gi) => (
+          <Section key={g.title}>
+            <Text className="x-text" style={{ margin: gi === 0 ? "0 0 6px" : "14px 0 6px", fontSize: 14, lineHeight: "21px", fontWeight: 700, color: color.text }}>{g.title}</Text>
+            {g.items.map((d) => (
+              <Text key={d} className="x-text" style={{ margin: "0 0 6px", fontSize: 14, lineHeight: "21px", color: color.text }}>
+                <span style={{ color: color.red }}>■</span>&nbsp;&nbsp;{d}
+              </Text>
+            ))}
+          </Section>
+        ))}
+        <Text className="x-faint" style={{ margin: "10px 0 0", fontSize: 12, lineHeight: "18px", color: color.faint }}>{onboarding.docsNote}</Text>
+      </Panel>
+      </>}
+
+      <P style={{ margin: "28px 0 14px" }}>{copy.whatsappText}</P>
+      <WhatsAppButton href={whatsappLink(copy.whatsappMessage(plan.name))}>{copy.whatsappCta}</WhatsAppButton>
+      <Signature />
+    </Layout>
+  );
+}

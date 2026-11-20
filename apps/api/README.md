@@ -1,0 +1,220 @@
+# API — Exactra Contabilidade
+
+NestJS 12 (ESM) + Prisma 7 (Postgres/Neon) + Better Auth. Build com `tsdown`, que embute o `@exactra/shared` (TS cru) no `dist/`. Os e-mails vêm do `@exactra/emails` (React Email), consumido **compilado** (`packages/emails/dist`).
+
+## Rodar localmente
+
+```
+cp apps/api/.env.example apps/api/.env   # preencha DATABASE_URL e BETTER_AUTH_SECRET
+pnpm install                             # roda `prisma generate`
+pnpm --filter "api..." build             # compila @exactra/emails e depois a API
+pnpm --filter api db:deploy              # aplica as migrations no banco do DIRECT_URL/DATABASE_URL
+pnpm --filter api seed                   # cria o primeiro admin (ADMIN_SEED_*)
+pnpm --filter api start:dev              # http://localhost:3001
+```
+
+Testes não precisam de serviços externos: o e2e usa Postgres em memória (PGlite) com as migrations reais.
+
+```
+pnpm --filter @exactra/emails build     # uma vez (o e2e importa o dist do pacote)
+pnpm --filter api test:e2e
+pnpm --filter api lint
+```
+
+## Deploy no Render
+
+Blueprint em `render.yaml` (raiz). Passo a passo do staging, variáveis e validação: `docs/deploy-staging.md`.
+
+- **Build:** `npm install -g --prefix "$HOME/.pnpm-tools" pnpm@12.9.1 && export PATH="$HOME/.pnpm-tools/bin:$PATH" && pnpm --version && pnpm install --frozen-lockfile --prod=false && pnpm --filter "api..." build`.
+  - O pnpm é instalado porque o Render traz outra versão e o lockfile é do pnpm 12.
+  - `--prod=false` mantém as devDependencies (tsdown, prisma) mesmo com `NODE_ENV=production`.
+  - O `...` compila o `@exactra/emails` antes da API.
+- **Pre-deploy (migrations):** `cd apps/api && ./node_modules/.bin/prisma migrate deploy`, usando `DIRECT_URL`. Se falhar, o deploy é cancelado.
+- **Start:** `node apps/api/dist/main.mjs`. O Render define `PORT`.
+- **Health check:** `/health` (não toca no banco). `/health/db` faz `SELECT 1` e responde 503 se o banco cair; serve para validação manual e monitoramento.
+- **Seed do admin:** manual, pelo Shell do Render (`node dist/seed.mjs`; ver `docs/deploy-staging.md`).
+- Esse fluxo foi validado num clone limpo, com `NODE_ENV=production`: build, `migrate deploy` contra o Neon dev ("No pending migrations") e boot com `/health` e `/health/db` respondendo 200.
+
+## Rotas
+
+Base: `NEXT_PUBLIC_API_URL` (dev `http://localhost:3001`, produção `https://api.exactracontabilidade.com.br`). Erros seguem o padrão do Nest: `{ statusCode, message, error }`; erros de validação (400) trazem em `message` o `flatten()` do zod (`{ formErrors, fieldErrors }`).
+
+### CORS
+
+`src/setup-app.ts` chama `app.enableCors` com:
+
+- `origin`: `WEB_ORIGIN` (lista separada por vírgula, ex.: `https://www.exactracontabilidade.com.br,https://exactracontabilidade.com.br`);
+- `credentials: true`;
+- métodos `GET POST PUT PATCH DELETE OPTIONS` e headers `Content-Type` e `Authorization`;
+- expõe `Content-Disposition` (nome do CSV).
+
+Outras origens não recebem `Access-Control-Allow-Origin`. O front deve usar `credentials: 'include'` em **todas** as chamadas, para o cookie de sessão do admin ir junto.
+
+### Públicas
+
+- `GET /health` → `{ ok: true }` (liveness, sem banco).
+- `GET /health/db` → `{ ok: true, db: true }` com `SELECT 1`; **503** se o banco não responder.
+- `/api/auth/*` — Better Auth (login, 2FA, reset de senha, plugin admin). Cadastro público desligado. Use o client do Better Auth com `twoFactorClient()` e `adminClient()`.
+- `POST /leads` — body `CreateLeadInput`. **201** `{ id: string, result: SimulatorResult }`. O resultado é recalculado no servidor (o enviado pelo front é ignorado).
+- `POST /checkout/sessions` — body `CreateCheckoutInput`. **201** `CheckoutResponse` = `{ contractId, checkoutUrl, statusToken }` → redirecione para `checkoutUrl`.
+  - Sempre cria uma preferência do Mercado Pago (o campo `provider` da requisição é ignorado).
+  - **400** se o plano não está à venda ou o período não é `ANNUAL`.
+  - **503** se o checkout estiver indisponível (Mercado Pago sem credenciais ou modo, ou `MERCADO_PAGO_MODE=live` com `CHECKOUT_ENABLED=false`).
+  - Retorno do Mercado Pago: sucesso **ou pendente** (boleto/Pix gerado) → `WEB_ORIGIN/checkout/status?contract=<id>&token=<statusToken>`; falha → `WEB_ORIGIN/checkout?cancelado=1&plan=<plano>`.
+- `GET /contracts/:id/status?token=<statusToken>` → **200** `ContractStatusResponse` = `{ contractId, status, method, provider, plan, period }`; **404** sem token ou com token errado. Faça polling enquanto `status = PENDING_PAYMENT` (boleto leva 1–3 dias úteis).
+- `POST /webhooks/mercado-pago` — só para o Mercado Pago (ver "Pagamentos e ciclo do contrato").
+
+### Admin
+
+Todas exigem sessão com papel `admin`: sem sessão **401**, outro papel **403**. Datas em ISO 8601 (UTC), valores em centavos.
+Query e respostas usam os schemas de `@exactra/shared` (`packages/shared/src/admin.ts`). A API valida a query com eles e passa a resposta pelo schema, o que remove campos internos como `statusToken` e ids do provedor de pagamento.
+
+| Rota | Query (schema) | Resposta 200 (schema) |
+|---|---|---|
+| `GET /admin/metrics` | — | `adminMetricsSchema` |
+| `GET /admin/contracts` | `adminContractsQuerySchema`: `q, status, plan, method, period, page=1, pageSize=20` (máx. 100) | `adminContractsPageSchema` = `{ items: AdminContractRow[], total, page, pageSize }` |
+| `GET /admin/contracts/:id` | — | `adminContractDetailSchema` (contrato + `customer` com `lead` + `payments`); **404** se não existir |
+| `GET /admin/leads` | `adminLeadsQuerySchema`: `q, page=1, pageSize=20` (máx. 100) | `adminLeadsPageSchema` = `{ items: AdminLead[], total, page, pageSize }` |
+| `GET /admin/contracts.csv` | `adminContractsQuerySchema` (paginação ignorada) | `text/csv; charset=utf-8`, `Content-Disposition: attachment; filename="contratos.csv"` |
+
+- Filtros inválidos (ex.: `status=FOO`) → **400**.
+- `q` busca sem diferenciar maiúsculas em nome e e-mail e, se tiver dígitos, também em CPF/CNPJ (só dígitos) e telefone. Nos leads, busca em nome, e-mail e WhatsApp.
+- Ordem: mais recentes primeiro; os pagamentos do detalhe vêm do mais recente para o mais antigo.
+
+Definições do `AdminMetrics`:
+
+- `activeCustomers`: clientes com contrato `ACTIVE`;
+- `newThisMonth`: contratos com início no mês corrente;
+- `contractedRevenueCents`: soma de `amountCents` dos contratos `ACTIVE` (cartão = valor mensal; Pix/boleto = valor do período pago);
+- `pendingPayment`: contratos `PENDING_PAYMENT`;
+- `expiringIn30Days`: Pix/boleto `ACTIVE` que vencem em até 30 dias;
+- `byPlan` / `byMethod`: contratos `ACTIVE` (chave ausente = 0).
+
+CSV:
+
+- separador `;` e BOM UTF-8 (abre direto no Excel pt-BR);
+- colunas `Cliente; E-mail; Telefone; CPF/CNPJ; Plano; Período; Pagamento; Status; Valor (R$); Início; Fim` (valor como `199,00`, datas `AAAA-MM-DD`);
+- células que começam com `= + - @` ganham `'` na frente (proteção contra injeção de fórmula);
+- para baixar: `fetch(url, { credentials: 'include' })` → `blob()`; o nome do arquivo vem em `Content-Disposition`.
+
+### Área do cliente (`/app/*`, papel `customer`)
+
+Login do cliente = usuário do Better Auth com `role: "customer"`, ligado à empresa (`Customer`) por `CompanyMember` (N:N; a v1 usa a primeira empresa). Clientes **nunca** acessam `/admin/*` e admins **nunca** acessam `/app/*` (**403**). Schemas em `packages/shared/src/portal.ts`.
+
+O acesso vem dos contratos (`customerAccess`): `FULL` com contrato `ACTIVE`/`PAST_DUE`; `READ_ONLY` por 90 dias depois do fim (só leitura, pode renovar); `BLOCKED` depois disso (só `/app/me` e `/app/plan`). Escrever fora do `FULL` responde **403**.
+
+| Rota | O que faz |
+|---|---|
+| `GET /app/me` | usuário, empresa, acesso e se já fez o primeiro acesso (`portalMeSchema`) |
+| `POST /app/onboarding` | telefone, perfil da empresa (gera o checklist) e aceite dos termos |
+| `GET /app/home` | tarefas por urgência, resumo de documentos e guias (`portalHomeSchema`) |
+| `GET /app/documents?competence=AAAA-MM` | checklist do mês + "Outros documentos" (`documentsMonthSchema`). Sem `competence`: o mês anterior |
+| `POST /app/uploads` → PUT na URL assinada → `POST /app/uploads/:id/complete` | envio direto para o storage (`createUploadSchema`, máx. 25 MB, tipo pela extensão) |
+| `DELETE /app/files/:id` | remove arquivo próprio enquanto o mês ainda está aberto |
+| `GET /app/files/:id/download[?inline=1]` | URL assinada de 5 min |
+| `GET /app/files.zip?competence=` | tudo do mês num ZIP (aviso de retenção) |
+| `GET /app/guides` | guias em aberto e pagas (`portalGuidesSchema`) |
+| `POST /app/guides/:id/paid` / `DELETE …/paid` | "Já paguei" (comprovante opcional) e desfazer |
+| `GET /app/plan` / `POST /app/plan/renew` | contratos e pagamentos; renovação 60 dias antes do fim (novo Checkout, mesma empresa; começa quando o atual termina) |
+| `GET /app/company` / `PATCH /app/company` | dados, perfil e usuários. Nome e CPF/CNPJ só mudam pela equipe |
+
+Públicas (link do e-mail de convite): `GET /account/invite?token=` e `POST /account/activate { token, password }`. O token vale 7 dias, uma vez; só o SHA-256 fica no banco. Depois o front faz `sign-in/email` com a senha nova.
+
+Admin da área do cliente (`src/portal/admin-portal.controller.ts`, papel `admin`):
+
+| Rota | O que faz |
+|---|---|
+| `GET /admin/month?competence&filter&q&page` | visão do mês: documentos, guias vencidas, acesso (`adminMonthPageSchema`; filtros `late`, `rejected`, `unpaid`, `no_access`) |
+| `GET /admin/customers`, `GET /admin/customers/:id` | lista e ficha (membros, convites, contratos, checklist que se aplica) |
+| `POST /admin/customers` | cliente manual: empresa + contrato `MANUAL` (sem pagamento online) + login + convite |
+| `PATCH /admin/customers/:id` | lembretes, perfil e itens do checklist desligados |
+| `POST /admin/customers/:id/invite` | cria o login se faltar e reenvia o convite (**409** se já ativou) |
+| `GET /admin/customers/:id/documents?competence=` / `POST /admin/document-requests/:id/reject` | documentos do cliente e recusa com motivo (e-mail ao cliente) |
+| `GET /admin/files/:id/download` | qualquer arquivo |
+| `POST /admin/uploads` (`purpose: "guide"`, `customerId`) → PUT → `POST /admin/uploads/:id/complete` | PDF da guia |
+| `POST /admin/guides/parse { fileId }` | lê o PDF e sugere tipo, competência, vencimento, valor e linha digitável. **Não publica** |
+| `POST /admin/guides` / `DELETE /admin/guides/:id` | publica (e-mail ao cliente) / remove guia publicada por engano |
+| `GET /admin/customers/:id/guides` | guias do cliente |
+| `GET|POST /admin/checklist-items`, `PATCH /admin/checklist-items/:id` | modelos do checklist (`customerId` = item só daquela empresa; `startsCompetence` = primeira competência, a aberta entra na hora, nunca uma passada) |
+
+Travas da guia (decisão 25): a linha só é aceita se **todos** os dígitos verificadores baterem (`parseBarcodeLine`, arrecadação mod 10/11 e boleto); com linha, o valor digitado tem de ser o da linha (**400**); o leitor avisa quando o valor da linha não aparece no PDF e quando o CPF/CNPJ do PDF não é o do cliente; quem publica é sempre uma pessoa.
+
+Storage (`src/storage/`): `StorageProvider` com `R2Provider` (aws4fetch, URLs assinadas; `Content-Type` assinado no PUT, tipo e nome forçados no GET). Sem `R2_*`: em dev e testes, `LocalStorageProvider` grava em `STORAGE_LOCAL_DIR` e a própria API serve as URLs assinadas (`/storage/local/:token`); em produção, envio e download respondem **503**.
+
+Job diário da área do cliente (07h, `src/portal/portal.job.ts`), cada e-mail uma única vez (`NotificationLog`): cria o checklist do mês e avisa; lembra documentos pendentes 5 e 1 dia antes e no dia do prazo (dia 10, PLACEHOLDER); lembra guias abertas 3 dias antes e no dia; avisa 30 dias antes de apagar os arquivos e apaga o que passou de 12 meses da competência (e uploads nunca confirmados, depois de 1 dia).
+
+## Pagamentos e ciclo do contrato
+
+### Mercado Pago
+
+O Checkout Pro do Mercado Pago é o único provedor desde 11/11/2026 (a Stripe saiu do código; `docs/specs/remover-stripe.md`). No site o comprador só informa os dados; no Mercado Pago ele escolhe o meio de pagamento e vê as condições de até 12 parcelas antes de confirmar. Como o Checkout Pro por preferências não permite ocultar saldo em conta, o método registrado é atualizado com o meio efetivo informado na API de pagamentos (`OTHER` para saldo/outros meios). O valor anual continua vindo de `@exactra/shared` e é PLACEHOLDER.
+
+Para habilitar o teste, crie a aplicação da Exactra em **Suas integrações** do Mercado Pago e configure no API: `MERCADO_PAGO_ACCESS_TOKEN` (credencial de teste), `MERCADO_PAGO_WEBHOOK_SECRET` (assinatura secreta de Webhooks) e `MERCADO_PAGO_MODE=test`. Sem os dois segredos ou o modo explícito, o checkout e a renovação respondem 503. Configure a notificação **Pagamentos** para `https://<api>/webhooks/mercado-pago` no painel, nas abas Teste e depois Produção. Não defina `notification_url` na preferência: a URL central do painel fornece o segredo usado para validar `x-signature`. Mantenha `CHECKOUT_ENABLED=false` até validar os preços; `MERCADO_PAGO_MODE=live` só permite cobranças se a flag for `true`. Access tokens de teste e produção podem começar com `APP_USR`, portanto confirme o modo e a credencial no painel antes de habilitar o ambiente real.
+
+O webhook valida a assinatura, sem limite de idade do `ts` (a unidade varia na documentação e o reenvio pode manter o valor original; reenviar é inofensivo porque os eventos são idempotentes e o estado vem da API). Depois consulta `/v1/payments/{id}` com o access token, confere referência do contrato e valor, e só ativa pagamentos `approved`. Duplicatas não geram segundo pagamento.
+
+O que cada estado do pagamento faz:
+
+| Estado | Contrato | Alerta para `ADMIN_NOTIFY_EMAIL` |
+|---|---|---|
+| `refunded` ou `charged_back` do pagamento que ativou o contrato | `CANCELED` | Sim |
+| `refunded` ou `charged_back` de outro pagamento | Não muda | Sim |
+| Reembolso parcial, `in_mediation` ou chargeback `reimbursed` | Não muda | Sim |
+| `approved` com valor diferente, sem contrato, ou em contrato que não está pendente | Não muda (responde 200) | Sim |
+| `rejected` ou `cancelled` | Continua pendente: o comprador pode tentar de novo no mesmo link | Não |
+
+O link vale 3 dias, inclusive para Pix e boleto gerados nele. O job diário cancela contratos do checkout pendentes há mais de 8 dias, de qualquer provedor (inclusive os antigos de teste da Stripe), (3 do link + 5 para a compensação do boleto). Na renovação, enquanto o link vale, pedir de novo retoma a mesma preferência. Depois disso, e até o job cancelar o contrato pendente, a API responde 409 (decisão 39). O comprador paga os juros do parcelado (decisão 38). Reembolso é feito no painel do Mercado Pago; o `Payment` continua `PAID` e o contrato é que muda.
+
+Em 11/11/2026 o Mercado Pago entregou a notificação de um pagamento de teste e o contrato ativou em 2 segundos (`docs/specs/mercado-pago-e2e.md`). A simulação do painel com um ID que não existe responde 500, de propósito: a API não acha o pagamento e o Mercado Pago tenta de novo. **Limite para testar com a conta:** pagamentos divididos entre dois meios podem exigir conciliação da ordem comercial; esta integração só ativa quando um pagamento aprovado cobre o valor integral. Confirme no painel a disponibilidade de 12x, as tarifas e se o comprador paga os juros ou a Exactra assume o custo. Não anuncie `12x sem juros` antes dessa decisão.
+
+Fontes: [preferências e parcelas](https://www.mercadopago.com.br/developers/en/docs/checkout-pro-preferences/additional-settings/payment-methods), [webhooks e simulação](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-preferences/payment-notifications).
+
+Tudo passa pela classe abstrata `PaymentProvider` (`src/payments`), implementada por `MercadoPagoProvider`. O pagamento verificado vira um evento neutro (`prepaid.paid`, `payment.reversed` ou `payment.attention`), e `src/contracts/contract-lifecycle.ts` aplica: `PENDING_PAYMENT → ACTIVE` com `endsAt = início + 12 meses` (renovação começa quando o contrato atual termina) ou `→ CANCELED` no reembolso total e no chargeback.
+
+O `WebhookEvent` guarda a chave do evento em `eventId` (prefixo `mp:`), única. A migration `20261111000000_drop_stripe_columns` (decisão 40) renomeou a antiga `stripeEventId`, tirou as colunas `stripe*` e trocou o padrão de `provider` para `MERCADO_PAGO`; o valor `STRIPE` do enum fica só para os contratos antigos de teste do staging.
+
+## E-mails (Resend) e job diário
+
+Todos os e-mails são gerados pelas funções `render*` do `@exactra/emails`, que devolvem `{ subject, html, text }`. O `sendEmail` (`src/email.ts`) manda `html` **e** `text` ao Resend.
+
+| E-mail | Quando | Função | Onde |
+|---|---|---|---|
+| Boas-vindas | contrato ativado pelo webhook | `renderWelcomeEmail` | `src/notifications.ts` |
+| Aviso interno de nova contratação (para `ADMIN_NOTIFY_EMAIL`) | idem; inclui origem do lead (UTM) e link `WEB_ORIGIN/admin/contrato?id=…` | `renderNewContractNotice` | `src/notifications.ts` |
+| Redefinição de senha | `POST /api/auth/request-password-reset` | `renderPasswordResetEmail` (link expira em 60 min) | `src/auth.ts` |
+| Código 2FA por e-mail | `POST /api/auth/two-factor/send-otp` | `renderTwoFactorCodeEmail` (código expira em 3 min) | `src/auth.ts` |
+| Lembrete de vencimento | job diário, 7 dias antes; não sai se já houver renovação paga | `renderExpiryReminderEmail` (renovação em `/app/plano` para quem tem login) | `src/notifications.ts` |
+| Convite da área do cliente | boas-vindas (link junto) ou cliente manual / reenvio | `renderWelcomeEmail({ activation })`, `renderPortalInviteEmail` | `src/notifications.ts`, `src/portal/invites.ts` |
+| Link de acesso sem senha | `POST /api/auth/sign-in/magic-link` (só papel `customer` sem 2FA) | `renderMagicLinkEmail` (15 min) | `src/auth.ts` |
+| Guia nova, guia vencendo, documentos do mês, lembrete, recusa, retenção | admin publica/recusa; job diário | `renderGuidePublishedEmail`, `renderGuideDueEmail`, `renderDocumentsOpenEmail`, `renderDocumentsReminderEmail`, `renderDocumentRejectedEmail`, `renderRetentionNoticeEmail` | `src/portal/` |
+
+- **Falhas:** erro de e-mail na ativação só é logado, porque o pagamento já está gravado. No job, o contrato é tentado de novo no dia seguinte.
+- **Sem chave:** sem `RESEND_API_KEY`, os e-mails só aparecem no log (dev/testes). Em produção, a falta da chave gera erro.
+- **`EMAIL_ASSET_BASE_URL`:** origem do site público, usada para o logo (`{base}/email/logo.png`) e para o link de renovação. Em dev é `http://localhost:3000`; em produção, `https://www.exactracontabilidade.com.br`.
+- **Textos:** ficam em `packages/emails/src/copy.ts`.
+- **Escape:** nomes e dados do usuário são escapados pelo React. O e2e (`test/notifications.e2e-spec.ts`) confere `subject`, `html` e `text` de cada e-mail e que um nome com `<script>` sai escapado.
+- **Job diário** (09h, horário de Brasília, `src/contracts/expiry.job.ts`): avisa 7 dias antes do vencimento (uma vez), marca como `EXPIRED` o que já venceu e cancela checkouts pendentes há mais de 8 dias.
+
+## Autenticação (admin e cliente)
+
+- E-mail + senha, sem cadastro público. O primeiro admin vem do `seed`; outros são criados por um admin (`/api/auth/admin/create-user`).
+- 2FA: TOTP (app autenticador) ou código por e-mail; o admin ativa em `/api/auth/two-factor/enable`.
+- Reset de senha: `POST /api/auth/request-password-reset` com `redirectTo` apontando para a tela do front.
+- Todas as rotas exigem sessão por padrão (guard global); rotas públicas usam `@AllowAnonymous()` e rotas de admin usam `@Roles(['admin'])`.
+- Produção: `AUTH_COOKIE_DOMAIN=.exactracontabilidade.com.br` compartilha o cookie entre `www.` e `api.`.
+- Rate limit do login: o padrão do Better Auth (em memória, ativo em produção).
+- Papéis: `admin` (equipe) e `customer` (área do cliente, sem nenhuma permissão do plugin admin). Clientes nascem do webhook de pagamento (`ensurePortalUser`) ou do cadastro manual.
+- Link mágico (`magicLink`, cadastro desligado): só é enviado para `customer` sem 2FA, porque o link entra sem o segundo fator. Para os outros e-mails, a resposta é a mesma, mas nada é enviado.
+
+## O que falta configurar (externo)
+
+- [x] Neon (branch de dev): migrations aplicadas e admin criado em 04/10.
+- [x] Mercado Pago (teste): aplicação, credenciais e webhook no staging; pagamentos de teste validados em 11/11 (`docs/specs/mercado-pago-e2e.md`).
+- [ ] Neon produção: `DATABASE_URL` (pooled) + `DIRECT_URL` (sem `-pooler`, usado pelo `prisma migrate`) e rodar `db:deploy`. Use `sslmode=verify-full` para evitar o aviso do `pg`.
+- [ ] `BETTER_AUTH_SECRET` forte em produção; `BETTER_AUTH_URL=https://api.exactracontabilidade.com.br`; `WEB_ORIGIN` com os domínios do site.
+- [ ] `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD` e rodar o `seed` uma vez.
+- [ ] DNS do subdomínio `api.` apontando para o Render.
+- [ ] Mercado Pago (produção): credenciais da conta da Exactra, chave Pix cadastrada, notificação **Pagamentos** em `https://api.exactracontabilidade.com.br/webhooks/mercado-pago` (aba Produção), `MERCADO_PAGO_MODE=live` e `CHECKOUT_ENABLED=true` só depois dos preços validados. Antes de lançar: uma compra real em 12x com reembolso.
+- [ ] Cloudflare R2: bucket, token de API (Object Read & Write só nesse bucket) e as variáveis `R2_*`; regra de CORS do bucket liberando `PUT`, `GET` e `HEAD` para as origens do `WEB_ORIGIN`, com o header `Content-Type`.
+- [ ] Resend: domínio verificado (DNS) para o `EMAIL_FROM` de produção (`RESEND_API_KEY`, `EMAIL_FROM` e `ADMIN_NOTIFY_EMAIL` já estão no `.env` de dev).
+- [ ] `EMAIL_ASSET_BASE_URL=https://www.exactracontabilidade.com.br` em produção (o logo precisa estar publicado em `/email/logo.png`).

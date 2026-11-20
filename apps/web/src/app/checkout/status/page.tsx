@@ -1,0 +1,18 @@
+import { Loading } from "@/components/common/Loading";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { CheckoutShell } from "@/components/checkout/CheckoutShell";
+import { PaymentStatus } from "@/components/checkout/PaymentStatus";
+
+export const metadata: Metadata = { title: "Pagamento | Exactra Contabilidade", robots: { index: false, follow: false } };
+
+/** Mercado Pago back_url (success and pending): /checkout/status?contract={id}&token={statusToken} */
+export default function PaymentStatusPage() {
+  return (
+    <CheckoutShell>
+      <Suspense fallback={<Loading />}>
+        <PaymentStatus />
+      </Suspense>
+    </CheckoutShell>
+  );
+}

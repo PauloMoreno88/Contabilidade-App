@@ -1,0 +1,99 @@
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
+import { randomBytes } from 'node:crypto';
+import {
+  allowedPeriods,
+  createCheckoutSchema,
+  normalizeTaxId,
+  totalPriceCents,
+  type CheckoutResponse,
+  type ContractStatusResponse,
+  type CreateCheckoutInput,
+} from '@exactra/shared';
+import { prisma } from '../db.js';
+import { webOrigin } from '../web-origin.js';
+import { MercadoPagoProvider } from '../payments/mercado-pago.provider.js';
+import { CHECKOUT_LIMIT, RateLimit } from '../rate-limit.js';
+import { ZodPipe } from '../zod.pipe.js';
+
+@AllowAnonymous()
+@Controller()
+export class CheckoutController {
+  constructor(private readonly mercadoPago: MercadoPagoProvider) {}
+
+  @RateLimit(CHECKOUT_LIMIT)
+  @Post('checkout/sessions')
+  @HttpCode(201)
+  async create(@Body(new ZodPipe(createCheckoutSchema)) input: CreateCheckoutInput): Promise<CheckoutResponse> {
+    const provider = this.mercadoPago;
+    if (!provider.configured || (provider.liveMode && process.env.CHECKOUT_ENABLED !== 'true')) {
+      throw new ServiceUnavailableException('Contratação online indisponível no momento.');
+    }
+    if (!allowedPeriods(input.method).includes(input.period)) {
+      throw new BadRequestException('O plano é vendido só como contrato anual.');
+    }
+
+    const lead = input.leadId ? await prisma.lead.findUnique({ where: { id: input.leadId } }) : null;
+    const { customer } = input;
+    const document = normalizeTaxId(customer.document);
+    // A returning customer (same CPF/CNPJ and e-mail, already with a login) keeps the same company,
+    // so the new contract shows up in the customer area they already use.
+    const returning = await prisma.customer.findFirst({
+      where: { document, email: { equals: customer.email, mode: 'insensitive' }, members: { some: {} } },
+      orderBy: { createdAt: 'desc' },
+    });
+    const contract = await prisma.contract.create({
+      data: {
+        plan: input.plan,
+        period: input.period,
+        method: input.method,
+        provider: 'MERCADO_PAGO',
+        amountCents: totalPriceCents(input.plan),
+        statusToken: randomBytes(24).toString('base64url'),
+        customer: returning
+          ? { connect: { id: returning.id } }
+          : { create: { name: customer.name, email: customer.email, phone: customer.phone, document, consentAt: new Date(), leadId: lead?.id } },
+      },
+    });
+    // The checkout consent is new for this purchase too.
+    if (returning) await prisma.customer.update({ where: { id: returning.id }, data: { consentAt: new Date() } });
+
+    try {
+      const query = `contract=${contract.id}&token=${contract.statusToken}`;
+      const session = await provider.createCheckout({
+        contractId: contract.id,
+        plan: input.plan,
+        period: contract.period,
+        method: contract.method,
+        amountCents: contract.amountCents,
+        customer: { name: customer.name, email: customer.email },
+        successUrl: `${webOrigin()}/checkout/status?${query}`,
+        cancelUrl: `${webOrigin()}/checkout?cancelado=1&plan=${contract.plan}`,
+      });
+      await prisma.contract.update({ where: { id: contract.id }, data: { mercadoPagoPreferenceId: session.sessionId } });
+      return { contractId: contract.id, checkoutUrl: session.url, statusToken: contract.statusToken };
+    } catch (err) {
+      await prisma.contract.delete({ where: { id: contract.id } });
+      if (!returning) await prisma.customer.delete({ where: { id: contract.customerId } });
+      throw err;
+    }
+  }
+
+  @Get('contracts/:id/status')
+  async status(@Param('id') id: string, @Query('token') token?: string): Promise<ContractStatusResponse> {
+    const c = token ? await prisma.contract.findFirst({ where: { id, statusToken: token } }) : null;
+    if (!c) throw new NotFoundException();
+    return { contractId: c.id, status: c.status, method: c.method, provider: c.provider, plan: c.plan, period: c.period };
+  }
+}

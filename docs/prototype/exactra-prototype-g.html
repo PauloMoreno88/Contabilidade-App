@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exactra — Protótipo G (institucional com fotos)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /*
+   * Sem fotos de pessoas (exigência do cliente): imagens de notebook, gráficos e mesa de trabalho.
+   * Protótipo G. Referências do cliente (Pinterest): ISK Contabilidade, Contabe e Fincco.
+   * Linguagem institucional com fotos de pessoas, números de confiança, mosaico e seção de contato escura,
+   * traduzida para a identidade da Exactra (azul-marinho + vermelho #C82333).
+   * Fotos: Unsplash, ilustrativas. Números, preços, depoimentos e alíquotas: ILUSTRATIVOS.
+   */
+  :root{
+    --navy:#0F2133; --navy-2:#173049; --navy-3:#24425F;
+    --ice:#EEF3F8; --white:#FFFFFF; --line:#DCE4EC;
+    --ink:#0F2133; --ink-2:#3A4C60; --ink-3:#627385;
+    --red:#C82333; --red-dark:#A51B28; --red-tint:#FBE9EB;
+    --ok:#1E7B4F; --ok-tint:#E2F2E9; --wa:#25D366; --star:#F2B01E;
+    --serif:'Source Serif 4',Georgia,serif; --sans:'Figtree',Arial,sans-serif;
+    --r:16px; --r-sm:10px;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--white);color:var(--ink);font:400 16.5px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  button,input,textarea{font:inherit;color:inherit}
+  h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.12;text-wrap:balance}
+  p{margin:0}
+  ul{margin:0;padding:0;list-style:none}
+  :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:6px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .ph{font:600 11.5px/1 var(--sans);background:#FFF1BF;color:#5E4700;padding:3px 6px;border-radius:4px;white-space:nowrap;vertical-align:middle}
+  .num{font-variant-numeric:tabular-nums}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:999px;padding:14px 24px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;white-space:nowrap}
+  .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red-dark)}
+  .btn-navy{background:var(--navy);color:#fff}.btn-navy:hover{background:var(--navy-3)}
+  .btn-ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45)}.btn-ghost:hover{box-shadow:inset 0 0 0 1.5px #fff}
+  .btn-outline{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}.btn-outline:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+  .btn-wa{background:var(--wa);color:#05210F}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-block{width:100%}
+  .btn .dot{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;margin-right:-10px}
+
+  /* label with leading rule, as in the references; sentence case */
+  .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--red);font-weight:600;font-size:.92rem}
+  .kicker::before{content:"";width:28px;height:2px;background:currentColor}
+  .h2{font-size:clamp(1.9rem,3.4vw,2.7rem);margin-top:10px}
+  .lede{color:var(--ink-2);font-size:1.08rem;max-width:58ch;margin-top:14px}
+  section{padding:96px 0;scroll-margin-top:80px}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:36px;height:78px}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo i{width:40px;height:40px;border-radius:10px;background:var(--navy);display:grid;place-items:center;padding:7px}
+  .logo b{font-family:var(--serif);font-size:1.45rem;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .logo small{display:block;font-size:.7rem;color:var(--ink-3);letter-spacing:.04em;margin-top:2px}
+  .nav nav{display:flex;gap:30px;margin-left:auto;font-weight:500;color:var(--ink-2)}
+  .nav nav a:hover{color:var(--ink)}
+  .nav .btn{padding:11px 20px}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;background:var(--navy);color:#fff;padding:0;overflow:hidden}
+  .hero-photo{position:absolute;inset:0 0 0 auto;width:52%;background:url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&q=75&auto=format&fit=crop') 30% center/cover}
+  .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--navy) 0%,rgba(15,33,51,.55) 35%,rgba(15,33,51,.05) 70%)}
+  .hero .wrap{position:relative;padding-top:88px;padding-bottom:190px}
+  .hero-copy{max-width:590px}
+  .rating{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:6px 14px 6px 8px;font-size:.88rem;color:#D7E0E9}
+  .rating .stars{color:var(--star);letter-spacing:1px}
+  .rating b{color:#fff}
+  .hero h1{font-size:clamp(2.5rem,5.2vw,4rem);margin-top:22px;font-weight:600;line-height:1.05}
+  .hero .lede{color:#C5D1DD;font-size:1.15rem;margin-top:20px}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+  .photo-credit{position:absolute;right:16px;top:14px;font-size:.72rem;color:rgba(255,255,255,.65)}
+
+  /* ---------- simulator (overlaps hero) ---------- */
+  .sim-zone{position:relative;margin-top:-150px;z-index:5}
+  .sim{background:#fff;border-radius:22px;box-shadow:0 30px 70px rgba(15,33,51,.22),0 2px 6px rgba(15,33,51,.06);overflow:hidden;scroll-margin-top:100px}
+  .sim-head{display:flex;align-items:center;gap:18px;padding:22px 30px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .sim-head h2{font-size:1.35rem}
+  .sim-head .free{font-size:.8rem;font-weight:700;color:var(--ok);background:var(--ok-tint);border-radius:999px;padding:4px 10px}
+  .sim-step{margin-left:auto;color:var(--ink-3);font-size:.9rem}
+  .bar{height:4px;background:var(--ice)}
+  .bar i{display:block;height:100%;width:16%;background:var(--red);transition:width .35s ease}
+  .sim-body{padding:30px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.6fr);gap:36px;align-items:start;min-height:250px}
+  .q{font-family:var(--serif);font-size:1.7rem;font-weight:600;line-height:1.2}
+  .q-help{color:var(--ink-3);margin-top:8px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+  .opt{display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;font-weight:600;transition:border-color .15s,background .15s}
+  .opt:hover{border-color:var(--ink-3)}
+  .opt[aria-pressed="true"]{border-color:var(--red);background:var(--red-tint)}
+  .opt svg{color:var(--red)}
+  .opt small{font-weight:400;color:var(--ink-3);font-size:.85rem;line-height:1.35}
+  .money{font-family:var(--serif);font-size:clamp(2.4rem,5vw,3.4rem);font-weight:600;line-height:1}
+  .money small{font-family:var(--sans);font-size:1rem;color:var(--ink-3);font-weight:500}
+  input[type=range]{width:100%;accent-color:var(--red);height:32px;margin-top:16px}
+  .legend{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-3)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:.9rem;cursor:pointer}
+  .chip:hover{border-color:var(--ink-3)}
+  .sim-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 30px;background:var(--ice);flex-wrap:wrap}
+  .sim-foot .disc{font-size:.85rem;color:var(--ink-3);display:flex;gap:8px;align-items:center;max-width:62ch}
+  .linkbtn{background:none;border:0;cursor:pointer;color:var(--ink-2);font-weight:600;padding:8px 4px}
+  .linkbtn:hover{color:var(--ink)}
+  .foot-actions{display:flex;gap:12px;align-items:center;margin-left:auto}
+
+  /* gate + result inside the card */
+  .teaser{display:grid;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:18px}
+  .teaser div{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .teaser div:last-child{border-bottom:0}
+  .teaser span{color:var(--ink-3)}
+  .blur{filter:blur(7px);user-select:none}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{display:grid;gap:6px}
+  .field label{font-size:.88rem;font-weight:600}
+  .field input{border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;background:#fff}
+  .field input:focus{outline:none;border-color:var(--navy)}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--ink-2);margin-top:14px;line-height:1.45}
+  .consent input{accent-color:var(--red);width:17px;height:17px;margin-top:2px;flex:none}
+  .consent a{text-decoration:underline}
+
+  .res{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:30px;grid-column:1/-1}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .kpi{background:var(--ice);border-radius:14px;padding:16px}
+  .kpi span{display:block;font-size:.84rem;color:var(--ink-3)}
+  .kpi b{display:block;font-family:var(--serif);font-size:1.7rem;font-weight:600;margin-top:4px}
+  .kpi.good{background:var(--ok-tint)}.kpi.good b{color:var(--ok)}
+  .regs{margin-top:22px;display:grid;gap:14px}
+  .reg{display:grid;grid-template-columns:240px minmax(0,1fr) 110px;gap:14px;align-items:center;font-size:.95rem}
+  .reg .track{height:12px;background:var(--ice);border-radius:99px;overflow:hidden}
+  .reg .track i{display:block;height:100%;width:0;background:#9DAEBE;border-radius:99px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+  .reg.best .track i{background:var(--ok)}
+  .reg .v{text-align:right;font-weight:600}
+  .reg.best .v{color:var(--ok)}
+  .reg.na{color:var(--ink-3)}
+  .best-tag{font-size:.72rem;font-weight:700;color:var(--ok);background:var(--ok-tint);border-radius:999px;padding:2px 8px;margin-left:6px;white-space:nowrap}
+  .insight{margin-top:20px;padding:14px 16px;border-radius:12px;background:var(--red-tint);font-size:.95rem}
+  .rec{background:var(--navy);color:#D7E0E9;border-radius:18px;padding:26px}
+  .rec small{color:#9FB0C2}
+  .rec h3{color:#fff;font-size:2rem;margin-top:4px}
+  .rec .price{font-family:var(--serif);font-size:2.2rem;color:#fff;margin-top:8px}
+  .rec .price small{font-family:var(--sans);font-size:.95rem}
+  .rec ul{margin-top:14px;display:grid;gap:8px}
+  .rec li{display:flex;gap:10px}
+  .rec li svg{color:#7FD3A4;flex:none;margin-top:3px}
+  .rec .btn{margin-top:18px}
+  .rec .btn + .btn{margin-top:10px}
+
+  /* ---------- sobre: stats + mosaico ---------- */
+  .about-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:end;margin-bottom:44px}
+  .stats{display:flex;gap:44px}
+  .stat b{display:block;font-family:var(--serif);font-size:3rem;font-weight:600;line-height:1}
+  .stat b sup{color:var(--red);font-size:1.4rem;vertical-align:top;margin-left:2px}
+  .stat span{display:block;color:var(--ink-3);font-size:.9rem;margin-top:6px}
+  .bento{display:grid;grid-template-columns:1.05fr 1fr 1fr;grid-template-rows:auto auto;gap:18px}
+  .bento .photo{grid-row:1/3;border-radius:var(--r);background:url('https://images.unsplash.com/photo-1543286386-713bdd548da4?w=1000&q=75&auto=format&fit=crop') center/cover;min-height:440px;position:relative}
+  .bento .photo .ph{position:absolute;left:14px;bottom:14px}
+  .tile{border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:10px}
+  .tile h3{font-size:1.35rem}
+  .tile p{color:var(--ink-2);font-size:.97rem}
+  .tile .mark{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;margin-bottom:6px}
+  .tile-light{background:var(--ice)}.tile-light .mark{background:#fff;color:var(--red)}
+  .tile-red{background:var(--red);color:#fff}.tile-red p{color:#FBDDE0}.tile-red .mark{background:rgba(255,255,255,.18);color:#fff}
+  .tile-navy{grid-column:2/4;background:var(--navy);color:#fff;position:relative;overflow:hidden}
+  .tile-navy p{color:#C5D1DD;max-width:52ch}
+  .tile-navy::after{content:"";position:absolute;right:-60px;bottom:-90px;width:260px;height:260px;border-radius:50%;border:38px solid rgba(255,255,255,.05)}
+  .tile-navy a{margin-top:auto;font-weight:600;color:#fff;text-decoration:underline;text-underline-offset:4px}
+
+  /* ---------- serviços ---------- */
+  .services{background:var(--ice)}
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px 40px}
+  .svc{display:grid;grid-template-columns:52px minmax(0,1fr);gap:16px}
+  .svc .ic{width:52px;height:52px;border-radius:14px;background:#fff;color:var(--red);display:grid;place-items:center;box-shadow:0 1px 0 var(--line)}
+  .svc h3{font-family:var(--sans);font-size:1.08rem;font-weight:700}
+  .svc p{color:var(--ink-2);font-size:.95rem;margin-top:4px}
+
+  /* ---------- whatsapp block ---------- */
+  .wa-block{background:var(--navy);color:#fff;border-radius:26px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.9fr);gap:30px;padding:56px;position:relative}
+  .wa-block .h2{color:#fff}
+  .wa-block .lede{color:#C5D1DD}
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
+  .feats .ic{width:44px;height:44px;border-radius:12px;background:var(--red);display:grid;place-items:center;margin-bottom:14px}
+  .feats b{display:block;font-size:1.05rem}
+  .feats p{color:#AFC0D0;font-size:.93rem;margin-top:6px}
+  .phone{justify-self:center;width:270px;background:#0B1A29;border-radius:34px;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,.35);margin:-20px 0 -110px;align-self:start}
+  .screen{background:#E9E3DA;border-radius:24px;overflow:hidden;height:520px;display:flex;flex-direction:column}
+  .wa-top{background:#0F5A4C;color:#fff;padding:14px 14px;display:flex;gap:10px;align-items:center;font-size:.9rem}
+  .wa-top i{width:32px;height:32px;border-radius:50%;background:var(--navy);display:grid;place-items:center;padding:6px}
+  .wa-top small{display:block;color:#BFE3D8;font-size:.75rem}
+  .chat{padding:14px 12px;display:grid;gap:8px;align-content:start}
+  .msg{background:#fff;color:#1D2A35;border-radius:10px 10px 10px 2px;padding:9px 11px;font-size:.84rem;max-width:88%;line-height:1.4;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+  .msg.me{justify-self:end;background:#D8F8C8;border-radius:10px 10px 2px 10px}
+  .msg time{display:block;text-align:right;font-size:.68rem;color:#7A8792;margin-top:2px}
+  .doc{display:flex;gap:10px;align-items:center;background:#F3F5F7;border-radius:8px;padding:9px;margin:4px 0}
+  .doc span{width:30px;height:36px;background:var(--red);border-radius:4px;color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center}
+  .doc b{font-size:.82rem;display:block}
+  .doc small{font-size:.72rem;color:#6B7884}
+
+  /* ---------- planos ---------- */
+  .plans-head{text-align:center;max-width:640px;margin:0 auto 48px}
+  .plans-head .lede{margin-left:auto;margin-right:auto}
+  .plan-one{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);border:1.5px solid var(--line);border-radius:26px;overflow:hidden;max-width:1000px;margin:0 auto}
+  .po-main{background:var(--navy);color:#fff;padding:40px;display:flex;flex-direction:column}
+  .po-tag{align-self:flex-start;background:var(--red);color:#fff;font-size:.8rem;font-weight:700;border-radius:999px;padding:5px 12px}
+  .po-main h3{font-size:2.2rem;margin-top:18px}
+  .po-main .for{color:#B9C6D4;margin-top:8px}
+  .po-main .price{font-family:var(--serif);font-size:3.6rem;font-weight:600;line-height:1;margin-top:28px}
+  .po-main .price small{font-family:var(--sans);font-size:1.05rem;color:#9FB0C2;font-weight:500}
+  .po-note{color:#B9C6D4;font-size:.92rem;margin-top:12px}
+  .po-main .btn{margin-top:28px}
+  .po-sim{margin-top:14px;text-align:center;color:#fff;font-weight:600;font-size:.93rem;text-decoration:underline;text-underline-offset:4px}
+  .po-list{padding:40px}
+  .po-list h4{margin:0 0 18px;font-size:1.05rem}
+  .po-list ul{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
+  .po-list li{display:flex;gap:10px}
+  .po-list li svg{color:var(--ok);flex:none;margin-top:3px}
+  .po-foot{margin-top:26px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink-2);font-size:.93rem}
+  .po-foot a{text-decoration:underline}
+  .pay{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-top:28px;color:var(--ink-2);font-size:.93rem}
+
+  /* ---------- depoimentos ---------- */
+  .testi{background:var(--ice)}
+  .testi-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,2fr);gap:48px;align-items:start}
+  .score{background:#fff;border-radius:22px;padding:30px}
+  .score b{display:block;font-family:var(--serif);font-size:4rem;line-height:1;font-weight:600}
+  .score .stars{color:var(--star);font-size:1.3rem;letter-spacing:2px;margin-top:8px}
+  .score p{color:var(--ink-3);margin-top:6px}
+  .faces{display:flex;margin-top:20px}
+  .faces span{width:42px;height:42px;border-radius:50%;border:3px solid #fff;margin-left:-10px;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:var(--navy);color:#fff}
+  .faces span:first-child{margin-left:0}
+  .faces span:nth-child(2n){background:var(--red)}
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .quote{background:#fff;border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:18px}
+  .quote .stars{color:var(--star);letter-spacing:2px}
+  .quote p{color:var(--ink-2)}
+  .who{display:flex;gap:12px;align-items:center;margin-top:auto}
+  .who > span{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--ice);color:var(--navy);flex:none}
+  .who b{display:block;font-size:.95rem}
+  .who small{color:var(--ink-3)}
+
+  /* ---------- faixa com foto ---------- */
+  .band{position:relative;border-radius:26px;overflow:hidden;color:#fff;padding:64px 56px;background:url('https://images.unsplash.com/photo-1586282391129-76a6df230234?w=1600&q=75&auto=format&fit=crop') center 40%/cover}
+  .band::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,33,51,.95) 0%,rgba(15,33,51,.75) 50%,rgba(15,33,51,.2) 100%)}
+  .band > *{position:relative}
+  .band h2{font-size:clamp(1.9rem,3.4vw,2.6rem);max-width:18ch}
+  .band p{color:#D7E0E9;margin-top:12px;max-width:46ch}
+  .band .btn{margin-top:28px}
+
+  /* ---------- faq ---------- */
+  .faq-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);gap:56px}
+  details{border-bottom:1px solid var(--line)}
+  summary{list-style:none;cursor:pointer;padding:20px 40px 20px 0;font-weight:600;font-size:1.06rem;position:relative}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";position:absolute;right:4px;top:14px;font-size:1.6rem;color:var(--red);font-weight:400}
+  details[open] summary::after{content:"−"}
+  details p{padding:0 0 20px;color:var(--ink-2);max-width:64ch}
+
+  /* ---------- contato ---------- */
+  .contact{background:var(--navy) url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=60&auto=format&fit=crop') center/cover;position:relative;color:#fff}
+  .contact::before{content:"";position:absolute;inset:0;background:rgba(15,33,51,.93)}
+  .contact .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr);gap:64px;align-items:center}
+  .c-form{display:grid;gap:22px}
+  .c-form .row{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .uline{display:grid;gap:4px}
+  .uline label{font-size:.88rem;font-weight:600;color:#C5D1DD}
+  .uline input,.uline textarea{background:transparent;border:0;border-bottom:1.5px solid rgba(255,255,255,.3);padding:8px 0;color:#fff;resize:vertical}
+  .uline input:focus,.uline textarea:focus{outline:none;border-color:#fff}
+  .c-form .btn{justify-self:start}
+  .contact h2{font-size:clamp(2rem,3.6vw,2.8rem);color:#fff}
+  .contact p{color:#C5D1DD;margin-top:12px}
+  .bigphone{font-family:var(--serif);font-size:clamp(2rem,3.4vw,2.6rem);font-weight:600;margin-top:10px;display:block}
+  .contact .btn-wa{margin-top:22px}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--ice);padding:56px 0 30px;font-size:.93rem;color:var(--ink-2)}
+  .foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+  footer h4{margin:0 0 12px;color:var(--ink);font-size:.95rem}
+  footer li{margin-bottom:8px}
+  .legal{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font-size:.84rem}
+
+  .wa-float{position:fixed;right:20px;bottom:20px;z-index:50;width:58px;height:58px;border-radius:50%;background:var(--wa);display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+  .m-bar{display:none}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1000px){
+    .nav nav{display:none}
+    .nav .btn{margin-left:auto}
+    .hero-photo{width:100%;opacity:.35}
+    .hero-photo::after{background:linear-gradient(180deg,rgba(15,33,51,.4),var(--navy))}
+    .sim-body,.res,.wa-block,.testi-grid,.faq-grid,.contact .wrap{grid-template-columns:minmax(0,1fr)}
+    .about-head{grid-template-columns:minmax(0,1fr)}
+    .bento{grid-template-columns:1fr 1fr}
+    .bento .photo{grid-row:auto;grid-column:1/-1;min-height:300px}
+    .tile-navy{grid-column:1/-1}
+    .svc-grid,.quotes{grid-template-columns:1fr 1fr}
+    .plan-one{grid-template-columns:minmax(0,1fr)}
+    .phone{margin:10px auto 0}
+    .foot{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:640px){
+    body{padding-bottom:74px}
+    .wrap{padding:0 16px}
+    section{padding:64px 0}
+    .nav{height:66px}
+    .nav .btn{padding:9px 14px;font-size:.88rem;gap:7px}
+    .hero .wrap{padding-top:44px;padding-bottom:150px}
+    .hero-ctas{display:none}
+    .photo-credit{display:none}
+    .sim-zone{margin-top:-120px}
+    .sim-head,.sim-body,.sim-foot{padding-left:18px;padding-right:18px}
+    .sim-step{margin-left:0;width:100%}
+    .q{font-size:1.4rem}
+    .opts{grid-template-columns:1fr 1fr}
+    .opt{padding:13px}
+    .form-grid,.kpis,.feats,.c-form .row{grid-template-columns:1fr}
+    .reg{grid-template-columns:120px minmax(0,1fr) 84px;font-size:.86rem}
+    .foot-actions{width:100%}.foot-actions .btn{flex:1}
+    .stats{gap:24px;flex-wrap:wrap}
+    .stat b{font-size:2.3rem}
+    .bento,.svc-grid,.quotes,.foot,.po-list ul{grid-template-columns:1fr}
+    .po-main,.po-list{padding:28px 22px}
+    .wa-block{padding:32px 22px}
+    .band{padding:40px 24px}
+    .wa-float{bottom:88px}
+    .m-bar{display:flex;gap:10px;position:fixed;left:0;right:0;bottom:0;z-index:45;background:#fff;border-top:1px solid var(--line);padding:10px 16px}
+    .m-bar .btn{flex:1;padding:13px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M5 3h4l2 5-2.5 1.5a11 11 0 006 6L16 13l5 2v4a2 2 0 01-2 2A16 16 0 013 5a2 2 0 012-2z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 5h16v11H9l-5 4V5z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M14 3H6v18h12V7l-4-4z"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14 3v4h4M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7h8M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 010 6.4M18 14.8c1.9.7 3.2 2.5 3.5 5.2"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 006 0L5 7zM19 7l-3 7a3 3 0 006 0l-3-7z"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 19h16M7 16V10M12 16V6M17 16v-4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6 16V11a6 6 0 0112 0v5l2 2H4l2-2zM10 20a2 2 0 004 0"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M9 20v-6h6v6"/></symbol>
+  <symbol id="i-brief" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M9 7V5h6v2M3 12h18"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 15l-3-3c1-4 4-8 10-9-1 6-5 9-9 10zM9 12l-4 1-2 3 4 1M12 15l-1 4 3 2 1-4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 20l4-1L19 8l-3-3L5 16l-1 4z"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 21V5l8-2v18M12 8h8v13M8 8h.01M8 12h.01M8 16h.01M16 12h.01M16 16h.01M2 21h20"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.8 11.9 11.9 0 004.6 4c1.7.7 2.4.8 3.2.7a2.8 2.8 0 001.8-1.3 2.3 2.3 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z"/></symbol>
+</svg>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#"><i><img src="../../apps/web/public/trace.svg" alt=""></i><span><b>Exactra</b><small>Contabilidade</small></span></a>
+    <nav aria-label="Principal">
+      <a href="#simulador">Simulador</a>
+      <a href="#sobre">Sobre nós</a>
+      <a href="#servicos">Serviços</a>
+      <a href="#planos">Plano</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <a class="btn btn-navy" href="#"><svg width="18" height="18"><use href="#i-user"/></svg>Acessar plataforma</a>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero-photo" role="img" aria-label="Notebook aberto com um painel de gráficos financeiros"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="rating"><span class="stars">★★★★★</span><span><b>4,9</b> no Google, 120 avaliações</span> <span class="ph">confirmar</span></span>
+      <h1>A contabilidade que mostra quanto sobra para você.</h1>
+      <p class="lede">A Exactra cuida dos impostos, prazos e declarações do seu CNPJ. Antes de contratar, você simula grátis e vê quanto pagaria em cada regime.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-red" href="#simulador">Fazer a simulação</a>
+        <a class="btn btn-ghost" href="#"><svg width="18" height="18"><use href="#i-wa"/></svg>Falar com um contador</a>
+      </div>
+    </div>
+  </div>
+  <span class="photo-credit">Foto ilustrativa (Unsplash).</span>
+</section>
+
+<!-- ================= SIMULADOR (sobreposto) ================= -->
+<div class="sim-zone" id="simulador">
+  <div class="wrap">
+    <div class="sim" id="sim" aria-live="polite">
+      <div class="sim-head">
+        <h2>Simule quanto você paga de imposto</h2>
+        <span class="free">Grátis, leva 1 minuto</span>
+        <span class="sim-step" id="sim-step">Passo 1 de 5</span>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="sim-body" id="sim-body"></div>
+      <div class="sim-foot">
+        <span class="disc"><svg width="16" height="16" style="flex:none"><use href="#i-shield"/></svg>Esta é uma estimativa. O enquadramento tributário definitivo depende da análise do contador.</span>
+        <div class="foot-actions" id="foot-actions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SOBRE ================= -->
+<section id="sobre">
+  <div class="wrap">
+    <div class="about-head">
+      <div>
+        <span class="kicker">Sobre nós</span>
+        <h2 class="h2">Contabilidade que acompanha o seu negócio de perto</h2>
+      </div>
+      <div class="stats">
+        <div class="stat"><b class="num">10<sup>+</sup></b><span>anos de experiência</span></div>
+        <div class="stat"><b class="num">500<sup>+</sup></b><span>empresas atendidas</span></div>
+        <div class="stat"><b class="num">1 dia</b><span>para responder no WhatsApp</span></div>
+      </div>
+    </div>
+    <div class="bento">
+      <div class="photo" role="img" aria-label="Mesa de trabalho com um gráfico de crescimento, régua e canetas"><span class="ph">foto ilustrativa</span></div>
+      <div class="tile tile-light">
+        <span class="mark"><svg width="20" height="20"><use href="#i-file"/></svg></span>
+        <h3>Sem complicação</h3>
+        <p>Você recebe as guias prontas para pagar e entende o que cada uma significa, sem termo técnico.</p>
+      </div>
+      <div class="tile tile-red">
+        <span class="mark"><svg width="20" height="20"><use href="#i-chat"/></svg></span>
+        <h3>Atendimento de verdade</h3>
+        <p>Surgiu uma dúvida? Você fala com um contador da equipe, não com um robô.</p>
+      </div>
+      <div class="tile tile-navy">
+        <h3>Feita para pequenos e médios negócios</h3>
+        <p>Do primeiro CNPJ à empresa com equipe, a Exactra cuida da parte contábil para você decidir com mais segurança. Tudo online, para empresas de todo o Brasil.</p>
+        <a href="#servicos">Conhecer os serviços</a>
+      </div>
+    </div>
+    <p style="margin-top:14px;font-size:.82rem;color:var(--ink-3)"><span class="ph">números de exemplo</span> substituir pelos dados reais da Exactra</p>
+  </div>
+</section>
+
+<!-- ================= SERVIÇOS ================= -->
+<section class="services" id="servicos">
+  <div class="wrap">
+    <div style="margin-bottom:48px">
+      <span class="kicker">Serviços</span>
+      <h2 class="h2">Tudo o que o seu CNPJ precisa</h2>
+      <p class="lede">Escolha por onde começar. Se não souber, a simulação indica o caminho.</p>
+    </div>
+    <div class="svc-grid">
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-rocket"/></svg></span><div><h3>Abertura de empresa</h3><p>Do registro até o CNPJ pronto para emitir nota fiscal.</p></div></div>
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-calc"/></svg></span><div><h3>Contabilidade mensal</h3><p>Impostos calculados, guias e declarações entregues no prazo.</p></div></div>
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-users"/></svg></span><div><h3>Folha e pró-labore</h3><p>Admissões, salários, encargos e o pró-labore dos sócios.</p></div></div>
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-scale"/></svg></span><div><h3>Planejamento tributário</h3><p>Revisão do regime para você não pagar imposto a mais.</p></div></div>
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-receipt"/></svg></span><div><h3>Notas fiscais</h3><p>Orientação para emitir certo e manter tudo organizado.</p></div></div>
+      <div class="svc"><span class="ic"><svg width="24" height="24"><use href="#i-building"/></svg></span><div><h3>Troca de contador</h3><p>Pedimos seus documentos ao contador atual e fazemos a transição.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHATSAPP ================= -->
+<section>
+  <div class="wrap">
+    <div class="wa-block">
+      <div>
+        <span class="kicker" style="color:#FF8F99">Atendimento</span>
+        <h2 class="h2">Sua contabilidade cabe no WhatsApp</h2>
+        <p class="lede">As guias chegam prontas para pagar, os prazos são lembrados com antecedência e as dúvidas vão direto para quem cuida da sua empresa.</p>
+        <div class="feats">
+          <div><span class="ic"><svg width="22" height="22"><use href="#i-receipt"/></svg></span><b>Guias no dia certo</b><p>Você recebe o boleto ou o Pix do imposto antes de vencer.</p></div>
+          <div><span class="ic"><svg width="22" height="22"><use href="#i-bell"/></svg></span><b>Prazos lembrados</b><p>Nada de multa por esquecer uma declaração.</p></div>
+          <div><span class="ic"><svg width="22" height="22"><use href="#i-chat"/></svg></span><b>Resposta humana</b><p>Um contador responde, em dias úteis.</p></div>
+        </div>
+        <p style="margin-top:22px;font-size:.82rem;color:#8FA2B5"><span class="ph">confirmar</span> como a Exactra envia guias hoje</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="wa-top"><i><img src="../../apps/web/public/trace.svg" alt=""></i><div>Exactra Contabilidade<small>online</small></div></div>
+          <div class="chat">
+            <div class="msg">Oi, Ana! A guia do Simples de outubro já está pronta.<div class="doc"><span>PDF</span><div><b>DAS outubro.pdf</b><small>Vence em 20/11</small></div></div>Valor: R$ 1.800,00. Dá para pagar por Pix.<time>09:12</time></div>
+            <div class="msg me">Perfeito, obrigada! Esse mês faturei mais, muda alguma coisa?<time>09:15</time></div>
+            <div class="msg">Muda um pouco a alíquota, mas você continua no regime mais barato. Te mando o resumo hoje à tarde.<time>09:18</time></div>
+            <div class="msg me">Ótimo 🙌<time>09:18</time></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLANOS ================= -->
+<section id="planos" style="padding-top:150px">
+  <div class="wrap">
+    <div class="plans-head">
+      <span class="kicker">Plano</span>
+      <h2 class="h2">Um preço fixo, sem surpresa no fim do mês</h2>
+      <p class="lede">Tudo o que o seu CNPJ precisa num plano só. O valor não sobe porque você faturou mais.</p>
+    </div>
+    <div class="plan-one">
+      <div class="po-main">
+        <span class="po-tag">Um plano, tudo incluso</span>
+        <h3>Plano Exactra</h3>
+        <p class="for">Para prestadores de serviço, profissionais liberais e pequenos negócios.</p>
+        <div class="price num">R$ 299<small> /mês</small></div>
+        <p class="po-note">No Pix ou boleto, com desconto pagando 3, 6 ou 12 meses. <span class="ph">preço de exemplo</span></p>
+        <a class="btn btn-red btn-block" href="#">Contratar o Plano Exactra</a>
+        <a class="po-sim" href="#simulador">Antes, simular quanto vou pagar de imposto</a>
+      </div>
+      <div class="po-list">
+        <h4>O que está incluso</h4>
+        <ul>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Abertura de CNPJ inclusa</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Troca de contador sem custo</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Impostos calculados e guias prontas</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Declarações entregues no prazo</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Pró-labore dos sócios</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Folha de até 3 funcionários</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Revisão do regime para pagar menos</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Balanço e relatórios do ano</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Atendimento por WhatsApp e vídeo</li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg>Lembretes de vencimento</li>
+        </ul>
+        <p class="po-foot">Mais de 3 funcionários ou uma operação maior? <a href="#contato">Peça um orçamento</a>. <span class="ph">confirmar com o contador</span></p>
+      </div>
+    </div>
+    <div class="pay"><span>Cartão: mensal, cancele quando quiser</span><span>Pix ou boleto: 3, 6 ou 12 meses com desconto</span><span>Sem taxa de adesão</span></div>
+  </div>
+</section>
+
+<!-- ================= DEPOIMENTOS ================= -->
+<section class="testi">
+  <div class="wrap">
+    <div style="margin-bottom:44px">
+      <span class="kicker">Depoimentos</span>
+      <h2 class="h2">Quem já é cliente recomenda</h2>
+      <p class="lede"><span class="ph">exemplos</span> trocar por avaliações reais do Google, com autorização.</p>
+    </div>
+    <div class="testi-grid">
+      <div class="score">
+        <b class="num">4,9</b>
+        <div class="stars">★★★★★</div>
+        <p>Nota média no Google, com 120 avaliações</p>
+        <div class="faces"><span>MC</span><span>RS</span><span>JP</span><span>+</span></div>
+      </div>
+      <div class="quotes">
+        <figure class="quote" style="margin:0"><div class="stars">★★★★★</div><p>“Pela primeira vez eu entendo o que estou pagando. A simulação já mostrou que eu estava no regime errado.”</p><figcaption class="who"><span>MC</span><div><b>Nome da cliente</b><small>Psicóloga, Cidade</small></div></figcaption></figure>
+        <figure class="quote" style="margin:0"><div class="stars">★★★★★</div><p>“Troquei de contador sem precisar ligar para o antigo. Eles resolveram tudo e me mantiveram informado.”</p><figcaption class="who"><span>RS</span><div><b>Nome do cliente</b><small>Dono de restaurante, Cidade</small></div></figcaption></figure>
+        <figure class="quote" style="margin:0"><div class="stars">★★★★★</div><p>“Respondem no WhatsApp no mesmo dia. Abri meu CNPJ sem sair de casa.”</p><figcaption class="who"><span>JP</span><div><b>Nome do cliente</b><small>Consultor, Cidade</small></div></figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAIXA ================= -->
+<section style="padding-bottom:0">
+  <div class="wrap">
+    <div class="band">
+      <h2>Comece pela simulação. É grátis e leva 1 minuto.</h2>
+      <p>Você vê quanto pagaria de imposto em cada regime e quanto sobra por mês, já com a mensalidade da Exactra.</p>
+      <a class="btn btn-red" href="#simulador">Simular agora</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section>
+  <div class="wrap faq-grid">
+    <div>
+      <span class="kicker">Dúvidas</span>
+      <h2 class="h2">Perguntas frequentes</h2>
+      <p class="lede">Não achou a sua? <a href="#contato" style="text-decoration:underline">Fale com a gente</a>.</p>
+    </div>
+    <div>
+      <details open><summary>A simulação é confiável?</summary><p>Ela usa as regras gerais de cada regime para dar uma boa ideia do seu caso. Antes de qualquer decisão, um contador confere sua atividade e sua cidade.</p></details>
+      <details><summary>Preciso já ter CNPJ?</summary><p>Não. A abertura faz parte da contratação. Você paga só as taxas do governo.</p></details>
+      <details><summary>Como funciona a troca de contador?</summary><p>Depois que você contrata, pedimos seus documentos ao contador atual e fazemos a transição.</p></details>
+      <details><summary>A mensalidade sobe se eu faturar mais?</summary><p>Não dentro do mesmo plano. Ela muda só se a empresa trocar de regime ou contratar funcionários.</p></details>
+      <details><summary>Posso cancelar quando quiser?</summary><p>Sim. No cartão, a cobrança para no mês seguinte.</p></details>
+      <p style="margin-top:14px;font-size:.82rem;color:var(--ink-3)"><span class="ph">confirmar com o contador</span> reajuste e cancelamento</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTATO ================= -->
+<section class="contact" id="contato">
+  <div class="wrap">
+    <form class="c-form" onsubmit="return false">
+      <div class="uline"><label for="c-name">Seu nome</label><input id="c-name" autocomplete="name"></div>
+      <div class="row">
+        <div class="uline"><label for="c-mail">Seu e-mail</label><input id="c-mail" type="email" autocomplete="email"></div>
+        <div class="uline"><label for="c-tel">Seu telefone</label><input id="c-tel" inputmode="tel" autocomplete="tel"></div>
+      </div>
+      <div class="uline"><label for="c-msg">Mensagem</label><textarea id="c-msg" rows="3"></textarea></div>
+      <label class="consent" style="color:#C5D1DD"><input type="checkbox">Concordo que a Exactra use esses dados para responder minha mensagem, conforme a <a href="#">política de privacidade</a>.</label>
+      <button class="btn btn-red">Enviar mensagem</button>
+    </form>
+    <div>
+      <h2>Fale conosco</h2>
+      <p>Mande sua mensagem pelo formulário e respondemos no mesmo dia útil. Se preferir, ligue:</p>
+      <a class="bigphone num" href="#">(00) 00000-0000</a>
+      <a class="btn btn-wa" href="#"><svg width="20" height="20"><use href="#i-wa"/></svg>Chamar no WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div><a class="logo" href="#"><i><img src="../../apps/web/public/trace.svg" alt=""></i><span><b>Exactra</b><small>Contabilidade</small></span></a><p style="margin-top:14px;max-width:34ch">Contabilidade online para pequenos e médios negócios de todo o Brasil.</p></div>
+      <div><h4>Serviços</h4><ul><li>Abertura de empresa</li><li>Contabilidade mensal</li><li>Troca de contador</li><li>Planejamento tributário</li></ul></div>
+      <div><h4>Empresa</h4><ul><li>Sobre nós</li><li>Plano</li><li>Simulador</li><li>Acessar plataforma</li></ul></div>
+      <div><h4>Contato</h4><ul><li>(00) 00000-0000</li><li>contato@exactracontabilidade.com.br</li><li>Endereço a confirmar</li></ul></div>
+    </div>
+    <div class="legal"><span><b>CRC:</b> XX-000000/O. Exactra Contabilidade, CNPJ 00.000.000/0001-00. <span class="ph">confirmar</span></span><span><a href="#">Privacidade</a> &nbsp; <a href="#">Termos de uso</a></span></div>
+    <p style="margin-top:10px;font-size:.78rem;color:var(--ink-3)">Fotos ilustrativas do Unsplash, sem pessoas, a pedido do cliente.</p>
+  </div>
+</footer>
+
+<a class="wa-float" href="#" aria-label="Falar no WhatsApp"><svg width="28" height="28" style="color:#fff"><use href="#i-wa"/></svg></a>
+<div class="m-bar"><a class="btn btn-red" href="#simulador">Simular grátis</a><a class="btn btn-wa" href="#">WhatsApp</a></div>
+
+<script>
+/* Protótipo. Mesmas 5 perguntas do simulatorAnswersSchema (@exactra/shared).
+ * Alíquotas e preços abaixo são ILUSTRATIVOS, não regra fiscal. */
+const brl = c => (c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const $ = id => document.getElementById(id);
+const ic = n => `<svg width="22" height="22"><use href="#i-${n}"/></svg>`;
+const steps = [
+  {key:'profile', q:'Qual é o seu perfil?', help:'Escolha o que mais se parece com o seu negócio.', opts:[
+    ['servicos','Prestador de serviços','Consultoria, agência, TI','brief'],
+    ['liberal','Profissional liberal','Saúde, engenharia, direito','pen'],
+    ['comercio','Comércio','Loja física ou online','store'],
+    ['empresa','Empresa com equipe','Já tem funcionários','building'],
+    ['primeiro-cnpj','Vou abrir meu CNPJ','Ainda não tenho empresa','rocket']]},
+  {key:'monthlyRevenue', q:'Quanto você fatura por mês?', help:'Um valor aproximado já basta.', range:true},
+  {key:'hasCnpj', q:'Você já tem CNPJ?', help:'Se não tiver, a abertura faz parte do plano.', opts:[
+    [true,'Sim, já tenho','Quero trocar ou organizar','check'],[false,'Ainda não','Quero abrir','file']]},
+  {key:'employees', q:'Tem funcionários?', help:'Sem contar os sócios.', opts:[
+    ['none','Nenhum','Só eu ou os sócios','user'],['1-3','1 a 3','Equipe pequena','users'],
+    ['4-10','4 a 10','Equipe média','users'],['10+','Mais de 10','Equipe grande','building']]},
+  {key:'currentRegime', q:'Hoje você trabalha como?', help:'Se não souber, tudo bem.', opts:[
+    ['clt','CLT','Carteira assinada','brief'],['autonomo','Autônomo','Sem CNPJ','user'],
+    ['mei','MEI','Microempreendedor','receipt'],['simples','Simples Nacional','Já sou empresa','chart'],
+    ['presumido','Lucro Presumido','Já sou empresa','chart'],['nao-sei','Não sei','A gente descobre','chat']]},
+];
+// Um único plano. PLACEHOLDER: preço até o contador validar.
+const PLAN = {name:'Plano Exactra', price:29900, feats:['Abertura ou troca de contador inclusa','Impostos, guias e declarações em dia','Revisão do regime para pagar menos','Atendimento por WhatsApp e vídeo']};
+let i = 0, phase = 'q';
+const a = {profile:null, monthlyRevenue:15000, hasCnpj:null, employees:null, currentRegime:null};
+const body = $('sim-body'), actions = $('foot-actions');
+
+function setHead(label, pct){ $('sim-step').textContent = label; $('bar').style.width = pct+'%'; }
+
+function render(){
+  if(phase==='gate') return renderGate();
+  const s = steps[i];
+  setHead(`Passo ${i+1} de ${steps.length}`, ((i+1)/(steps.length+1))*100);
+  let right;
+  if(s.range){
+    right = `<div><div class="money num" id="money">${brl(a.monthlyRevenue*100)}<small> por mês</small></div>
+      <input type="range" id="rev" min="2000" max="100000" step="1000" value="${a.monthlyRevenue}" aria-label="Faturamento mensal">
+      <div class="legend"><span>R$ 2 mil</span><span>R$ 100 mil ou mais</span></div>
+      <div class="chips">${[5000,10000,20000,30000,50000].map(v=>`<button class="chip" data-v="${v}">${brl(v*100)}</button>`).join('')}</div></div>`;
+  } else {
+    right = `<div class="opts">${s.opts.map(([v,l,sub,icon])=>`<button class="opt" data-v='${JSON.stringify(v)}' aria-pressed="${a[s.key]===v}">${ic(icon)}<span>${l}<br><small>${sub}</small></span></button>`).join('')}</div>`;
+  }
+  body.innerHTML = `<div><div class="q">${s.q}</div><p class="q-help">${s.help}</p></div>${right}`;
+  const ready = s.range || a[s.key]!==null;
+  actions.innerHTML = `${i>0?'<button class="linkbtn" id="back">Voltar</button>':''}
+    <button class="btn btn-red" id="next" ${ready?'':'disabled'}>${i===steps.length-1?'Ver meu resultado':'Continuar'}</button>`;
+
+  if(s.range){
+    const r=$('rev'), m=$('money');
+    const set=v=>{a.monthlyRevenue=+v; r.value=v; m.innerHTML=`${brl(v*100)}<small> por mês</small>`;};
+    r.oninput=e=>set(e.target.value);
+    body.querySelectorAll('.chip').forEach(c=>c.onclick=()=>set(c.dataset.v));
+  } else {
+    body.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      a[s.key]=JSON.parse(b.dataset.v);
+      body.querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b));
+      $('next').disabled=false;
+      if(i<steps.length-1) setTimeout(()=>{i++;render();},240);
+    });
+  }
+  if($('back')) $('back').onclick=()=>{i--;render();};
+  $('next').onclick=()=>{ if(i<steps.length-1) i++; else phase='gate'; render(); };
+}
+
+function regimes(){
+  const rev=a.monthlyRevenue*100, service=a.profile!=='comercio';
+  const bigTeam=a.employees==='4-10'||a.employees==='10+';
+  return [
+    {name:'MEI', tax:7600, ok: rev<=675000 && !bigTeam && a.profile!=='liberal' && a.profile!=='empresa', why:'só até R$ 81 mil por ano'},
+    {name: service?'Simples com Fator R':'Simples Nacional', tax:Math.round(rev*(service?0.06:0.04)), ok:true},
+    service?{name:'Simples sem Fator R', tax:Math.round(rev*0.155), ok:true}:null,
+    {name:'Lucro Presumido', tax:Math.round(rev*(service?0.1633:0.113)), ok:true},
+  ].filter(Boolean);
+}
+const best = l => l.filter(r=>r.ok).sort((x,y)=>x.tax-y.tax)[0];
+// Fora do perfil do plano único: orçamento sob medida. PLACEHOLDER: limite a confirmar com o contador.
+const needsQuote = () => a.employees==='4-10'||a.employees==='10+';
+
+function renderGate(){
+  setHead('Último passo', 100);
+  const b=best(regimes());
+  body.innerHTML = `<div>
+      <div class="q">Sua estimativa está pronta</div>
+      <p class="q-help">Informe seu nome e WhatsApp para ver os valores. Um contador pode revisar o seu caso, sem compromisso.</p>
+      <div class="teaser">
+        <div><span>Regime mais vantajoso</span><b>${b.name}</b></div>
+        <div><span>Imposto estimado</span><b class="blur">R$ 0.000</b></div>
+        <div><span>Fica com você, já com a mensalidade</span><b class="blur">R$ 00.000</b></div>
+      </div>
+    </div>
+    <form id="gate" novalidate>
+      <div class="form-grid">
+        <div class="field"><label for="g-name">Nome</label><input id="g-name" placeholder="Seu nome" autocomplete="name"></div>
+        <div class="field"><label for="g-wa">WhatsApp</label><input id="g-wa" placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel"></div>
+      </div>
+      <label class="consent"><input type="checkbox" id="g-ok">Concordo que a Exactra use esses dados para falar comigo sobre a simulação, conforme a <a href="#">política de privacidade</a>.</label>
+    </form>`;
+  actions.innerHTML = `<button class="linkbtn" id="back">Voltar</button><button class="btn btn-red" id="send" disabled>Ver meu resultado</button>`;
+  const n=$('g-name'), w=$('g-wa'), ok=$('g-ok'), send=$('send');
+  const check=()=>send.disabled=!(n.value.trim()&&w.value.replace(/\D/g,'').length>=10&&ok.checked);
+  n.oninput=check; w.oninput=check; ok.onchange=check;
+  $('back').onclick=()=>{phase='q';render();};
+  send.onclick=()=>showResult(n.value.trim().split(' ')[0]);
+}
+
+function showResult(first){
+  const list=regimes(), b=best(list), p=PLAN, rev=a.monthlyRevenue*100, quote=needsQuote();
+  const max=Math.max(...list.map(r=>r.tax));
+  const worst=list.filter(r=>r.ok).sort((x,y)=>y.tax-x.tax)[0], diff=(worst.tax-b.tax)*12;
+  setHead('Resultado', 100);
+  body.innerHTML = `<div class="res">
+    <div>
+      <div class="q">${first}, este é o seu cenário</div>
+      <p class="q-help" style="margin-bottom:18px">Valores por mês. <span class="ph">alíquotas ilustrativas</span></p>
+      <div class="kpis">
+        <div class="kpi"><span>Faturamento</span><b class="num">${brl(rev)}</b></div>
+        <div class="kpi"><span>Imposto estimado</span><b class="num">${brl(b.tax)}</b></div>
+        <div class="kpi good"><span>Depois do imposto</span><b class="num">${brl(rev-b.tax)}</b></div>
+      </div>
+      <div class="regs">${list.map(r=>`
+        <div class="reg ${r===b?'best':''} ${r.ok?'':'na'}">
+          <span>${r.name}${r===b?'<span class="best-tag">melhor opção</span>':''}</span>
+          <span class="track"><i data-w="${r.ok?Math.max(3,r.tax/max*100):0}"></i></span>
+          <span class="v num">${r.ok?brl(r.tax):'não se aplica'}</span>
+        </div>`).join('')}</div>
+      <p class="insight">${diff>0?`No regime certo, a economia pode chegar a <b>${brl(diff)} por ano</b> em relação ao regime mais caro para o seu perfil.`:'No seu faturamento os regimes ficam próximos. O contador pode achar detalhes que mudam esse resultado.'}</p>
+    </div>
+    <div class="rec">
+      <small>${quote?'Sua empresa precisa de um orçamento sob medida':'Quanto sobra por mês, já pagando a Exactra'}</small>
+      ${quote?`<h3>Vamos montar o seu preço</h3><p style="margin-top:10px">Com mais de 3 funcionários, a folha muda o valor. Um contador te passa o preço pelo WhatsApp.</p>`
+        :`<h3 class="num">${brl(rev-b.tax-p.price)}</h3>
+      <p style="margin-top:8px">Faturamento, menos o imposto estimado, menos ${brl(p.price)} do ${p.name}.</p>`}
+      <ul>${p.feats.map(f=>`<li><svg width="18" height="18"><use href="#i-check"/></svg>${f}</li>`).join('')}</ul>
+      ${quote?'<a class="btn btn-red btn-block" href="#contato">Pedir orçamento</a>':`<a class="btn btn-red btn-block" href="#">Contratar o ${p.name}</a>`}
+      <a class="btn btn-ghost btn-block" href="#"><svg width="18" height="18"><use href="#i-wa"/></svg>Revisar com um contador</a>
+    </div>
+  </div>`;
+  actions.innerHTML = `<button class="linkbtn" id="restart">Refazer simulação</button>`;
+  $('restart').onclick=()=>{i=0;phase='q';Object.assign(a,{profile:null,monthlyRevenue:15000,hasCnpj:null,employees:null,currentRegime:null});render();};
+  $('sim').scrollIntoView({behavior:'smooth',block:'start'});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>body.querySelectorAll('.track i').forEach(x=>x.style.width=x.dataset.w+'%')));
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model EmailCampaign {
+  id         String @id @default(cuid())
+  subject    String
+  message    String
+  createdAt  DateTime @default(now())
+  createdBy  String
+  recipients EmailRecipient[]
+
+  @@index([createdAt])
+}
+
+// Snapshots preserve the original recipients even if a customer changes or is deleted.
+model EmailRecipient {
+  id                String @id @default(cuid())
+  campaignId        String
+  campaign          EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId        String
+  name              String
+  email             String
+  status            EmailDeliveryStatus @default(PENDING)
+  providerMessageId String? @unique
+  lastEventAt       DateTime?
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@unique([campaignId, customerId])
+}
+
+// ---------- Better Auth (user, session, account, verification, twoFactor) ----------
+
+model User {
+  id               String           @id
+  name             String
+  email            String           @unique
+  emailVerified    Boolean          @default(false)
+  image            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+  role             String?
+  banned           Boolean?         @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  twoFactorEnabled Boolean?         @default(false)
+  sessions         Session[]
+  accounts         Account[]
+  twofactors       TwoFactor[]
+  memberships      CompanyMember[]
+  invites          CustomerInvite[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([secret])
+  @@index([userId])
+  @@map("twoFactor")
+}
+
+// ---------- Domain ----------
+
+// "exactra" is the single plan on sale (docs/plano.md, decision 20). The others stay for stored contracts.
+enum PlanId {
+  essencial
+  profissional
+  empresarial
+  exactra
+}
+
+enum BillingPeriod {
+  MONTHLY
+  QUARTERLY
+  SEMIANNUAL
+  ANNUAL
+}
+
+enum PaymentMethod {
+  CARD
+  PIX
+  BOLETO
+  OTHER
+}
+
+enum PaymentProviderId {
+  /// Only on old staging test contracts (decision 42).
+  STRIPE
+  MERCADO_PAGO
+}
+
+enum ContractStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum ContractSource {
+  CHECKOUT
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  name         String
+  whatsapp     String
+  email        String?
+  answers      Json
+  result       Json
+  rulesVersion String
+  utm          Json?
+  consentAt    DateTime
+  createdAt    DateTime   @default(now())
+  customers    Customer[]
+
+  @@index([createdAt])
+}
+
+model Customer {
+  id               String            @id @default(cuid())
+  name             String
+  email            String
+  phone            String
+  document         String
+  consentAt        DateTime
+  leadId           String?
+  lead             Lead?             @relation(fields: [leadId], references: [id])
+  createdAt        DateTime          @default(now())
+  contracts        Contract[]
+  // Customer area (docs/plano.md, decisions 24–30)
+  /// CompanyProfile from @exactra/shared (onboarding), drives the monthly checklist.
+  profile          Json?
+  onboardedAt      DateTime?
+  remindersEnabled Boolean           @default(true)
+  /// ChecklistItem ids (templates) turned off for this company.
+  disabledItemIds  String[]          @default([])
+  members          CompanyMember[]
+  files            StoredFile[]
+  documentRequests DocumentRequest[]
+  guides           TaxGuide[]
+  checklistItems   ChecklistItem[]
+  notifications    NotificationLog[]
+
+  @@index([email])
+}
+
+model Contract {
+  id                   String         @id @default(cuid())
+  customerId           String
+  customer             Customer       @relation(fields: [customerId], references: [id])
+  plan                 PlanId
+  period               BillingPeriod
+  method               PaymentMethod
+  provider             PaymentProviderId @default(MERCADO_PAGO)
+  amountCents          Int
+  status               ContractStatus @default(PENDING_PAYMENT)
+  source               ContractSource @default(CHECKOUT)
+  statusToken          String         @unique
+  startsAt             DateTime?
+  endsAt               DateTime?
+  mercadoPagoPreferenceId String?      @unique
+  expiryNoticeSentAt   DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  payments             Payment[]
+
+  @@index([status])
+  @@index([endsAt])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  contractId            String
+  contract              Contract      @relation(fields: [contractId], references: [id])
+  amountCents           Int
+  status                PaymentStatus
+  method                PaymentMethod
+  mercadoPagoPaymentId   String?       @unique
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+
+  @@index([contractId])
+}
+
+model WebhookEvent {
+  id            String   @id @default(cuid())
+  eventId       String   @unique
+  type          String
+  payload       Json
+  processedAt   DateTime @default(now())
+}
+
+// ---------- Customer area ----------
+
+enum MemberRole {
+  OWNER
+  MEMBER
+}
+
+/// Login (Better Auth user with role "customer") ↔ company. N:N so one person can have several CNPJs.
+model CompanyMember {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  role       MemberRole @default(OWNER)
+  lastSeenAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@unique([userId, customerId])
+  @@index([customerId])
+}
+
+/// Activation link sent by e-mail: the customer sets the first password. Only the SHA-256 of the token is stored.
+model CustomerInvite {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum FileKind {
+  DOCUMENT
+  GUIDE
+  RECEIPT
+}
+
+/// Object in the storage (R2). uploadedAt stays null until the upload is confirmed.
+model StoredFile {
+  id           String           @id @default(cuid())
+  customerId   String
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  kind         FileKind
+  storageKey   String           @unique
+  fileName     String
+  contentType  String
+  sizeBytes    Int
+  competence   String
+  requestId    String?
+  request      DocumentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  uploadedById String?
+  /// true when the Exactra team uploaded it (guides).
+  byStaff      Boolean          @default(false)
+  uploadedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  guide        TaxGuide?        @relation("GuideFile")
+  receiptOf    TaxGuide?        @relation("GuideReceipt")
+
+  @@index([customerId, competence])
+  @@index([uploadedAt])
+}
+
+/// Checklist template (customerId null) or an extra item of one company.
+model ChecklistItem {
+  id               String            @id @default(cuid())
+  customerId       String?
+  customer         Customer?         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  required         Boolean           @default(true)
+  /// ChecklistAppliesTo from @exactra/shared.
+  appliesTo        Json              @default("{}")
+  active           Boolean           @default(true)
+  sortOrder        Int               @default(100)
+  /// First competence (YYYY-MM) that asks for it. null = every month.
+  startsCompetence String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  requests         DocumentRequest[]
+
+  @@index([customerId])
+}
+
+enum DocumentRequestStatus {
+  PENDING
+  SENT
+  REJECTED
+}
+
+/// One checklist item for one company and one competence ("2026-10"). Created by the daily job or on first access.
+model DocumentRequest {
+  id              String                @id @default(cuid())
+  customerId      String
+  customer        Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  itemId          String?
+  item            ChecklistItem?        @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  competence      String
+  title           String
+  description     String?
+  required        Boolean               @default(true)
+  dueDate         DateTime              @db.Date
+  status          DocumentRequestStatus @default(PENDING)
+  sentAt          DateTime?
+  rejectionReason String?
+  rejectionNote   String?
+  rejectedAt      DateTime?
+  createdAt       DateTime              @default(now())
+  files           StoredFile[]
+
+  @@unique([customerId, competence, itemId])
+  @@index([competence, status])
+}
+
+enum GuideType {
+  DAS
+  DARF
+  FGTS
+  INSS
+  ISS
+  ICMS
+  IRPF
+  OTHER
+}
+
+/// Tax guide published by the Exactra team. Status (open/paid/overdue) is computed from paidAt and dueDate.
+model TaxGuide {
+  id            String      @id @default(cuid())
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type          GuideType
+  label         String?
+  competence    String
+  amountCents   Int
+  dueDate       DateTime    @db.Date
+  /// Digits of a checked line (every check digit and the amount matched), or null.
+  barcode       String?
+  fileId        String      @unique
+  file          StoredFile  @relation("GuideFile", fields: [fileId], references: [id])
+  /// Reported by the customer ("Já paguei"); Exactra cannot confirm it automatically.
+  paidAt        DateTime?
+  receiptFileId String?     @unique
+  receipt       StoredFile? @relation("GuideReceipt", fields: [receiptFileId], references: [id], onDelete: SetNull)
+  publishedById String?
+  publishedAt   DateTime    @default(now())
+
+  @@index([customerId, dueDate])
+  @@index([dueDate, paidAt])
+}
+
+/// E-mails already sent by the jobs, so a retry or a second run never sends twice.
+model NotificationLog {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  kind       String
+  ref        String
+  sentAt     DateTime @default(now())
+
+  @@unique([customerId, kind, ref])
+}
