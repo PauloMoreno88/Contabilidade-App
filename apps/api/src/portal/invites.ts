@@ -3,6 +3,7 @@ import { renderPortalInviteEmail } from '@exactra/emails';
 import { createHash, randomBytes } from 'node:crypto';
 import { PORTAL_RULES } from '@exactra/shared';
 import { auth } from '../auth.js';
+import { DEACTIVATION_BAN } from './customer-removal.js';
 import { prisma } from '../db.js';
 import { sendEmail } from '../email.js';
 import type { Customer } from '../generated/prisma/client.js';
@@ -30,6 +31,10 @@ export async function ensurePortalUser(customer: Customer): Promise<{ userId: st
     return null;
   }
   let userId = existing?.id;
+  // A login banned when its old company was deactivated comes back with the new, active company.
+  if (existing?.banned && existing.banReason === DEACTIVATION_BAN && !customer.deactivatedAt) {
+    await prisma.user.update({ where: { id: existing.id }, data: { banned: false, banReason: null, banExpires: null } });
+  }
   if (!userId) {
     // Random password nobody knows: the customer sets the real one through the activation link.
     const created = await auth.api.createUser({

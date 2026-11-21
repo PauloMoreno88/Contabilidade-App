@@ -38,6 +38,7 @@ import {
   type CreateLeadInput,
   type CreateManualCustomerInput,
   type CreateUploadInput,
+  type DeleteCustomerInput,
   type MarkGuidePaidInput,
   type OnboardingInput,
   type RejectDocumentInput,
@@ -151,6 +152,9 @@ export const portalHttpApi = {
   adminUpdateCustomer: (id: string, input: UpdateCustomerInput) =>
     json(adminCustomerDetailSchema, `/admin/customers/${enc(id)}`, { method: "PATCH", body: input, ...s }),
   adminInvite: (id: string) => json(inviteResponseSchema, `/admin/customers/${enc(id)}/invite`, { method: "POST", ...s }),
+  adminDeactivateCustomer: (id: string) => json(adminCustomerDetailSchema, `/admin/customers/${enc(id)}/deactivate`, { method: "POST", ...s }),
+  adminReactivateCustomer: (id: string) => json(adminCustomerDetailSchema, `/admin/customers/${enc(id)}/reactivate`, { method: "POST", ...s }),
+  adminDeleteCustomer: async (id: string, input: DeleteCustomerInput) => void (await send(`/admin/customers/${enc(id)}`, { method: "DELETE", body: input, ...s })),
   adminDocuments: (id: string, competence?: string) => json(documentsMonthSchema, `/admin/customers/${enc(id)}/documents`, { query: { competence }, ...s }),
   adminReject: (requestId: string, input: RejectDocumentInput) =>
     json(ok, `/admin/document-requests/${enc(requestId)}/reject`, { method: "POST", body: input, ...s }),

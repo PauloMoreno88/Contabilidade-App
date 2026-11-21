@@ -75,7 +75,7 @@ export class AdminController {
     const active = { status: 'ACTIVE' } as const;
     const [activeCustomers, newThisMonth, revenue, pendingPayment, expiringIn30Days, byPlan, byMethod] =
       await Promise.all([
-        prisma.customer.count({ where: { contracts: { some: active } } }),
+        prisma.customer.count({ where: { deactivatedAt: null, contracts: { some: active } } }),
         prisma.contract.count({ where: { startsAt: { gte: monthStart } } }),
         prisma.contract.aggregate({ where: active, _sum: { amountCents: true } }),
         prisma.contract.count({ where: { status: 'PENDING_PAYMENT' } }),

@@ -3,9 +3,10 @@
 import { feedbackCopy } from "@/config/feedback";
 import { Loading } from "@/components/common/Loading";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
-import type { AdminCustomersQuery } from "@exactra/shared";
+import { CUSTOMER_LIST_STATUSES, type AdminCustomersQuery } from "@exactra/shared";
 import { adminCopy } from "@/config/admin";
 import { accessLabels, adminPortalCopy } from "@/config/admin-portal";
 import { api } from "@/lib/api";
@@ -17,9 +18,15 @@ import { NewUserDrawer } from "./NewUserDrawer";
 const copy = adminPortalCopy.customers;
 
 export function Customers() {
-  const [query, setQuery] = useState<AdminCustomersQuery>({ page: 1 });
+  const router = useRouter();
+  const deleted = useSearchParams().get("apagado");
+  // The notice is read once; the URL goes back to plain /admin/clientes.
+  useEffect(() => {
+    if (deleted) router.replace("/admin/clientes");
+  }, [deleted, router]);
+  const [query, setQuery] = useState<AdminCustomersQuery>({ page: 1, status: "active" });
   const [drawer, setDrawer] = useState(false);
-  const [notice, setNotice] = useState<string>();
+  const [notice, setNotice] = useState<string | undefined>(deleted ? copy.deleted(deleted) : undefined);
   const rows = useLoad(() => api.adminCustomers(query), [JSON.stringify(query)]);
 
   return (
@@ -34,10 +41,23 @@ export function Customers() {
       </div>
       {notice && <p role="status" className="mb-4 rounded-xl bg-ok-tint px-4 py-3 text-[0.88rem]">{notice}</p>}
       {drawer && <NewUserDrawer onClose={() => setDrawer(false)} onAdminCreated={(email) => setNotice(copy.adminCreated(email))} />}
+      <div role="group" aria-label={copy.status.active} className="mb-3 flex gap-2">
+        {CUSTOMER_LIST_STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={query.status === s}
+            onClick={() => setQuery((q) => ({ ...q, status: s, page: 1 }))}
+            className="rounded-full border border-line bg-surface px-3 py-1 text-[0.84rem] aria-pressed:border-navy aria-pressed:bg-navy aria-pressed:text-white"
+          >
+            {copy.status[s]}
+          </button>
+        ))}
+      </div>
       <label className="relative mb-4 block">
         <span className="sr-only">{copy.search}</span>
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
-        <input type="search" placeholder={copy.search} className="field-input bg-surface py-2 pl-9" onChange={(e) => setQuery({ q: e.target.value || undefined, page: 1 })} />
+        <input type="search" placeholder={copy.search} className="field-input bg-surface py-2 pl-9" onChange={(e) => setQuery((q) => ({ ...q, q: e.target.value || undefined, page: 1 }))} />
       </label>
       {rows.error && <p className="text-brand">{adminCopy.loadError}</p>}
       {!rows.data && !rows.error && <Loading />}
@@ -55,6 +75,7 @@ export function Customers() {
                 <tr key={c.id} className="border-b border-line last:border-b-0 hover:bg-surface-2/50">
                   <td className="px-4 py-3">
                     <Link href={`/admin/cliente?id=${c.id}`} className="font-medium hover:underline">{c.name}</Link>
+                    {c.deactivatedAt && <span className="ml-2 rounded-full bg-brand-tint px-2 py-0.5 text-[0.72rem] text-brand-dark">{copy.deactivated}</span>}
                     <span className="block text-[0.78rem] text-faint">{c.email}</span>
                   </td>
                   <td className="px-4 py-3 tabular-nums">{formatDocument(c.document)}</td>

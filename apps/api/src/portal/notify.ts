@@ -18,6 +18,8 @@ export async function recipientsOf(customer: Customer): Promise<string[]> {
 }
 
 export async function sendToCompany(customer: Customer, email: EmailContent) {
+  // Deactivated companies get no e-mail (docs/specs/remover-cliente.md).
+  if (customer.deactivatedAt) return;
   for (const to of await recipientsOf(customer)) await sendEmail({ to, ...email });
 }
 
@@ -26,6 +28,7 @@ export async function sendToCompany(customer: Customer, email: EmailContent) {
  * The log row is written first; if sending fails it is removed so the next run tries again.
  */
 export async function sendOnce(customer: Customer, kind: string, ref: string, render: () => Promise<EmailContent>): Promise<boolean> {
+  if (customer.deactivatedAt) return false;
   const { count } = await prisma.notificationLog.createMany({ data: { customerId: customer.id, kind, ref }, skipDuplicates: true });
   if (count === 0) return false;
   try {
