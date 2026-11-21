@@ -45,7 +45,7 @@ export async function addItemToOpenMonth(item: ChecklistItem): Promise<number> {
   const competence = currentDocumentsCompetence();
   if (!item.active || !itemStarted(item.startsCompetence, competence)) return 0;
   const customers = await prisma.customer.findMany({
-    where: { ...(item.customerId ? { id: item.customerId } : {}), documentRequests: { some: { competence } } },
+    where: { ...(item.customerId ? { id: item.customerId } : {}), deactivatedAt: null, documentRequests: { some: { competence } } },
     select: { id: true, profile: true, disabledItemIds: true },
   });
   const targets = customers.filter((c) => itemFits(item, c) && !c.disabledItemIds.includes(item.id));

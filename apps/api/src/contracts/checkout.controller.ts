@@ -50,7 +50,7 @@ export class CheckoutController {
     // A returning customer (same CPF/CNPJ and e-mail, already with a login) keeps the same company,
     // so the new contract shows up in the customer area they already use.
     const returning = await prisma.customer.findFirst({
-      where: { document, email: { equals: customer.email, mode: 'insensitive' }, members: { some: {} } },
+      where: { document, email: { equals: customer.email, mode: 'insensitive' }, deactivatedAt: null, members: { some: {} } },
       orderBy: { createdAt: 'desc' },
     });
     const contract = await prisma.contract.create({

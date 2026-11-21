@@ -32,7 +32,8 @@ export class ExpiryJob {
     });
 
     const due = await prisma.contract.findMany({
-      where: { ...prepaid, expiryNoticeSentAt: null, endsAt: { lte: new Date(now.getTime() + EXPIRY_NOTICE_DAYS * 86400_000) } },
+      // Deactivated companies get no notice; it goes out if they are reactivated before the end.
+      where: { ...prepaid, expiryNoticeSentAt: null, customer: { deactivatedAt: null }, endsAt: { lte: new Date(now.getTime() + EXPIRY_NOTICE_DAYS * 86400_000) } },
       include: { customer: true },
     });
     let notified = 0;

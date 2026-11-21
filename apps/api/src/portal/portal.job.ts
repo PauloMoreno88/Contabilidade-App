@@ -49,7 +49,7 @@ export class PortalJob {
     const daysToDue = daysUntil(dueDate, now);
     const stats = { opened: 0, docReminders: 0, guideReminders: 0, retentionNotices: 0, filesDeleted: 0 };
 
-    const customers = await prisma.customer.findMany({ include: { contracts: true, members: true } });
+    const customers = await prisma.customer.findMany({ where: { deactivatedAt: null }, include: { contracts: true, members: true } });
     for (const c of customers) {
       if (customerAccess(c.contracts, now).level !== 'FULL' || !c.members.length) continue;
 

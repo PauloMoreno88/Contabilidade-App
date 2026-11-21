@@ -30,6 +30,8 @@ export const auth = betterAuth({
     disableSignUp: true,
     resetPasswordTokenExpiresIn: RESET_TOKEN_MINUTES * 60,
     sendResetPassword: async ({ user, url }) => {
+      // A banned login (deactivated company) gets nothing; it could not sign in anyway.
+      if ((user as { banned?: boolean | null }).banned) return;
       await sendEmail({
         to: user.email,
         ...(await renderPasswordResetEmail({ name: user.name, url, expiresInMinutes: RESET_TOKEN_MINUTES })),

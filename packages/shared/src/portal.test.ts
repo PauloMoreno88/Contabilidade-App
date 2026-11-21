@@ -194,3 +194,12 @@ describe("guides and documents", () => {
     expect(itemStarted("2026-10", "2027-01")).toBe(true);
   });
 });
+
+describe("sameCompanyName", () => {
+  it("ignores case, accents and extra spaces, but not other letters", async () => {
+    const { sameCompanyName } = await import("./portal-admin");
+    expect(sameCompanyName("  café  são joão ", "Café São João")).toBe(true);
+    expect(sameCompanyName("CAFE SAO JOAO", "Café São João")).toBe(true);
+    expect(sameCompanyName("Café São", "Café São João")).toBe(false);
+  });
+});

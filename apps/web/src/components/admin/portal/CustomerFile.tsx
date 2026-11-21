@@ -28,6 +28,7 @@ import { formatBRLExact, formatDate, formatDay, formatDocument } from "@/lib/for
 import { FileList, openSigned } from "@/components/portal/files";
 import { useLoad } from "../useLoad";
 import { StartPicker, startsLater } from "./ChecklistTemplates";
+import { CustomerDangerZone } from "./CustomerDangerZone";
 
 const copy = adminPortalCopy.file;
 const TABS = ["documents", "guides", "access", "checklist"] as const;
@@ -65,6 +66,12 @@ export function CustomerFile() {
           {copy.publish}
         </Link>
       </div>
+      {c.deactivatedAt && (
+        <p role="status" className="mb-5 rounded-xl border border-brand/30 bg-brand-tint px-4 py-3 text-[0.88rem]">
+          {adminPortalCopy.remove.banner(formatDate(c.deactivatedAt))}{" "}
+          <button type="button" onClick={() => go("access")} className="underline">{adminPortalCopy.remove.title}</button>
+        </p>
+      )}
       <div role="tablist" className="mb-5 flex flex-wrap gap-x-1 border-b border-line">
         {TABS.map((t) => (
           <button
@@ -294,6 +301,8 @@ function AccessTab({ c, onChange }: { c: AdminCustomerDetail; onChange: () => vo
           ))}
         </ul>
       </section>
+
+      <CustomerDangerZone c={c} onChange={onChange} />
     </div>
   );
 }

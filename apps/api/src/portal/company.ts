@@ -20,11 +20,17 @@ const RANK: Record<AccessLevel, number> = { FULL: 0, READ_ONLY: 1, PENDING: 2, B
  */
 export async function companyFor(session: UserSession): Promise<CompanyContext> {
   const members = await prisma.companyMember.findMany({
-    where: { userId: session.user.id },
+    // A deactivated company is gone for its logins at once, even with a session still in the cookie cache.
+    where: { userId: session.user.id, customer: { deactivatedAt: null } },
     include: { customer: { include: { contracts: true } } },
     orderBy: { createdAt: 'desc' },
   });
-  if (!members.length) throw new NotFoundException('Nenhuma empresa vinculada a este login.');
+  if (!members.length) {
+    if (await prisma.companyMember.count({ where: { userId: session.user.id } })) {
+      throw new ForbiddenException('O acesso desta empresa foi desativado. Fale com a Exactra.');
+    }
+    throw new NotFoundException('Nenhuma empresa vinculada a este login.');
+  }
   const ranked = members
     .map((m) => ({ m, access: customerAccess(m.customer.contracts) }))
     .sort((a, b) => RANK[a.access.level] - RANK[b.access.level]);
