@@ -79,7 +79,8 @@ export class PortalController {
   async me(@Session() session: UserSession): Promise<PortalMe> {
     const user = { id: session.user.id, name: session.user.name, email: session.user.email, twoFactorEnabled: Boolean((session.user as { twoFactorEnabled?: boolean | null }).twoFactorEnabled) };
     const ctx = await companyFor(session).catch((err: unknown) => {
-      if (err instanceof NotFoundException) return null;
+      // No company, or only deactivated ones (403 while the session is still in the cookie cache).
+      if (err instanceof NotFoundException || err instanceof ForbiddenException) return null;
       throw err;
     });
     if (!ctx) return { user, company: null, access: { level: 'BLOCKED', endsAt: null, readOnlyUntil: null }, onboarded: false };

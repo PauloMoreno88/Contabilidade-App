@@ -72,8 +72,9 @@ export type AdminMonthPage = z.infer<typeof adminMonthPageSchema>;
 
 // ---------- Customers ----------
 
-/** GET /admin/customers */
-export const adminCustomersQuerySchema = z.object(pageQuery);
+/** GET /admin/customers. `inactive` lists the deactivated ones. */
+export const CUSTOMER_LIST_STATUSES = ["active", "inactive"] as const;
+export const adminCustomersQuerySchema = z.object({ ...pageQuery, status: z.enum(CUSTOMER_LIST_STATUSES).default("active") });
 export type AdminCustomersQuery = z.input<typeof adminCustomersQuerySchema>;
 
 export const adminCustomerRowSchema = z.object({
@@ -86,6 +87,7 @@ export const adminCustomerRowSchema = z.object({
   invitePending: z.boolean(),
   endsAt: z.string().nullable(),
   createdAt: z.string(),
+  deactivatedAt: z.string().nullable(),
 });
 export type AdminCustomerRow = z.infer<typeof adminCustomerRowSchema>;
 export const adminCustomersPageSchema = paginated(adminCustomerRowSchema);
@@ -148,8 +150,22 @@ export const adminCustomerDetailSchema = z.object({
   disabledItemIds: z.array(z.string()),
   /** Items that apply to this company this month: templates (after the profile filter) and its own extras. */
   checklist: z.array(checklistItemSchema.extend({ applies: z.boolean(), disabled: z.boolean() })),
+  /** "Desativar": no login, hidden from lists, no automatic e-mails. */
+  deactivatedAt: z.string().nullable(),
+  /** false when a contract was paid through the site: only "Desativar" is allowed. */
+  canDelete: z.boolean(),
 });
 export type AdminCustomerDetail = z.infer<typeof adminCustomerDetailSchema>;
+
+/** DELETE /admin/customers/:id: the company name typed again, checked by the API. */
+export const deleteCustomerSchema = z.object({ confirmName: z.string().trim().min(1).max(200) });
+export type DeleteCustomerInput = z.infer<typeof deleteCustomerSchema>;
+
+/** Same company name, ignoring case, accents and repeated or edge spaces. */
+export const sameCompanyName = (a: string, b: string) => {
+  const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
+  return norm(a) === norm(b);
+};
 
 /** POST /admin/customers: a customer who did not come through the checkout (decision 28). */
 export const createManualCustomerSchema = z

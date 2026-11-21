@@ -15,7 +15,7 @@ export function messageHtml(message: string): string {
 export class BulkEmailController {
   @Get('recipients')
   recipients() {
-    return prisma.customer.findMany({ select: { id: true, name: true, email: true }, orderBy: { name: 'asc' } });
+    return prisma.customer.findMany({ where: { deactivatedAt: null }, select: { id: true, name: true, email: true }, orderBy: { name: 'asc' } });
   }
 
   @Get()
@@ -39,7 +39,7 @@ export class BulkEmailController {
   @Post()
   async send(@Body(new ZodPipe(bulkEmailSchema)) input: BulkEmailInput, @Session() session: UserSession) {
     const ids = [...new Set(input.customerIds)];
-    const customers = await prisma.customer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, email: true } });
+    const customers = await prisma.customer.findMany({ where: { id: { in: ids }, deactivatedAt: null }, select: { id: true, name: true, email: true } });
     if (customers.length !== ids.length) throw new BadRequestException('Um cliente não existe mais. Atualize a lista antes de enviar.');
     const campaign = await prisma.emailCampaign.create({ data: {
       subject: input.subject, message: input.message, createdBy: session.user.email,

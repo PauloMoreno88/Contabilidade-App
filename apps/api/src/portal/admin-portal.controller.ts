@@ -30,6 +30,7 @@ import {
   CURRENT_PLAN,
   CONTRACT_PERIOD,
   daysUntil,
+  deleteCustomerSchema,
   documentsDueDate,
   guideStatus,
   normalizeTaxId,
@@ -46,6 +47,7 @@ import {
   type ChecklistItem as ChecklistItemDto,
   type CreateGuideInput,
   type CreateUploadInput,
+  type DeleteCustomerInput,
   type DocumentsMonth,
   type GuideParseResult,
   type RejectDocumentInput,
@@ -56,6 +58,7 @@ import { prisma } from '../db.js';
 import { Prisma, type ChecklistItem } from '../generated/prisma/client.js';
 import { StorageProvider } from '../storage/storage-provider.js';
 import { ZodPipe } from '../zod.pipe.js';
+import { canDeleteCustomer, deactivateCustomer, deleteCustomer, reactivateCustomer } from './customer-removal.js';
 import { addItemToOpenMonth, checklistFor, documentsMonth, ensureRequests, profileOf } from './documents.js';
 import { extractPdfText, parseGuideText } from './guide-parser.js';
 import { isActivated, sendInvite } from './invites.js';
@@ -112,7 +115,7 @@ export class AdminPortalController {
     const current = currentDocumentsCompetence();
     const competence = f.competence ?? current;
     const customers = await prisma.customer.findMany({
-      where: { ...searchWhere(f.q), contracts: { some: { startsAt: { not: null } } } },
+      where: { ...searchWhere(f.q), deactivatedAt: null, contracts: { some: { startsAt: { not: null } } } },
       include: {
         contracts: true,
         members: { include: memberInclude },
@@ -190,7 +193,11 @@ export class AdminPortalController {
 
   @Get('customers')
   async customers(@Query(new ZodPipe(adminCustomersQuerySchema)) f: CustomersQuery): Promise<AdminCustomersPage> {
-    const where = { ...searchWhere(f.q), contracts: { some: { OR: [{ startsAt: { not: null } }, { source: 'MANUAL' as const }] } } };
+    const where: Prisma.CustomerWhereInput = {
+      ...searchWhere(f.q),
+      deactivatedAt: f.status === 'inactive' ? { not: null } : null,
+      contracts: { some: { OR: [{ startsAt: { not: null } }, { source: 'MANUAL' }] } },
+    };
     const [items, total] = await Promise.all([
       prisma.customer.findMany({
         where,
@@ -216,6 +223,7 @@ export class AdminPortalController {
           invitePending: !hasLogin && users.some((u) => u.invites[0] && !u.invites[0].usedAt && u.invites[0].expiresAt > new Date()),
           endsAt: access.endsAt,
           createdAt: c.createdAt.toISOString(),
+          deactivatedAt: c.deactivatedAt?.toISOString() ?? null,
         };
       }),
       total,
@@ -271,6 +279,8 @@ export class AdminPortalController {
         })),
       disabledItemIds: c.disabledItemIds,
       checklist: checklist.map(({ item, applies, disabled }) => ({ ...toItem(item), applies, disabled })),
+      deactivatedAt: c.deactivatedAt?.toISOString() ?? null,
+      canDelete: await canDeleteCustomer(c.id),
     };
   }
 
@@ -328,11 +338,34 @@ export class AdminPortalController {
   async invite(@Param('id') id: string) {
     const c = await prisma.customer.findUnique({ where: { id } });
     if (!c) throw new NotFoundException();
+    if (c.deactivatedAt) throw new ConflictException('Este cliente está desativado. Reative antes de enviar o convite.');
     const member = await prisma.companyMember.findFirst({ where: { customerId: id }, orderBy: { createdAt: 'asc' } });
     if (member && (await isActivated(member.userId))) throw new ConflictException('Este cliente já ativou o acesso. Para trocar a senha, use "Esqueci minha senha".');
     const sent = await sendInvite(c);
     if (!sent) throw new ConflictException('O e-mail deste cliente pertence a uma conta da equipe. Altere o e-mail do cliente.');
     return { email: sent.email, expiresAt: sent.expiresAt.toISOString() };
+  }
+
+  /** "Desativar" (soft delete) and "Reativar": docs/specs/remover-cliente.md. */
+  @Post('customers/:id/deactivate')
+  @HttpCode(200)
+  async deactivate(@Param('id') id: string, @Session() session: UserSession) {
+    await deactivateCustomer(id, session.user.id);
+    return this.customer(id);
+  }
+
+  @Post('customers/:id/reactivate')
+  @HttpCode(200)
+  async reactivate(@Param('id') id: string, @Session() session: UserSession) {
+    await reactivateCustomer(id, session.user.id);
+    return this.customer(id);
+  }
+
+  /** "Apagar": for good, files included. Needs the company name typed again; refused for contracts paid online. */
+  @Delete('customers/:id')
+  @HttpCode(204)
+  async remove(@Param('id') id: string, @Body(new ZodPipe(deleteCustomerSchema)) input: DeleteCustomerInput, @Session() session: UserSession) {
+    await deleteCustomer(id, input.confirmName, session.user.id, this.storage);
   }
 
   // ---------- Documents ----------

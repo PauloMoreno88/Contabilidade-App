@@ -30,6 +30,7 @@ import {
   type UpdateCustomerInput,
   type UploadTicket,
   type UpsertChecklistItemInput,
+  sameCompanyName,
 } from "@exactra/shared";
 import { ApiError, type portalHttpApi } from "./http";
 
@@ -51,7 +52,7 @@ type MockGuide = Omit<PortalGuide, "status" | "file" | "receipt"> & { customerId
 type MockCustomer = {
   id: string; name: string; email: string; phone: string; document: string; createdAt: string;
   profile: CompanyProfile | null; onboardedAt: string | null; remindersEnabled: boolean; disabledItemIds: string[];
-  endsAt: string; startsAt: string; hasLogin: boolean; lastSeenAt: string | null;
+  endsAt: string; startsAt: string; hasLogin: boolean; lastSeenAt: string | null; deactivatedAt?: string | null;
 };
 type State = { customers: MockCustomer[]; items: ChecklistItem[]; requests: MockRequest[]; files: MockFile[]; guides: MockGuide[] };
 
@@ -432,9 +433,11 @@ export const mockPortalApi: PortalApi = {
   async adminCustomers(query = {}) {
     await delay();
     const q = query.q?.toLowerCase();
+    const inactive = query.status === "inactive";
     const items = state()
-      .customers.filter((c) => !q || c.name.toLowerCase().includes(q) || c.email.includes(q) || c.document.includes(q))
-      .map((c) => ({ id: c.id, name: c.name, email: c.email, document: c.document, access: accessOf(c).level, hasLogin: c.hasLogin, invitePending: !c.hasLogin, endsAt: c.endsAt, createdAt: c.createdAt }));
+      .customers.filter((c) => Boolean(c.deactivatedAt) === inactive)
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.email.includes(q) || c.document.includes(q))
+      .map((c) => ({ id: c.id, name: c.name, email: c.email, document: c.document, access: accessOf(c).level, hasLogin: c.hasLogin, invitePending: !c.hasLogin, endsAt: c.endsAt, createdAt: c.createdAt, deactivatedAt: c.deactivatedAt ?? null }));
     return { items, total: items.length, page: 1, pageSize: 30 };
   },
   async adminCustomer(id) {
@@ -450,6 +453,9 @@ export const mockPortalApi: PortalApi = {
       checklist: s.items
         .filter((i) => i.active && (!i.customerId || i.customerId === c.id))
         .map((i) => ({ ...i, applies: Boolean(i.customerId) || itemApplies(checklistAppliesToSchema.parse(i.appliesTo), c.profile), disabled: c.disabledItemIds.includes(i.id) })),
+      deactivatedAt: c.deactivatedAt ?? null,
+      // Mock: only the manual customer (cus_5) and the ones created here have no contract paid online.
+      canDelete: c.id === "cus_5" || c.id.length > 6,
     };
     return detail;
   },
@@ -472,6 +478,30 @@ export const mockPortalApi: PortalApi = {
     if (input.profile !== undefined) c.profile = input.profile;
     save();
     return mockPortalApi.adminCustomer(id);
+  },
+  async adminDeactivateCustomer(id) {
+    await delay();
+    customer(id).deactivatedAt = new Date().toISOString();
+    save();
+    return mockPortalApi.adminCustomer(id);
+  },
+  async adminReactivateCustomer(id) {
+    await delay();
+    customer(id).deactivatedAt = null;
+    save();
+    return mockPortalApi.adminCustomer(id);
+  },
+  async adminDeleteCustomer(id, input) {
+    await delay(500);
+    const c = customer(id);
+    if (!(await mockPortalApi.adminCustomer(id)).canDelete) throw new ApiError(409, "Este cliente tem contrato pago ou pagamento em aberto pelo site e não pode ser apagado. Use \"Desativar\".");
+    if (!sameCompanyName(input.confirmName, c.name)) throw new ApiError(400, "O nome digitado não confere com o nome da empresa.");
+    const s = state();
+    s.customers = s.customers.filter((x) => x.id !== id);
+    s.requests = s.requests.filter((x) => x.customerId !== id);
+    s.files = s.files.filter((x) => x.customerId !== id);
+    s.guides = s.guides.filter((x) => x.customerId !== id);
+    save();
   },
   async adminInvite(id) {
     await delay(500);

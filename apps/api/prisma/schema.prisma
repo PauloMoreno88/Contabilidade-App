@@ -219,8 +219,11 @@ model Customer {
   guides           TaxGuide[]
   checklistItems   ChecklistItem[]
   notifications    NotificationLog[]
+  /// "Desativar" (soft delete): no login, hidden from lists, no automatic e-mails. Files are kept.
+  deactivatedAt    DateTime?
 
   @@index([email])
+  @@index([deactivatedAt])
 }
 
 model Contract {
